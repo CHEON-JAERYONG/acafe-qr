@@ -1,0 +1,3309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f1226">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
+<title>☕ 커피 내기 게임</title>
+<style>
+:root{
+  --bg1:#0f1226; --bg2:#171a3a; --bg3:#241a4a;
+  --card:rgba(255,255,255,.06); --card-brd:rgba(255,255,255,.12);
+  --txt:#f3f4ff; --sub:#a6a9d4;
+  --grad:linear-gradient(135deg,#ff7eb3,#ff758c,#ff9a8b,#ffd76f,#7afcff,#a18cd1);
+  --accent:#8b7dff;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+
+/* ===== 기록 · 랭킹 (v2.3.0) ===== */
+.logbtn{position:absolute;top:calc(var(--safe-top) + 10px);right:62px;z-index:6;
+  background:var(--card);border:1px solid var(--card-brd);color:var(--txt);
+  border-radius:12px;padding:8px 12px;font-size:12.5px;font-weight:800;}
+.logtabs{display:flex;gap:6px;margin-bottom:10px;}
+.logtabs button{flex:1;padding:9px 0;border-radius:12px;border:1px solid var(--card-brd);
+  background:var(--card);color:var(--sub);font-size:13px;font-weight:800;}
+.logtabs button.on{background:linear-gradient(135deg,#8b7dff,#ff7eb3);color:#fff;border-color:transparent;}
+#logBody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--safe-bot) + 16px);}
+.logempty{color:var(--sub);font-size:13.5px;font-weight:700;text-align:center;
+  line-height:1.8;padding:48px 10px;}
+.ymrow{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;}
+.ymchip{flex:0 0 auto;padding:6px 12px;border-radius:999px;border:1px solid var(--card-brd);
+  background:var(--card);color:var(--sub);font-size:12px;font-weight:800;}
+.ymchip.on{background:#fff;color:#161a3a;border-color:#fff;}
+/* 시상대 */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;
+  padding:18px 4px 6px;}
+.pod{flex:1;max-width:118px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.podcrown{font-size:28px;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));}
+.podname{font-size:14.5px;font-weight:900;max-width:100%;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.podcnt{font-size:11.5px;font-weight:800;color:var(--sub);margin-bottom:2px;}
+.podbar{width:100%;border-radius:12px 12px 4px 4px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;font-weight:900;color:rgba(0,0,0,.45);
+  box-shadow:0 8px 20px rgba(0,0,0,.35);}
+.podbar.gold{background:linear-gradient(180deg,#ffe89a,#f7c33a);}
+.podbar.silver{background:linear-gradient(180deg,#eef2f6,#b9c4d0);}
+.podbar.bronze{background:linear-gradient(180deg,#f0c39a,#c8834a);}
+.podbar.empty{background:rgba(255,255,255,.05);border:1px dashed var(--card-brd);}
+.podlbl{font-size:11px;font-weight:800;color:var(--sub);}
+.ranklist{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+.rankrow{display:flex;align-items:center;gap:10px;background:var(--card);
+  border:1px solid var(--card-brd);border-radius:12px;padding:9px 12px;}
+.rnum{width:22px;text-align:center;font-size:12px;font-weight:900;color:var(--sub);}
+.rname{flex:1;font-size:14px;font-weight:800;}
+.rcnt{font-size:12.5px;font-weight:800;color:var(--sub);}
+/* 기록 목록 */
+.loglist{display:flex;flex-direction:column;gap:4px;}
+.logday{font-size:12px;font-weight:900;color:var(--sub);margin:12px 2px 4px;}
+.logrow{display:flex;align-items:center;gap:10px;background:var(--card);
+  border:1px solid var(--card-brd);border-radius:11px;padding:8px 11px;}
+.lgtime{font-size:12px;font-weight:800;color:var(--sub);width:42px;}
+.lggame{flex:1;font-size:12.5px;font-weight:700;color:var(--txt);opacity:.85;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lgname{font-size:14px;font-weight:900;}
+.logclear{width:100%;margin:18px 0 6px;padding:12px;border-radius:12px;
+  border:1px solid rgba(255,120,140,.35);background:rgba(255,120,140,.10);
+  color:#ff9aab;font-size:13px;font-weight:800;}
+.logfoot{text-align:center;color:var(--sub);font-size:11px;font-weight:700;
+  opacity:.7;padding:14px 0 6px;}
+/* 월별 */
+.myear{font-size:13px;font-weight:900;color:var(--sub);padding:4px 2px 10px;}
+.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.mcell{background:var(--card);border:1px solid var(--card-brd);border-radius:13px;
+  padding:10px 12px;min-height:66px;}
+.mcell.off{opacity:.42;}
+.mm{font-size:11.5px;font-weight:900;color:var(--sub);}
+.mname{font-size:15px;font-weight:900;margin-top:3px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.mno{font-size:15px;font-weight:900;color:var(--sub);margin-top:3px;}
+.mcnt{font-size:11px;font-weight:700;color:var(--sub);margin-top:2px;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+html,body{margin:0;height:100%;overflow:hidden;}
+body{
+  font-family:'Apple SD Gothic Neo','Malgun Gothic','Pretendard',system-ui,-apple-system,sans-serif;
+  color:var(--txt);
+  background:
+    radial-gradient(1200px 600px at 15% -10%,rgba(122,252,255,.14),transparent 60%),
+    radial-gradient(1000px 700px at 110% 10%,rgba(255,126,179,.16),transparent 55%),
+    radial-gradient(900px 900px at 50% 120%,rgba(161,140,209,.18),transparent 60%),
+    linear-gradient(180deg,var(--bg1),var(--bg2) 55%,var(--bg3));
+  background-attachment:fixed;
+}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;
+  padding:calc(var(--safe-top) + 8px) 0 var(--safe-bot);max-width:560px;margin:0 auto;}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:0 16px;
+  animation:fade .35s ease;overflow:hidden;}
+.screen.active{display:flex;}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---- top bar ---- */
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 2px 12px;min-height:44px;}
+.back{width:40px;height:40px;border:none;border-radius:14px;background:var(--card);
+  border:1px solid var(--card-brd);color:var(--txt);font-size:20px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.back:active{transform:scale(.92);}
+.topbar h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.5px;flex:1;}
+.chip{font-size:12px;color:var(--sub);background:var(--card);border:1px solid var(--card-brd);
+  padding:6px 11px;border-radius:999px;font-weight:700;}
+
+/* ---- home ---- */
+.hero{padding:14px 6px 4px;}
+.hero .logo{font-size:46px;line-height:1;filter:drop-shadow(0 6px 18px rgba(255,150,120,.4));}
+.hero h1{margin:10px 0 4px;font-size:30px;font-weight:900;letter-spacing:-1px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:200% auto;animation:shine 6s linear infinite;}
+@keyframes shine{to{background-position:200% center}}
+.hero p{margin:0;color:var(--sub);font-size:14px;font-weight:600;}
+.hero .ver{margin-top:5px;font-size:10.5px;font-weight:700;color:var(--sub);opacity:.5;letter-spacing:.5px;}
+.playerbar{margin:14px 6px 6px;display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1px solid var(--card-brd);border-radius:18px;padding:12px 14px;
+  backdrop-filter:blur(10px);}
+.playerbar .who{flex:1;min-width:0;}
+.playerbar .who b{font-size:14px;}
+.playerbar .who .list{color:var(--sub);font-size:12.5px;font-weight:600;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.playerbar button{border:none;background:linear-gradient(135deg,#7afcff,#8b7dff);color:#0b0e24;
+  font-weight:800;font-size:13px;padding:10px 14px;border-radius:12px;flex:0 0 auto;}
+.playerbar button:active{transform:scale(.94);}
+.grid{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 6px 24px;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;-webkit-overflow-scrolling:touch;}
+.gcard{position:relative;border-radius:22px;padding:16px 14px 15px;min-height:130px;
+  border:1px solid var(--card-brd);overflow:hidden;display:flex;flex-direction:column;
+  justify-content:space-between;background:var(--card);backdrop-filter:blur(10px);
+  transition:transform .12s;}
+.gcard:active{transform:scale(.96);}
+.gcard .em{font-size:38px;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));}
+.gcard .t{font-size:17px;font-weight:900;letter-spacing:-.5px;margin-top:6px;}
+.gcard .d{font-size:11.5px;color:var(--sub);font-weight:600;margin-top:3px;line-height:1.35;}
+.gcard .glow{position:absolute;inset:0;opacity:.5;pointer-events:none;}
+.gcard.full{grid-column:1 / -1;min-height:96px;flex-direction:row;align-items:center;gap:14px;}
+.gcard.full .em{font-size:40px;}
+.gcard.full .txts{flex:1;}
+.gcard .badge{position:absolute;top:10px;right:12px;font-size:9.5px;font-weight:800;
+  background:rgba(255,255,255,.16);padding:3px 8px;border-radius:999px;letter-spacing:.3px;}
+
+/* ---- players screen ---- */
+.plist{flex:1;overflow-y:auto;padding:6px 4px 12px;-webkit-overflow-scrolling:touch;}
+.prow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--card-brd);
+  border-radius:16px;padding:8px 10px;margin-bottom:10px;}
+.dot{width:26px;height:26px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 3px rgba(255,255,255,.08);}
+.prow input{flex:1;background:transparent;border:none;color:var(--txt);font-size:16px;font-weight:700;
+  padding:8px 2px;outline:none;min-width:0;}
+.prow .rm{width:34px;height:34px;border:none;border-radius:10px;background:rgba(255,90,120,.16);
+  color:#ff8aa4;font-size:18px;flex:0 0 auto;}
+.prow .rm:active{transform:scale(.9);}
+/* ---- 인원 곱하기 스테퍼 (v1.5.0) : ×1 ~ ×9, 그 사람이 그 수만큼 게임에 들어간다 ---- */
+.prow .mul{display:flex;align-items:center;flex:0 0 auto;overflow:hidden;
+  background:rgba(255,255,255,.06);border:1px solid var(--card-brd);border-radius:11px;}
+.prow .mul button{width:29px;height:32px;border:none;background:transparent;color:var(--txt);
+  font-size:17px;font-weight:900;line-height:1;padding:0;}
+.prow .mul button:active{background:rgba(255,255,255,.16);}
+.prow .mul button[disabled]{opacity:.25;}
+.prow .mul .n{min-width:31px;text-align:center;font-size:13.5px;font-weight:900;
+  color:#ffd76f;font-variant-numeric:tabular-nums;}
+.prow.multi{border-color:rgba(255,215,111,.35);background:rgba(255,215,111,.07);}
+.slotinfo{font-size:11.5px;color:var(--sub);font-weight:700;text-align:center;
+  margin:-2px 4px 8px;opacity:.85;}
+.addrow{display:flex;gap:10px;margin:2px 4px 10px;}
+.addrow button{flex:1;border:1px dashed var(--card-brd);background:var(--card);color:var(--txt);
+  font-weight:800;font-size:15px;padding:14px;border-radius:16px;}
+.addrow button:active{transform:scale(.97);}
+.bigbtn{border:none;border-radius:18px;padding:16px;font-size:17px;font-weight:900;color:#0b0e24;
+  background:linear-gradient(135deg,#ffd76f,#ff9a8b,#ff758c);margin:4px 4px 6px;
+  box-shadow:0 10px 26px rgba(255,140,120,.32);}
+.bigbtn:active{transform:scale(.98);}
+.bigbtn.alt{background:linear-gradient(135deg,#7afcff,#8b7dff);}
+
+/* ---- generic game host ---- */
+.host{flex:1;position:relative;display:flex;flex-direction:column;min-height:0;}
+.stage{flex:1;position:relative;border-radius:22px;overflow:hidden;margin:2px 0 10px;
+  background:rgba(0,0,0,.28);border:1px solid var(--card-brd);}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;
+  /* ★ v2.9.3 — 룰렛을 손가락으로 튕겨 돌리므로 브라우저 기본 스크롤·핀치를 막는다.
+     없으면 스와이프가 페이지 스크롤로 먹혀서 pointermove 가 중간에 끊긴다. */
+  touch-action:none;}
+.controls{display:flex;gap:10px;padding:0 2px 6px;}
+.controls .bigbtn{flex:1;margin:0;}
+.hint{text-align:center;color:var(--sub);font-size:12.5px;font-weight:600;padding:0 8px 8px;}
+.rankbox{position:absolute;top:10px;right:10px;background:rgba(10,12,30,.55);backdrop-filter:blur(6px);
+  border:1px solid var(--card-brd);border-radius:14px;padding:8px 10px;font-size:12px;font-weight:800;
+  max-width:46%;pointer-events:none;}
+.rankbox .r{display:flex;align-items:center;gap:6px;margin:2px 0;white-space:nowrap;}
+.rankbox .r i{width:8px;height:8px;border-radius:50%;flex:0 0 auto;font-style:normal;}
+
+/* ---- winner modal ---- */
+#winner{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  background:radial-gradient(60% 60% at 50% 40%,rgba(30,20,60,.72),rgba(8,8,20,.92));
+  backdrop-filter:blur(6px);padding:24px;text-align:center;flex-direction:column;}
+#winner.show{display:flex;animation:fade .3s ease;}
+#winner .sub{color:var(--sub);font-weight:800;letter-spacing:2px;font-size:14px;margin-bottom:6px;}
+#winner .congrats{font-size:clamp(38px,13vw,72px);font-weight:900;letter-spacing:6px;
+  background:var(--grad);background-size:200% auto;-webkit-background-clip:text;background-clip:text;
+  color:transparent;animation:shine 3s linear infinite;text-shadow:0 0 40px rgba(255,180,120,.2);}
+#winner .coffee{font-size:66px;margin:10px 0 4px;animation:pop .6s cubic-bezier(.2,1.4,.4,1) both,float 2.6s ease-in-out infinite 0.6s;}
+@keyframes pop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1)}}
+@keyframes float{50%{transform:translateY(-10px)}}
+#winner .name{font-size:clamp(30px,9vw,46px);font-weight:900;margin:6px 0 2px;letter-spacing:-1px;}
+#winner .msg{color:var(--txt);font-size:16px;font-weight:700;opacity:.92;margin-bottom:26px;}
+#winner .wbtns{display:flex;gap:12px;width:100%;max-width:360px;}
+#winner .wbtns button{flex:1;border:none;border-radius:16px;padding:15px;font-weight:900;font-size:16px;}
+#winner .again{background:linear-gradient(135deg,#ffd76f,#ff758c);color:#0b0e24;}
+#winner .home{background:var(--card);border:1px solid var(--card-brd)!important;color:var(--txt);}
+#winner button:active{transform:scale(.96);}
+#fx{position:fixed;inset:0;z-index:60;pointer-events:none;}
+
+.soundtoggle{position:absolute;top:calc(var(--safe-top) + 10px);right:14px;z-index:5;
+  width:38px;height:38px;border-radius:12px;background:var(--card);border:1px solid var(--card-brd);
+  color:var(--txt);font-size:16px;}
+::-webkit-scrollbar{width:0;height:0;}
+
+/* ================= 로딩(스플래시) 화면 =================
+   splash.png 를 화면에 꽉 채우고(cover), 그 위에 투명 배경 logo.png 를 얹어
+   커졌다 작아졌다 반복시킨다.
+   ★ .sp-frame 이 핵심 — 배경을 background-size:cover 로 깔면 기기 화면비마다
+     잘리는 위치가 달라져서 로고 위치가 어긋난다. 그래서 원본 비율(941:1672)을
+     유지한 '틀'을 화면보다 크게 잡아 가운데 두고, 그 안에서 %로 배치한다.
+     틀이 화면 밖으로 넘치는 부분은 #splash 의 overflow:hidden 이 잘라낸다. */
+#splash{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#180d05;
+  opacity:1;transition:opacity .55s ease;}
+#splash.gone{opacity:0;pointer-events:none;}
+.sp-frame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:max(100vw, 100vh * 941 / 1672);
+  height:max(100vh, 100vw * 1672 / 941);}
+.sp-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;}
+/* 아트워크에 이미 로고가 그려져 있어서, 그 자리만 흐리게 뭉갠 뒤 진짜 로고를 얹는다.
+   가장자리는 마스크로 서서히 풀어야 네모난 자국이 안 남는다. */
+.sp-soft{position:absolute;left:-15%;right:-15%;top:6%;height:60%;overflow:hidden;
+  /* 마스크가 박스 '안쪽'(96%)에서 완전히 투명해져야 경계에 가로줄이 안 생긴다.
+     좌우로 15%씩 넓혀 둔 건, 옆면 경계선을 화면 밖으로 밀어내기 위한 것. */
+  -webkit-mask-image:radial-gradient(64% 52% at 50% 50%,#000 32%,rgba(0,0,0,.5) 66%,transparent 96%);
+  mask-image:radial-gradient(64% 52% at 50% 50%,#000 32%,rgba(0,0,0,.5) 66%,transparent 96%);}
+/* ★ backdrop-filter 를 쓰면 안 된다 — 스플래시 뒤에 있는 앱 화면(홈 카드 글자)까지
+   같이 빨아들여 비쳐 보였다. 대신 같은 이미지를 한 장 더 깔고 filter:blur 로 뭉갠다.
+   이 박스는 틀 높이의 50%이므로 안쪽 이미지는 height 200% / top -24% 여야 배경과 겹친다. */
+.sp-soft img{position:absolute;left:11.538%;width:76.923%;height:166.667%;top:-10%;object-fit:fill;
+  filter:blur(26px) brightness(.86) saturate(1.15);}
+.sp-logo{position:absolute;left:50%;top:36.5%;width:80%;
+  transform:translate(-50%,-50%) scale(1);
+  filter:drop-shadow(0 10px 26px rgba(0,0,0,.55));
+  animation:spPulse 1.7s ease-in-out infinite;}
+/* ★ 커졌다 작아졌다 — 중간에 살짝 더 머물게 해서 '숨쉬는' 느낌 */
+@keyframes spPulse{
+  0%  {transform:translate(-50%,-50%) scale(1.00);}
+  45% {transform:translate(-50%,-50%) scale(1.085);}
+  60% {transform:translate(-50%,-50%) scale(1.075);}
+  100%{transform:translate(-50%,-50%) scale(1.00);}
+}
+@media (prefers-reduced-motion:reduce){ .sp-logo{animation:none;} }
+
+/* ---- 로딩 게이지 (v1.5.0) ----
+   실제 로딩은 순식간이라 이건 '연출'이다. 그래서 한 숫자도 건너뛰지 않고
+   1%→100%를 전부 보여준 뒤에야 앱으로 들어간다(탭 스킵 없음).
+   ★ .sp-frame 안이 아니라 #splash 직속에 둔다 — 프레임은 화면보다 크게 잡아
+     잘라내는 틀이라, 그 안에 넣으면 게이지가 화면 밖으로 밀린다. */
+.sp-load{position:absolute;left:50%;bottom:calc(11% + var(--safe-bot));transform:translateX(-50%);
+  width:min(74%,340px);z-index:3;text-align:center;}
+.sp-bar{position:relative;height:13px;border-radius:999px;overflow:hidden;
+  background:rgba(0,0,0,.46);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.14);}
+.sp-fill{position:absolute;left:0;top:0;bottom:0;width:0%;border-radius:999px;
+  background:linear-gradient(90deg,#ffd76f,#ff9a8b,#ff758c,#ffd76f);
+  background-size:220% 100%;animation:spFlow 1.3s linear infinite;
+  box-shadow:0 0 14px rgba(255,168,120,.8);
+  transition:width .09s linear;}      /* 한 칸(1%)씩 딱딱 끊기지 않게 살짝만 흘린다 */
+@keyframes spFlow{to{background-position:220% 0;}}
+.sp-glint{position:absolute;right:0;top:0;bottom:0;width:22px;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.9));filter:blur(1.5px);}
+.sp-pct{margin-top:10px;font-size:15px;font-weight:900;letter-spacing:.4px;color:#ffe9c9;
+  text-shadow:0 2px 10px rgba(0,0,0,.75);font-variant-numeric:tabular-nums;}
+.sp-tip{margin-top:3px;font-size:11.5px;font-weight:700;color:rgba(255,233,201,.6);
+  text-shadow:0 2px 8px rgba(0,0,0,.75);}
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="sp-frame">
+    <img class="sp-bg" src="splash.png" alt="">
+    <div class="sp-soft"><img src="splash.png" alt=""></div>
+    <img class="sp-logo" src="logo.png" alt="커피내기 게임">
+  </div>
+  <div class="sp-load">
+    <div class="sp-bar"><div class="sp-fill" id="spFill"><div class="sp-glint"></div></div></div>
+    <div class="sp-pct" id="spPct">0%</div>
+    <div class="sp-tip" id="spTip">잠시만요…</div>
+  </div>
+</div>
+<canvas id="fx"></canvas>
+<div id="app">
+
+  <!-- HOME -->
+  <section class="screen active" id="s-home">
+    <button class="soundtoggle" id="sndBtn">🔊</button>
+    <button id="logBtn" class="logbtn">📜 기록</button>
+    <div class="hero">
+      <div class="logo">☕</div>
+      <h1>커피 내기 게임</h1>
+      <p>점심 먹고 커피빵! 오늘의 주인공은 누구?</p>
+      <div class="ver" id="verTag">v1.0.0</div>
+    </div>
+    <div class="playerbar">
+      <div class="who">
+        <b id="pcount">참가자 0명</b>
+        <div class="list" id="pnames">참가자를 추가해주세요</div>
+      </div>
+      <button id="editPlayers">참가자 설정</button>
+    </div>
+    <div class="grid" id="gameGrid"></div>
+  </section>
+
+  <!-- PLAYERS -->
+  <section class="screen" id="s-players">
+    <div class="topbar">
+      <button class="back" data-go="home">‹</button>
+      <h2>참가자 설정</h2>
+      <span class="chip" id="pchip">0명</span>
+    </div>
+    <div class="plist" id="plist"></div>
+    <div class="slotinfo" id="slotInfo"></div>
+    <div class="addrow">
+      <button id="addPlayer">+ 참가자 추가</button>
+    </div>
+    <button class="bigbtn" data-go="home">저장하고 돌아가기</button>
+  </section>
+
+  <!-- LOG / RANKING -->
+  <section class="screen" id="s-log">
+    <div class="topbar">
+      <button class="back" data-go="home">‹</button>
+      <h2>📜 기록 · 랭킹</h2>
+      <span class="chip" id="logChip">0건</span>
+    </div>
+    <div class="logtabs" id="logTabs">
+      <button data-tab="rank" class="on">🏆 랭킹</button>
+      <button data-tab="list">🕒 기록</button>
+      <button data-tab="month">📅 월별</button>
+    </div>
+    <div id="logBody"></div>
+  </section>
+
+  <!-- GAME HOST -->
+  <section class="screen" id="s-game">
+    <div class="topbar">
+      <button class="back" id="gameBack">‹</button>
+      <h2 id="gameTitle">게임</h2>
+      <span class="chip" id="gameChip"></span>
+    </div>
+    <div class="host" id="gameHost"></div>
+  </section>
+
+</div>
+
+<!-- WINNER MODAL -->
+<div id="winner">
+  <div class="sub">🎉 축하합니다 🎉</div>
+  <div class="congrats">축 당 첨</div>
+  <div class="coffee">☕</div>
+  <div class="name" id="wName">—</div>
+  <div class="msg" id="wMsg">오늘 커피는 이 분이 쏩니다!</div>
+  <div class="wbtns">
+    <button class="again" id="wAgain">다시하기</button>
+    <button class="home" id="wHome">홈으로</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   ☕ 커피 내기 게임 — 완전 자체구현 (외부 의존성 0)
+   ============================================================ */
+/* ★ 버전 — 값을 바꿀 때마다 VERSION.md와 함께 올린다 */
+const APP_VERSION="2.11.7";
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const rand=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+
+/* ---------- palette ---------- */
+const PALETTE=["#ff6b9d","#ffa06b","#ffd166","#8ce99a","#63e6be","#4dd4ff",
+               "#748ffc","#b197fc","#f783ac","#ff8787","#69db7c","#3bc9db"];
+
+/* ---------- players ---------- */
+let players=[];
+/* ★ v1.4.1 — 참가자 목록 1회 초기화.
+   APK를 덮어 설치해도 앱 데이터(localStorage)는 남아서 예전에 썼 넣었던 이름이
+   그대로 뜨다. 이 버전 표시가 없으면 한 번만 지우고(→ 기본 4명으로 돌아간다)
+   표시를 남긴다. 다음부터는 사용자가 설정한 명단이 그대로 유지된다. */
+/* ★ v2.9.2 — 키를 v200→v292 로 올렸다. 기본 명단을 빈 칸로 바꿨 판이라,
+   예전 APK 위에 덮어 설치해도 저장된 옛 명단이 한 번은 지워져야 한다. */
+const PLAYERS_RESET_KEY='cg_reset_v292';
+function resetPlayersOnce(){
+  try{
+    if(!localStorage.getItem(PLAYERS_RESET_KEY)){
+      localStorage.removeItem('cg_players');
+      localStorage.setItem(PLAYERS_RESET_KEY,'1');
+    }
+  }catch(e){}
+}
+/* ★ v1.5.0 — 인원 곱하기(×N).
+   같은 이름을 여러 번 손으로 넣지 않아도 되게, 참가자마다 mult(1~9)를 둔다.
+   게임에 넘어가는 명단(validPlayers)에서 그 사람이 mult개로 펼쳐지므로
+   사다리 칸·룰렛 조각·구슬·상자 차례가 그만큼 늘어나고 당첨 확률도 비례해 올라간다.
+   ★ 총 칸 수 상한은 두지 않는다. 한때 16칸으로 묶었더니 "한 명 ×9, 다른 사람 ×5"
+     같은 조합에서 더 못 올라가 막혔다. 사람은 12명, 곱은 9까지라 최대 108칸으로
+     자연히 유계다. 대신 칸이 많아지면 사다리/룰렛 라벨이 스스로 줄어든다
+     (ladderLabelMode / 룰렛 showLabel 참고). */
+const MAX_MULT=9;
+const multOf=p=>clamp(Math.round(p&&p.mult||1),1,MAX_MULT);
+function loadPlayers(){
+  resetPlayersOnce();
+  try{players=JSON.parse(localStorage.getItem('cg_players')||'null');}catch(e){players=null;}
+  /* ★ v2.9.2 — 기본 명단을 **빈 칸 두 줄**로 바꿨다.
+     예전엔 사람 네 명이 박혀 있어 새로 쓰려면 먼저 지워야 했다.
+     두 줄인 이유 — 게임 최소 인원이 2명이고, 삭제 버튼도 2줄은 남기기 때문에
+     여기서만 0줄로 두면 양쪽 규칙이 엇갈린다.
+     이름이 비어 있으면 validPlayers() 가 건너뛰므로
+     홈 화면엔 "참가자를 추가해주세요" 가 뜼고, 게임을 누르면 설정으로 보낸다. */
+  if(!Array.isArray(players)||players.length<2){
+    players=[{name:"",mult:1},{name:"",mult:1}];
+  }
+  players.forEach((p,i)=>{if(!p.color)p.color=PALETTE[i%PALETTE.length];p.mult=multOf(p);});
+  savePlayers();
+}
+function savePlayers(){
+  players.forEach((p,i)=>{p.color=PALETTE[i%PALETTE.length];p.mult=multOf(p);});
+  localStorage.setItem('cg_players',JSON.stringify(players));
+}
+/* 이름이 비지 않은 사람만, mult개씩 펼쳐서 돌려준다.
+   펼친 복제본은 이름·색을 원본과 똑같이 쓴다 — 어차피 같은 사람이라 구분할 필요가 없고,
+   숫자를 붙이면(김철수2) 사다리 칸 이름이 잘려서 오히려 못 읽는다.
+   ★ 상한(MAX_SLOTS)에 걸렸을 때 앞에서부터 그냥 잘라내면 안 된다 — 앞사람이 자리를
+     다 먹고 뒷사람이 게임에서 통째로 사라진다(실제로 ×7,×5,×4,×4 로 테스트하다 최지우가
+     증발했다). 그래서 ① 모두에게 1칸씩 먼저 주고 ② 남은 자리를 추가분에
+     라운드로빈으로 나눠 준다. */
+/* ★ v2.0.0 — 펼친 복제본을 **섞는다**.
+   예전엔 [철수,철수,철수,영희,영희,민수...] 처럼 같은 사람이 연달아 놓였다.
+   사다리·룰렛은 칸 순서가 곧 화면 배치라, 커피 잔이 한쪽 끝에 있으면
+   "저 끝 사람이 걸리겠네"가 시작하자마자 보인다 — ×N을 준 사람이 뭉쳐 있어서
+   확률이 한 구역에 몰리기 때문이다. 섞어 놓으면 같은 사람의 칸이 흩어져
+   어느 칸이 걸려도 누가 될지 미리 안 보인다. 당첨 확률(mult 비례)은 그대로다. */
+/* ★ v2.9.0 — 단순히 섞기만 하면 **같은 이름이 우연히 이웃**한다.
+   사다리에서 "내 이름 옆이 또 나" 인 칸이 붙어 있으면 그 구간은 결과가 뻔해져
+   재미가 없다. 그래서 무작위로 섞되 **같은 사람이 옆자리에 오지 않도록** 깐다.
+   방법: 사람별로 묶어 많은 순으로 정렬한 뒤 **짝수 자리부터 채우고 홀수 자리로
+   넘어간다**(작업 스케줄링에서 쓰는 그 배치). 어떤 사람의 칸 수가 전체의 절반
+   이하이면 이웃이 절대 안 생긴다.
+   ※ 한 사람이 절반을 넘게 가져가면(예: 2명인데 ×9 vs ×1) 이웃을 피할 방법이
+     수학적으로 없다. 그때는 최대한 흩뿌리는 것까지만 한다. */
+function spreadShuffle(items,keyOf){
+  const g=new Map();
+  items.forEach(x=>{const k=keyOf(x);(g.get(k)||g.set(k,[]).get(k)).push(x);});
+  const lists=[...g.values()];
+  lists.forEach(shuffle);
+  shuffle(lists);                                   // 같은 크기끼리는 순서도 무작위
+  lists.sort((a,b)=>b.length-a.length);             // 많은 사람부터 (안정 정렬)
+  const n=items.length, out=new Array(n);
+  let i=0;
+  for(const list of lists) for(const it of list){
+    out[i]=it; i+=2; if(i>=n) i=1;
+  }
+  return out;
+}
+function validPlayers(){
+  const out=[];
+  players.forEach((p,i)=>{
+    const nm=(p.name||'').trim(); if(!nm)return;
+    const col=PALETTE[i%PALETTE.length], m=multOf(p);
+    for(let k=0;k<m;k++) out.push({name:nm,color:col,src:i});
+  });
+  return spreadShuffle(out,x=>x.src);
+}
+/* 사람 수(이름 기준) — 화면 표시에만 쓴다 */
+function headCount(){return players.filter(p=>(p.name||'').trim()).length;}
+
+/* ---------- sound (WebAudio, no assets) ---------- */
+let AC=null,soundOn=true;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function beep(freq=440,dur=.12,type="sine",vol=.18){
+  if(!soundOn)return;const c=ac();if(!c)return;
+  const o=c.createOscillator(),g=c.createGain();
+  o.type=type;o.frequency.value=freq;o.connect(g);g.connect(c.destination);
+  const t=c.currentTime;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.start(t);o.stop(t+dur+.02);
+}
+function tick(f){beep(f,.05,"square",.08);}
+/* ---- 룰렛 핸 타격음 "팅" ----------------------------------------------
+   진짜 경품 룰렛에서 나는 소리는 두 겹이다.
+     ① 플래퍼(탄성 있는 얼빠대)가 핸을 긁는 **광대역 타격음** — 짧고 건조한 "탁".
+     ② 핸과 플래퍼가 같이 울리는 **금속 링** — 1.5~3kHz 대에 서로 배수가
+        아닌 부분음 두 개가 겹쳐야 종소리가 아닌 **쇠소리**로 들린다.
+        (배수 관계로 쌓으면 오르골처럼 들려서 2.76배 같은 비정수를 쓴다)
+   세게 도는 중엔 높고 크게, 느려지면 낮고 작게 — 그래야 '다다다다다닭 … 탁 … 탁'
+   으로 감속이 귀에 들린다. delay 는 한 프레임에 여러 개가 지나갈 때 겹치지 않게 밀어 주는 값. */
+function pinHit(v,delay){
+  const c=ac();if(!c||!soundOn)return;
+  const t=c.currentTime+(delay||0);
+  const V=0.32+0.68*clamp(v,0,1);
+  // ① 타격 트랜지언트 — 밴드패스로 좀힌 짧은 노이즈
+  const sc=c.createBufferSource();sc.buffer=musNoise();
+  const bp=c.createBiquadFilter();bp.type="bandpass";
+  bp.frequency.value=2400+1200*v;bp.Q.value=1.2;
+  const ng=c.createGain();
+  ng.gain.setValueAtTime(.16*V,t);ng.gain.exponentialRampToValueAtTime(.0001,t+.030);
+  sc.connect(bp);bp.connect(ng);ng.connect(c.destination);
+  sc.start(t);sc.stop(t+.05);
+  // ② 금속 링 — 기음 + 비정수 배음. 매번 살짝 틀어야 기계적으로 안 들린다
+  const f0=(1620+520*v)*(0.96+Math.random()*0.08);
+  const parts=[[1,.150,.080],[2.76,.075,.052]];
+  for(let i=0;i<parts.length;i++){
+    const o=c.createOscillator(),og=c.createGain();
+    o.type="triangle";o.frequency.setValueAtTime(f0*parts[i][0],t);
+    og.gain.setValueAtTime(parts[i][1]*V,t);
+    og.gain.exponentialRampToValueAtTime(.0001,t+parts[i][2]);
+    o.connect(og);og.connect(c.destination);o.start(t);o.stop(t+parts[i][2]+.02);
+  }
+}
+function fanfare(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.22,"triangle",.2),i*110));}
+function boom(){const c=ac();if(!c||!soundOn)return;const o=c.createOscillator(),g=c.createGain();
+  o.type="sawtooth";o.frequency.setValueAtTime(220,c.currentTime);
+  o.frequency.exponentialRampToValueAtTime(30,c.currentTime+.5);o.connect(g);g.connect(c.destination);
+  g.gain.setValueAtTime(.35,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.6);
+  o.start();o.stop(c.currentTime+.6);}
+
+
+/* ---------- BGM (WebAudio 자체 생성 · 오디오 파일 0개) ----------
+   게임 6종이 각각 다른 곡을 갖는다. 미리 만든 mp3가 아니라 16분음표마다
+   오실레이터를 하나씩 찍어서 실시간으로 연주한다(에셋 0 규칙).
+   setInterval(25ms)로 0.2초 앞을 미리 예약하는 lookahead 스케줄러 —
+   requestAnimationFrame에 태우면 프레임이 밀릴 때 박자가 흔들린다. */
+const MUS={id:null,timer:null,step:0,next:0,bus:null,noise:null,bpm:120,duck:1};
+let musWanted=null;
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+
+function musBus(){                       // 음악 전용 버스(컴프레서로 묶어 SFX를 안 덮게)
+  const c=ac();if(!c)return null;
+  if(!MUS.bus){
+    const g=c.createGain(),k=c.createDynamicsCompressor();
+    g.gain.value=0.0001;
+    k.threshold.value=-18;k.ratio.value=6;k.attack.value=.004;k.release.value=.18;
+    g.connect(k);k.connect(c.destination);MUS.bus=g;
+  }
+  return MUS.bus;
+}
+function musNoise(){
+  const c=ac();if(!c)return null;
+  if(!MUS.noise){const n=c.sampleRate,b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=Math.random()*2-1;MUS.noise=b;}
+  return MUS.noise;
+}
+/* 음정 보이스: cut을 주면 로우패스(따뜻하게), det를 주면 살짝 어긋난 2번째 오실레이터(두껍게) */
+function mV(t,midi,dur,type,vol,out,cut,det){
+  const c=ac();if(!c)return;
+  const g=c.createGain();
+  if(cut){const f=c.createBiquadFilter();f.type="lowpass";
+    f.frequency.setValueAtTime(cut,t);f.frequency.exponentialRampToValueAtTime(Math.max(180,cut*.4),t+dur);
+    g.connect(f);f.connect(out);}else g.connect(out);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  const f0=mtof(midi);
+  for(const d of (det?[0,det]:[0])){
+    const o=c.createOscillator();o.type=type;o.frequency.setValueAtTime(f0*(1+d),t);
+    o.connect(g);o.start(t);o.stop(t+dur+.03);
+  }
+}
+function mKick(t,out,v=.9,f0=150,f1=45,dur=.18){
+  const c=ac();if(!c)return;const o=c.createOscillator(),g=c.createGain();
+  o.type="sine";o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur*.8);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(out);o.start(t);o.stop(t+dur+.02);
+}
+function mNz(t,out,dur,hp,v){            // 하이햇·박수·셰이커·째깍 전부 이걸로
+  const c=ac();if(!c)return;const sc=c.createBufferSource();sc.buffer=musNoise();
+  const f=c.createBiquadFilter();f.type="highpass";f.frequency.value=hp;
+  const g=c.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  sc.connect(f);f.connect(g);g.connect(out);sc.start(t);sc.stop(t+dur+.02);
+}
+function mSnare(t,out,v=.3){
+  mNz(t,out,.14,1600,v);
+  const c=ac();if(!c)return;const o=c.createOscillator(),g=c.createGain();
+  o.type="triangle";o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(120,t+.09);
+  g.gain.setValueAtTime(v*.6,t);g.gain.exponentialRampToValueAtTime(.0001,t+.1);
+  o.connect(g);g.connect(out);o.start(t);o.stop(t+.12);
+}
+function mTom(t,out,f,v=.4){
+  const c=ac();if(!c)return;const o=c.createOscillator(),g=c.createGain();
+  o.type="sine";o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.55,t+.22);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.26);
+  o.connect(g);g.connect(out);o.start(t);o.stop(t+.3);
+}
+
+/* ---- 게임별 곡. play(s,t,o): s=16분음표 번호, t=예약 시각, o=출력 버스 ----
+   b=마디 안 위치(0~15), bar=4마디 프레이즈 안 마디 번호. */
+const TRACKS={
+  /* 사다리타기 — 밝은 8비트. 통통 튀는 펜타토닉 (C장조).
+     v2.9.3: 사다리 진행이 1.5초로 빨라져서 곡도 138→146으로 같이 올렸다.
+     한 사람 타는 동안 한 프레이즈가 지나가야 "탔다" 하는 맺음이 생긴다. */
+  ladder:{bpm:146,vol:.45,play(s,t,o){
+    const b=s%16,bar=(s>>4)%4, PEN=[0,2,4,7,9,12,9,7];
+    if(b===0||b===6||b===10)mKick(t,o,.85);
+    if(b===4||b===12)mSnare(t,o,.24);
+    if(b%2===0)mNz(t,o,.035,7200,b%4===0?.13:.07);
+    if(b===14)mNz(t,o,.07,5200,.13);                        // 프레이즈 끝 필인
+    if(b%4===0)mV(t,[36,33,41,43][bar],.24,"triangle",.34,o,900);
+    if(b%2===0)mV(t,72+PEN[((s>>1)+bar*3)%8],.16,"square",.11,o,3200);
+  }},
+
+  /* 룰렛 — v2.9.3 전면 교체. 예전엔 카지노 라운지풍이라 **효과음을 덮었다**.
+     이제 휠이 도는 동안 '다다다닥' 핀 소리가 주인공이므로, 음악은 비켜서서
+     ① 저음 펄스로 심장만 뛰고 ② 고음은 얇은 셰이커만 남긴다.
+     대신 2·4박에 손뼉(clap)을 넣어 사람들이 모여 구경하는 느낌을 만든다.
+     bpm 126→112: 느려야 핀 소리의 감속이 대비되어 들린다. */
+  roulette:{bpm:112,vol:.30,play(s,t,o){
+    const b=s%16,bar=(s>>4)%4, HM=[0,3,7,10,12,10,7,3];
+    if(b===0||b===10)mKick(t,o,.90,150,44,.20);
+    if(b===8)mKick(t,o,.55,140,44,.16);
+    if(b===4||b===12){mNz(t,o,.11,1900,.20);mNz(t+.012,o,.09,2300,.13);}  // 겹손뼉
+    if(b%4===2)mNz(t,o,.025,9500,.055);                     // 얇은 셰이커
+    if(b===0)mV(t,[28,28,31,26][bar],.72,"sawtooth",.20,o,420);  // 저음 펄스
+    if(b===6||b===13)mV(t,64+HM[(s+bar*3)%8],.26,"sine",.085,o,0,.005);
+  }},
+
+  /* 마블레이스 — v2.9.3 "신나게". 152→168 BPM, 포온더플로어 + 오프비트 베이스.
+     ① 오프비트 8분 베이스(b%4===2)가 들어가면 하우스처럼 굴러가 급해진다.
+     ② 오픈하이햇을 매 마디 뒤에 넣어 앞으로 끌어당긴다.
+     ③ 4마디마다 리드가 한 옥타브 위로 뛰어 '한 바퀴 돌았다'는 맺음을 준다. */
+  marble:{bpm:168,vol:.38,play(s,t,o){
+    const b=s%16,bar=(s>>4)%4, MIN=[0,3,5,7,10,12,10,7];
+    if(b%4===0)mKick(t,o,1.05,180,44);
+    if(b===4||b===12)mSnare(t,o,.32);
+    if(b%2===1)mNz(t,o,(b===7||b===15)?.11:.03,7400,(b===7||b===15)?.20:.085);
+    if(b%4===2)mV(t,[38,38,41,36][bar],.11,"sawtooth",.26,o,1100);   // 오프비트 베이스
+    if(b%4===0)mV(t,[26,26,29,24][bar],.20,"sawtooth",.22,o,500);    // 앵커 저음
+    if(b===0||b===3||b===6||b===10||b===13)
+      mV(t,(bar===3?74:62)+MIN[(s+bar)%8],.16,"square",.115,o,2800);
+  }},
+
+  /* 뽑기 상자 — 오르골. 느리고 귀엽게, 고음 사인 아르페지오 */
+  box:{bpm:116,vol:.58,play(s,t,o){
+    const b=s%16,bar=(s>>4)%4, MAJ=[0,4,7,12,7,4];
+    if(b===0||b===8)mKick(t,o,.55,120,50,.14);
+    if(b===4||b===12)mNz(t,o,.05,5000,.11);                 // 우드블록
+    if(b%2===0)mV(t,79+MAJ[((s>>1)+bar)%6],.44,"sine",.14,o,0,.006);
+    if(b===0||b===10)mV(t,[48,45,53,50][bar],.32,"triangle",.22,o,800);
+  }},
+
+  /* 폭탄 돌리기 — v2.9.3 **확 쫄리게**. 150→178 BPM.
+     ① 째깍을 16분 전체에 깔았다. 강약을 번갈아 줘서 달려가는 초침처럼 들린다.
+     ② 베이스가 반음씩 내려가던 걸 **감7화음(0,3,6,9 반음)** 으로 바꿨다 —
+        어느 음으로도 해결되지 않는 화음이라 계속 불안하고, 마디마다 조금씩
+        더 조여드는 느낌을 준다.
+     ③ 4마디째에 **트라이톤 경보**(두 음 반음 어긋난 사이렌)를 넣어 "터진다"를 예고한다.
+     ④ 마디 끝 16분 스네어 굴림 — 카운트다운이 가까워지는 소리. */
+  bomb:{bpm:178,vol:.54,play(s,t,o){
+    const b=s%16,bar=(s>>4)%4, DIM=[33,36,39,42];
+    mNz(t,o,.018,11000,b%4===0?.16:.06);                    // 달리는 초침(16분 전부)
+    if(b===0||b===6||b===9)mKick(t,o,1.0,190,38,.15);
+    if(b===4||b===12)mSnare(t,o,.30);
+    if(b===14||b===15)mSnare(t,o,.22);                      // 마디 끝 굴림
+    if(b%2===0)mV(t,DIM[bar],.13,"sawtooth",.26,o,560);     // 감7 베이스
+    if(bar===3&&(b===2||b===6||b===10)){                    // 트라이톤 경보
+      mV(t,81,.16,"square",.13,o,2600);
+      mV(t+.055,75,.16,"square",.13,o,2600);
+    }
+    if(b===6||b===14)mV(t,69-bar*2,.16,"square",.10,o,1800);
+  }},
+
+  /* 악어 이빨 — 정글 부족. 저음 드론 위에 톰·셰이커, 어둡고 오싹 */
+  croc:{bpm:100,vol:.47,play(s,t,o){
+    const b=s%16,bar=(s>>4)%4, PM=[0,3,5,6,7,10];
+    if(b===0||b===7)mKick(t,o,1,110,36,.26);
+    if(b===4)mTom(t,o,190,.34); if(b===10)mTom(t,o,150,.30); if(b===14)mTom(t,o,120,.34);
+    if(b%2===1)mNz(t,o,.045,6000,.08);                      // 셰이커
+    if(b===0)mV(t,29,1.15,"sawtooth",.18,o,300);            // 저음 드론
+    if(b===2||b===6||b===11)mV(t,53+PM[(s+bar*2)%6],.28,"triangle",.15,o,1400);
+  }}
+};
+
+function musSet(id){musWanted=id;musSync();}               // 화면이 원하는 곡 지정
+function musSync(){                                        // 소리 토글/화면 변화에 맞춰 정리
+  if(!soundOn||!musWanted){musHalt();return;}
+  if(MUS.id===musWanted&&MUS.timer)return;
+  musHalt();musBegin(musWanted);
+}
+function musHalt(){
+  if(MUS.timer){clearInterval(MUS.timer);MUS.timer=null;}
+  const c=AC;if(c&&MUS.bus){MUS.bus.gain.cancelScheduledValues(c.currentTime);
+    MUS.bus.gain.setTargetAtTime(.0001,c.currentTime,.08);}
+  MUS.id=null;
+}
+function musBegin(id){
+  const c=ac();if(!c||!TRACKS[id])return;
+  if(c.state==="suspended")c.resume();
+  const o=musBus();if(!o)return;
+  MUS.id=id;MUS.step=0;MUS.bpm=TRACKS[id].bpm;MUS.duck=1;MUS.next=c.currentTime+.14;
+  o.gain.cancelScheduledValues(c.currentTime);
+  o.gain.setValueAtTime(.0001,c.currentTime);
+  o.gain.setTargetAtTime(TRACKS[id].vol,c.currentTime+.05,.35);   // 페이드인
+  MUS.timer=setInterval(musTick,25);
+}
+function musTick(){
+  const c=AC;if(!c||!MUS.id){return;}
+  const st=60/MUS.bpm/4;                                   // 16분음표 길이(초)
+  while(MUS.next<c.currentTime+.2){
+    try{TRACKS[MUS.id].play(MUS.step,MUS.next,MUS.bus);}catch(e){}
+    MUS.next+=st;MUS.step++;
+  }
+}
+/* 긴장 구간에서 음악만 낮춘다(효과음은 그대로) — 룰렛 뜸들이기에서 쓴다 */
+function musDuck(m,ramp=.2){
+  MUS.duck=m;const c=AC;
+  if(!c||!MUS.id||!MUS.bus)return;
+  MUS.bus.gain.cancelScheduledValues(c.currentTime);
+  MUS.bus.gain.setTargetAtTime(TRACKS[MUS.id].vol*m,c.currentTime,ramp);
+}
+
+/* ---------- confetti ---------- */
+const fx=$("#fx");const fxc=fx.getContext("2d");let fxParts=[],fxRAF=null;
+function fxResize(){fx.width=innerWidth*devicePixelRatio;fx.height=innerHeight*devicePixelRatio;
+  fxc.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}
+addEventListener("resize",fxResize);fxResize();
+function confetti(n=140){
+  for(let i=0;i<n;i++)fxParts.push({x:innerWidth/2+rand(-40,40),y:innerHeight*.32,
+    vx:rand(-9,9),vy:rand(-16,-4),g:rand(.28,.5),r:rand(4,9),
+    c:pick(PALETTE),rot:rand(0,6.28),vr:rand(-.3,.3),life:rand(90,150),shape:Math.random()<.5?0:1});
+  if(!fxRAF)fxLoop();
+}
+function fxLoop(){
+  fxc.clearRect(0,0,innerWidth,innerHeight);
+  fxParts=fxParts.filter(p=>p.life>0);
+  for(const p of fxParts){
+    p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life--;p.vx*=.99;
+    fxc.save();fxc.translate(p.x,p.y);fxc.rotate(p.rot);fxc.fillStyle=p.c;
+    fxc.globalAlpha=clamp(p.life/40,0,1);
+    if(p.shape===0)fxc.fillRect(-p.r,-p.r*.6,p.r*2,p.r*1.2);
+    else{fxc.beginPath();fxc.arc(0,0,p.r,0,6.28);fxc.fill();}
+    fxc.restore();
+  }
+  if(fxParts.length)fxRAF=requestAnimationFrame(fxLoop);else{fxRAF=null;fxc.clearRect(0,0,innerWidth,innerHeight);}
+}
+
+/* ---------- winner modal ---------- */
+let winnerReplay=null;
+/* ============================================================
+   기록(로그) · 랭킹 — v2.3.0
+   ------------------------------------------------------------
+   ★ 시간은 **한국 표준시(KST)** 로 적는다. 외부 시간 서버는 쓰지 않는다
+     (이 프로젝트 규칙: 외부 API·유료 서비스 금지). 대신 기기 시계를
+     `Intl.DateTimeFormat(timeZone:'Asia/Seoul')` 로 변환해 저장·표시하므로,
+     기기 시간대가 뭐로 잡혀 있든(해외 로밍이든) 항상 한국 시간으로 남는다.
+     저장은 epoch ms 한 개만 — 나중에 어느 시간대로 다시 그리든 안전하다.
+   ★ 저장소: localStorage 'cg_log' = [{t: ms, g: 게임id, n: 이름}, ...]
+   ============================================================ */
+const LOG_KEY='cg_log', LOG_MAX=3000;
+const GAME_NAME={ladder:"사다리타기",roulette:"룰렛 돌리기",marble:"마블레이스",
+                 box:"뽑기 상자",bomb:"폭탄 돌리기",croc:"악어 이빨"};
+const GAME_EMO={ladder:"🔀",roulette:"🎡",marble:"🎱",box:"🎁",bomb:"💣",croc:"🐊"};
+
+function logLoad(){
+  try{const a=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');return Array.isArray(a)?a:[];}
+  catch(e){return [];}
+}
+function logSave(a){try{localStorage.setItem(LOG_KEY,JSON.stringify(a));}catch(e){}}
+function logAdd(game,name){
+  name=(name||'').trim(); if(!name)return;
+  const a=logLoad();
+  a.push({t:Date.now(),g:game,n:name});
+  if(a.length>LOG_MAX)a.splice(0,a.length-LOG_MAX);
+  logSave(a);
+}
+/* KST 로 쪼갠 날짜 조각 */
+const KST_FMT=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',
+  year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',
+  weekday:'short',hour12:false});
+function kst(ms){
+  const p={};KST_FMT.formatToParts(new Date(ms)).forEach(x=>{p[x.type]=x.value;});
+  /* ko-KR 은 24시를 '24'로 줄 때가 있다 — 0시로 되돌린다 */
+  if(p.hour==='24')p.hour='00';
+  return {y:+p.year,m:+p.month,d:+p.day,hh:p.hour,mm:p.minute,w:p.weekday};
+}
+const kstYM=(ms)=>{const k=kst(ms);return k.y*100+k.m;};
+
+/* 이름별 당첨 횟수 — 많은 순 */
+function tally(rows){
+  const m=new Map();
+  rows.forEach(r=>m.set(r.n,(m.get(r.n)||0)+1));
+  return [...m.entries()].map(([n,c])=>({n,c})).sort((a,b)=>b.c-a.c||a.n.localeCompare(b.n));
+}
+const colorOf=(name)=>{
+  const i=players.findIndex(p=>(p.name||'').trim()===name);
+  return i>=0?PALETTE[i%PALETTE.length]:"#cfd4ff";
+};
+
+/* ---------- 화면 ---------- */
+let logTab='rank', logYM=0;      // logYM: 0 = 전체, 아니면 YYYYMM
+function renderLog(){
+  const rows=logLoad().slice().sort((a,b)=>b.t-a.t);
+  $("#logChip").textContent=rows.length+"건";
+  $$("#logTabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===logTab));
+  const body=$("#logBody");
+  if(!rows.length){
+    body.innerHTML=`<div class="logempty">아직 기록이 없어요.<br>게임을 한 판 하면 여기에 쌓입니다 ☕</div>`;
+    return;
+  }
+  if(logTab==='rank')  body.innerHTML=viewRank(rows);
+  if(logTab==='list')  body.innerHTML=viewList(rows);
+  if(logTab==='month') body.innerHTML=viewMonth(rows);
+  body.querySelectorAll("[data-ym]").forEach(b=>b.onclick=()=>{logYM=+b.dataset.ym;renderLog();});
+  const clr=body.querySelector("#logClear");
+  if(clr)clr.onclick=()=>{
+    if(confirm("기록을 전부 지울까요? 되돌릴 수 없어요."))
+      {logSave([]);renderLog();}
+  };
+}
+/* 기간 선택 칩 (전체 / 최근 달들) */
+function periodChips(rows){
+  const yms=[...new Set(rows.map(r=>kstYM(r.t)))].sort((a,b)=>b-a).slice(0,12);
+  const chip=(v,label)=>`<button class="ymchip${logYM===v?' on':''}" data-ym="${v}">${label}</button>`;
+  return `<div class="ymrow">${chip(0,'전체')}${yms.map(v=>chip(v,`${(v%100)}월`)).join('')}</div>`;
+}
+const inPeriod=(r)=>!logYM||kstYM(r.t)===logYM;
+
+/* ---------- 랭킹: 올림픽 시상대 ---------- */
+function viewRank(all){
+  const rows=all.filter(inPeriod);
+  const t=tally(rows);
+  if(!t.length)return periodChips(all)+`<div class="logempty">이 기간에는 기록이 없어요.</div>`;
+  const podium=[t[1],t[0],t[2]];                     // 2등·1등·3등 순서로 놓는다
+  /* ★ '금관/은관/동관' 글자는 뺐다 — 메달과 색만으로 충분히 읽히고,
+     글자가 있으면 시상대 아래가 지저분해진다. */
+  const meta=[{r:2,h:74,cl:'silver',crown:'🥈'},
+              {r:1,h:104,cl:'gold',crown:'🥇'},
+              {r:3,h:52,cl:'bronze',crown:'🥉'}];
+  const cols=podium.map((p,i)=>{
+    const m=meta[i];
+    if(!p)return `<div class="pod"><div class="podbar empty" style="height:${m.h}px"></div></div>`;
+    return `<div class="pod">
+      <div class="podcrown ${m.cl}">${m.crown}</div>
+      <div class="podname" style="color:${colorOf(p.n)}">${p.n}</div>
+      <div class="podcnt">${p.c}회</div>
+      <div class="podbar ${m.cl}" style="height:${m.h}px"><span>${m.r}</span></div>
+    </div>`;
+  }).join('');
+  const rest=t.slice(3).map((p,i)=>`
+    <div class="rankrow"><span class="rnum">${i+4}</span>
+      <span class="rname" style="color:${colorOf(p.n)}">${p.n}</span>
+      <span class="rcnt">${p.c}회</span></div>`).join('');
+  return periodChips(all)+`
+    <div class="podium">${cols}</div>
+    ${rest?`<div class="ranklist">${rest}</div>`:''}
+    <div class="logfoot">총 ${rows.length}회 · 한국 시간(KST) 기준</div>`;
+}
+
+/* ---------- 기록: 날짜·시간·게임·당첨자 ---------- */
+function viewList(all){
+  const rows=all.filter(inPeriod);
+  if(!rows.length)return periodChips(all)+`<div class="logempty">이 기간에는 기록이 없어요.</div>`;
+  let out='', lastDay='';
+  rows.forEach(r=>{
+    const k=kst(r.t), day=`${k.y}.${String(k.m).padStart(2,'0')}.${String(k.d).padStart(2,'0')} (${k.w})`;
+    if(day!==lastDay){out+=`<div class="logday">${day}</div>`;lastDay=day;}
+    out+=`<div class="logrow">
+      <span class="lgtime">${k.hh}:${k.mm}</span>
+      <span class="lggame">${GAME_EMO[r.g]||'🎲'} ${GAME_NAME[r.g]||r.g}</span>
+      <span class="lgname" style="color:${colorOf(r.n)}">${r.n}</span></div>`;
+  });
+  return periodChips(all)+`<div class="loglist">${out}</div>
+    <button id="logClear" class="logclear">기록 전부 지우기</button>`;
+}
+
+/* ---------- 월별: 1~12월 최다 당첨자 ---------- */
+function viewMonth(all){
+  const years=[...new Set(all.map(r=>kst(r.t).y))].sort((a,b)=>b-a);
+  const y=years[0];
+  const cells=[];
+  for(let m=1;m<=12;m++){
+    const rows=all.filter(r=>{const k=kst(r.t);return k.y===y&&k.m===m;});
+    const t=tally(rows);
+    if(!t.length){cells.push(`<div class="mcell off"><div class="mm">${m}월</div><div class="mno">—</div></div>`);continue;}
+    const top=t[0], tie=t.filter(x=>x.c===top.c);
+    cells.push(`<div class="mcell">
+      <div class="mm">${m}월</div>
+      <div class="mname" style="color:${colorOf(top.n)}">${tie.length>1?tie.map(x=>x.n).join('·'):top.n}</div>
+      <div class="mcnt">${top.c}회 · 총 ${rows.length}회</div></div>`);
+  }
+  return `<div class="myear">${y}년 — 달마다 가장 많이 걸린 사람</div>
+    <div class="mgrid">${cells.join('')}</div>
+    <div class="logfoot">한국 시간(KST) 기준 · 동률이면 모두 표시</div>`;
+}
+
+function showWinner(name,color,msg,hideName){
+  const wn=$("#wName");
+  if(hideName){wn.style.display="none";}
+  else{wn.style.display="";wn.textContent=name;wn.style.color=color||"#fff";}
+  $("#wMsg").textContent=msg||"오늘 커피는 이 분이 쏩니다! ☕";
+  $("#winner").classList.add("show");
+  musSet(null);                            // BGM 끄고 팡파레만
+  confetti(180);fanfare();
+  if(navigator.vibrate)navigator.vibrate([40,60,40,60,120]);
+}
+$("#wHome").onclick=()=>{$("#winner").classList.remove("show");go("home");};
+$("#logBtn").onclick=()=>{renderLog();go("log");};
+$$("#logTabs button").forEach(b=>b.onclick=()=>{logTab=b.dataset.tab;renderLog();});
+$("#wAgain").onclick=()=>{$("#winner").classList.remove("show");if(winnerReplay)winnerReplay();};
+
+/* ---------- router ---------- */
+let currentCleanup=null;
+function go(id){
+  $$(".screen").forEach(s=>s.classList.remove("active"));
+  $("#s-"+id).classList.add("active");
+}
+$$("[data-go]").forEach(b=>b.onclick=()=>{
+  if(currentCleanup){currentCleanup();currentCleanup=null;}
+  if(b.dataset.go==="home"){savePlayers();renderHome();}
+  go(b.dataset.go);
+});
+
+/* ============================================================
+   HOME
+   ============================================================ */
+const GAMES=[
+  {id:"ladder", em:"🔀", t:"사다리타기",  d:"운명의 사다리! 커피에 도착하는 사람은?", g:"linear-gradient(135deg,rgba(255,209,102,.28),rgba(255,117,140,.10))"},
+  {id:"roulette",em:"🎡", t:"룰렛 돌리기", d:"돌림판을 돌려라! 바늘이 멈추는 곳", g:"linear-gradient(135deg,rgba(77,212,255,.28),rgba(116,143,252,.10))"},
+  {id:"marble", em:"🎱", t:"마블레이스", d:"이름 공이 굴러 떨어진다! 1등이 당첨", g:"linear-gradient(135deg,rgba(177,151,252,.30),rgba(247,131,172,.10))", full:true, badge:"실시간 물리"},
+  {id:"box",    em:"🎁", t:"뽑기 상자",  d:"미스터리 박스! 커피가 든 상자는?", g:"linear-gradient(135deg,rgba(140,233,154,.28),rgba(99,230,190,.10))"},
+  {id:"bomb",   em:"💣", t:"폭탄 돌리기", d:"폭탄 폭탄! 손에 쥔 사람이 걸린다", g:"linear-gradient(135deg,rgba(255,135,135,.30),rgba(255,160,107,.10))"},
+  {id:"croc",   em:"🐊", t:"악어 이빨",  d:"이빨을 눌러라! 함정 이빨엔 입이 콱!", g:"linear-gradient(135deg,rgba(102,209,130,.32),rgba(40,150,80,.10))", full:true, badge:"오싹 주의"},
+];
+function renderHome(){
+  const v=validPlayers(), heads=headCount();
+  /* ×N을 걸면 '사람 수'와 '게임 칸 수'가 달라진다 — 둘 다 보여줘야 헷갈리지 않는다 */
+  $("#pcount").textContent = v.length>heads ? `참가자 ${heads}명 · ${v.length}칸` : `참가자 ${v.length}명`;
+  $("#pnames").textContent = heads
+    ? players.filter(p=>(p.name||'').trim())
+             .map(p=>{const m=multOf(p);return (p.name||'').trim()+(m>1?` ×${m}`:"");}).join(", ")
+    : "참가자를 추가해주세요";
+  const grid=$("#gameGrid");grid.innerHTML="";
+  GAMES.forEach(g=>{
+    const el=document.createElement("div");
+    el.className="gcard"+(g.full?" full":"");
+    el.innerHTML=`<div class="glow" style="background:${g.g}"></div>
+      ${g.badge?`<span class="badge">${g.badge}</span>`:""}
+      <div class="em">${g.em}</div>
+      <div class="${g.full?'txts':''}"><div class="t">${g.t}</div><div class="d">${g.d}</div></div>`;
+    el.onclick=()=>openGame(g);
+    grid.appendChild(el);
+  });
+}
+function openGame(g){
+  const v=validPlayers();
+  if(v.length<2){alert("참가자를 2명 이상 입력해주세요!");go("players");renderPlayers();return;}
+  $("#gameTitle").textContent=g.em+" "+g.t;
+  {const heads=headCount();
+   $("#gameChip").textContent = v.length>heads ? `${v.length}칸` : `${v.length}명`;}
+  go("game");
+  const host=$("#gameHost");host.innerHTML="";
+  winnerReplay=()=>{go("game");if(currentCleanup)currentCleanup();currentCleanup=null;host.innerHTML="";startGame(g.id,host,v);};
+  startGame(g.id,host,v);
+}
+$("#gameBack").onclick=()=>{if(currentCleanup){currentCleanup();currentCleanup=null;}musSet(null);savePlayers();renderHome();go("home");};
+$("#editPlayers").onclick=()=>{renderPlayers();go("players");};
+$("#sndBtn").onclick=()=>{soundOn=!soundOn;$("#sndBtn").textContent=soundOn?"🔊":"🔇";
+  if(soundOn){ac();beep(660,.1);}
+  musSync();};                             // BGM도 같이 켜지고 꺼진다
+
+/* ============================================================
+   PLAYERS SCREEN
+   ============================================================ */
+function renderPlayers(){
+  const list=$("#plist");list.innerHTML="";
+  players.forEach((p,i)=>{
+    const m=multOf(p);
+    const row=document.createElement("div");row.className="prow"+(m>1?" multi":"");
+    row.innerHTML=`<div class="dot" style="background:${PALETTE[i%PALETTE.length]}"></div>
+      <input type="text" value="${(p.name||'').replace(/"/g,'&quot;')}" maxlength="8" placeholder="이름 입력">
+      <div class="mul">
+        <button class="dec" ${m<=1?"disabled":""}>−</button>
+        <span class="n">×${m}</span>
+        <button class="inc" ${m>=MAX_MULT?"disabled":""}>+</button>
+      </div>
+      <button class="rm">✕</button>`;
+    row.querySelector("input").oninput=e=>{players[i].name=e.target.value;refreshSlots();};
+    /* 곱하기는 사람마다 독립이다 — 총 칸 수로는 막지 않는다(×9까지 자유) */
+    row.querySelector(".inc").onclick=()=>{
+      players[i].mult=Math.min(MAX_MULT,multOf(players[i])+1);
+      savePlayers();renderPlayers();beep(760,.05,"square",.10);
+    };
+    row.querySelector(".dec").onclick=()=>{
+      players[i].mult=Math.max(1,multOf(players[i])-1);
+      savePlayers();renderPlayers();beep(430,.05,"square",.09);
+    };
+    row.querySelector(".rm").onclick=()=>{players.splice(i,1);if(players.length<2)players.push({name:"",mult:1});savePlayers();renderPlayers();};
+    list.appendChild(row);
+  });
+  refreshSlots();
+}
+/* 사람 수와 '펼친 칸 수'를 같이 보여준다 — ×N을 걸면 두 숫자가 달라진다 */
+function refreshSlots(){
+  const heads=headCount(), slots=validPlayers().length;
+  $("#pchip").textContent=heads+"명";
+  const info=$("#slotInfo");
+  if(!info)return;
+  if(slots>heads)
+    info.textContent=`실제 게임 인원 ${slots}칸 (${heads}명)`
+                     +(slots>24?" · 칸이 많아 사다리·룰렛은 이름 대신 색으로 표시돼요":"");
+  else
+    info.textContent=`이름 옆 ＋ 를 누르면 그 사람이 ×2 … ×9 로 늘어나요`;
+}
+$("#addPlayer").onclick=()=>{if(players.length>=12){alert("최대 12명까지 가능해요!");return;}
+  players.push({name:"",mult:1});savePlayers();renderPlayers();
+  const inputs=$$("#plist input");inputs[inputs.length-1]?.focus();};
+
+/* ============================================================
+   GAME DISPATCH
+   ============================================================ */
+function startGame(id,host,ps){
+  const map={ladder:Ladder,roulette:Roulette,marble:Marble,box:BoxGame,bomb:Bomb,croc:Crocodile};
+  currentCleanup=map[id](host,ps);
+  musSet(id);                              // ★ 게임마다 다른 BGM
+}
+/* canvas helper w/ DPR + resize observer */
+function makeStage(host,extraHTML=""){
+  const wrap=document.createElement("div");wrap.className="host";
+  wrap.innerHTML=`<div class="stage"><canvas></canvas></div>${extraHTML}`;
+  host.appendChild(wrap);
+  const stage=wrap.querySelector(".stage"),cv=wrap.querySelector("canvas"),ctx=cv.getContext("2d");
+  function fit(){const r=stage.getBoundingClientRect();cv.width=Math.round(r.width*devicePixelRatio);
+    cv.height=Math.round(r.height*devicePixelRatio);ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    cv._w=r.width;cv._h=r.height;}
+  const ro=new ResizeObserver(fit);ro.observe(stage);fit();
+  return {wrap,stage,cv,ctx,fit,ro,W:()=>cv._w,H:()=>cv._h};
+}
+
+/* ============================================================
+   1) 사다리타기  (Ladder)
+   ============================================================ */
+function Ladder(host,ps){
+  const S=makeStage(host,`
+    <div class="controls"><button class="bigbtn" id="lgo">🎬 사다리 실행</button></div>
+    <div class="hint" id="lhint">아래에 커피 한 잔이 숨어있어요. 위 참가자를 눌러도 시작!</div>`);
+  const {ctx,W,H}=S;
+  const n=ps.length;
+  const ROWS=Math.max(6,n+3);
+  let rungs=[],trail=[],anim=null,running=false,winIdx=Math.floor(Math.random()*n);
+  const prize=Array.from({length:n},(_,i)=>i===winIdx?"☕":"꽝");
+  const played=new Set();          // 이미 타본 참가자
+  const doneTrails=[];             // 지나간 경로(흐리게 남김)
+  // ★ 도착 칸 계산(기하 계산 없이 순수 논리) — 검증용/결과용 공용
+  function walk(start){
+    let col=start;
+    for(let r=1;r<ROWS;r++){
+      if(rungs.some(g=>g.row===r&&g.col===col))col++;
+      else if(rungs.some(g=>g.row===r&&g.col===col-1))col--;
+    }
+    return col;
+  }
+  function build(){
+    // ★ 버그 수정: 같은 행에 가로줄이 '붙어서' 생기면 경로가 겹쳐 도착 칸이 중복되고
+    //   ☕ 칸에 아무도 도달하지 못하는 경우가 생김. 같은 행에서는 서로 한 칸 이상 떨어뜨린다.
+    for(let attempt=0;attempt<300;attempt++){
+      rungs=[];
+      for(let r=1;r<ROWS;r++){
+        const used=[];
+        for(let c=0;c<n-1;c++){
+          if(used.some(u=>Math.abs(u-c)<=1))continue;   // 인접 가로줄 금지
+          if(Math.random()<0.5){used.push(c);rungs.push({row:r,col:c,ry:r/ROWS});}
+        }
+      }
+      const ends=[];for(let i=0;i<n;i++)ends.push(walk(i));
+      // 모든 참가자가 서로 다른 칸에 도착(=1:1 대응)하고, 최소한 섞여 있어야 통과
+      if(new Set(ends).size===n && ends.some((e,i)=>e!==i)) return;
+    }
+  }
+  build();
+
+  /* ★ v2.9.3 — 시작 전에 **가로줄을 가리고** 자리 배치를 고르게 한다.
+     ① 가림막: 사다리 한가운데(가로줄이 몰린 구간)를 불투명 패널로 덮는다.
+        예전엔 들어가자마자 연결이 다 보여서, 눈으로 따라가면 결과를 알 수 있었다.
+        위쪽 이름줄과 아래쪽 꽝/☕ 는 일부러 남긴다 — 누가 참가했는지는 봐야 한다.
+     ② 그대로 / 랜덤 섞기: 섞기를 고르면 **위 이름표만** 다시 배치한다.
+        가로줄(rungs)·당첨칸(winIdx)은 건드리지 않는다 — 그쪽을 섞으면 이미 만들어 둔
+        '1:1 대응' 검증이 깨진다. 이름만 섞어도 누가 어디로 갈지는 완전히 바뀐다. */
+  let locked=true;                       // 가림막이 떠 있는 동안은 실행 금지
+  function askSeats(){
+    const ov=document.createElement("div");
+    ov.style.cssText=`position:absolute;left:0;right:0;z-index:30;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+      padding:18px;text-align:center;background:rgba(10,12,30,.97);
+      border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14);`;
+    /* ★ 덮는 범위를 **그림 좌표에서 계산**한다. 22%~82% 같은 고정 비율로 두면
+       ROWS 가 인원에 따라 변해서 맨 위 가로줄 한두 개가 빠져나온다(실제로 12명에서 그랬다).
+       세로줄 구간(topY~botY)만 덮고, 그 위 이름표와 아래 꽝/커피는 남긴다. */
+    const fitBox=()=>{const h=H();ov.style.top=(h*.16+6)+"px";ov.style.bottom=(h*.14+6)+"px";};
+    fitBox();requestAnimationFrame(fitBox);
+    addEventListener("resize",fitBox);
+    ov._off=()=>removeEventListener("resize",fitBox);
+    ov.innerHTML=`
+      <div style="font-size:34px;line-height:1;">🔀</div>
+      <div style="font-size:18px;font-weight:900;">자리를 정해주세요</div>
+      <div style="color:var(--sub);font-size:12px;font-weight:600;line-height:1.5;">
+        사다리는 이미 그려져 있어요.<br>가로줄은 시작하면 보여드릴게요 🤫</div>
+      <button id="lSame" class="bigbtn" style="max-width:280px;width:100%;margin:0;">➡️ 그대로 — 지금 순서로</button>
+      <button id="lShuf" class="bigbtn alt" style="max-width:280px;width:100%;margin:0;">🔀 랜덤 섞기 — 자리 다시</button>`;
+    S.stage.appendChild(ov);
+    const go=(shuffle)=>{
+      if(shuffle){
+        for(let i=ps.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;const t=ps[i];ps[i]=ps[j];ps[j]=t;}
+        beep(520,.10,"square",.16);setTimeout(()=>beep(760,.12,"square",.16),90);
+      }else beep(720,.12,"triangle",.2);
+      locked=false;ov._off();ov.remove();
+      $("#lhint").textContent=shuffle
+        ? "자리를 섞었어요! 위 참가자를 눌러 시작하세요 🔀"
+        : "아래에 커피 한 잔이 숨어있어요. 위 참가자를 눌러도 시작!";
+    };
+    ov.querySelector("#lSame").onclick=()=>go(false);
+    ov.querySelector("#lShuf").onclick=()=>go(true);
+  }
+  askSeats();
+
+  // ★ 양옆 여백 — 12명이 320px 폰에 들어가면 .12(24%)는 너무 낭비라 간격이 22px까지 좁아진다.
+  //   인원이 많을 때만 여백을 .08로 줄여 세로줄 간격을 번다.
+  function colX(i){const m=W()*(n>8?.08:.12);return m+(W()-2*m)*(i/(n-1||1));}
+  function draw(){
+    const w=W(),h=H();ctx.clearRect(0,0,w,h);
+    const topY=h*.16,botY=h*.86;
+    // vertical lines
+    /* ★ 이름 알약과 꽝/☕ 글자는 세로줄 간격에 맞춰 줄인다.
+       예전엔 알약 52px·이름 12px·꽝 20px 고정이었는데, 320px 폰에 12명이면
+       세로줄 간격이 22px라 알약이 서로 30px씩 겹치고 꽝이 붙어서 못 읽었다. */
+    const gap=n>1?(colX(1)-colX(0)):w*.5;
+    const pw=Math.min(52,Math.max(6,gap-3));                  // 알약 폭
+    const nf=clamp(Math.round(pw*.38),8,12);                  // 이름 글자 크기
+    const nch=clamp(Math.floor(pw/(nf*.62)),1,4);             // 이름 글자 수
+    const pf=clamp(Math.round(gap*.78),9,20);                 // 꽝/☕ 글자 크기
+    /* ★ ×N 곱하기 때문에 칸이 40개까지도 온다. 이름을 억지로 밀어 넣으면
+       글자가 서로 겹쳐 죽도 밥도 안 되므로, 좁아지는 순서대로 이름 → 알약 →
+       바닥 글자를 하나씩 포기하고 '색 막대'로 떨어뜨린다. */
+    const showName=pw>=18, showPrize=gap>=13;
+    const lw=clamp(gap*0.16,1,3);
+    for(let i=0;i<n;i++){const x=colX(i);
+      ctx.strokeStyle="rgba(255,255,255,.22)";ctx.lineWidth=lw;
+      ctx.beginPath();ctx.moveTo(x,topY);ctx.lineTo(x,botY);ctx.stroke();
+      // top name pill (이미 타본 사람은 흐리게)
+      ctx.globalAlpha=played.has(i)?0.32:1;
+      ctx.fillStyle=ps[i].color;
+      ctx.roundRect(x-pw/2,topY-34,pw,showName?24:14,Math.min(10,pw/2));ctx.fill();
+      if(showName){
+        ctx.fillStyle="#0b0e24";ctx.font="700 "+nf+"px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+        ctx.fillText(clip(ps[i].name,nch),x,topY-22);
+      }
+      ctx.globalAlpha=1;
+      // bottom prize — 좁으면 글자 대신 점으로
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      if(showPrize){ ctx.font=pf+"px sans-serif";ctx.fillStyle="#fff";ctx.fillText(prize[i],x,botY+22); }
+      else{ const win=prize[i]!=="꽝";
+        ctx.fillStyle=win?"#ffd76f":"rgba(255,255,255,.30)";
+        ctx.beginPath();ctx.arc(x,botY+14,Math.max(2,gap*0.22),0,6.28);ctx.fill(); }
+    }
+    // rungs
+    ctx.strokeStyle="rgba(255,255,255,.5)";ctx.lineWidth=Math.max(2,lw+1);ctx.lineCap="round";
+    for(const g of rungs){const x1=colX(g.col),x2=colX(g.col+1),y=topY+(botY-topY)*g.ry;
+      ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();}
+    // 지난 사람들의 경로 (흐리게 남겨서 누가 어디로 갔는지 보이게)
+    ctx.globalAlpha=.30;ctx.lineWidth=4;ctx.lineCap="round";ctx.lineJoin="round";
+    for(const dt of doneTrails){
+      ctx.strokeStyle=dt.color;ctx.beginPath();ctx.moveTo(dt.pts[0].x,dt.pts[0].y);
+      for(let i=1;i<dt.pts.length;i++)ctx.lineTo(dt.pts[i].x,dt.pts[i].y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    // trail
+    if(trail.length>1){ctx.strokeStyle=trail.color;ctx.lineWidth=6;ctx.lineCap="round";ctx.lineJoin="round";
+      ctx.shadowColor=trail.color;ctx.shadowBlur=16;
+      ctx.beginPath();ctx.moveTo(trail[0].x,trail[0].y);
+      const pend=Math.min(trail.progress,trail.length);
+      for(let i=1;i<pend;i++)ctx.lineTo(trail[i].x,trail[i].y);
+      ctx.stroke();ctx.shadowBlur=0;
+      const p=trail[Math.min(trail.progress|0,trail.length-1)];
+      ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(p.x,p.y,8,0,6.28);ctx.fill();
+      ctx.fillStyle=trail.color;ctx.beginPath();ctx.arc(p.x,p.y,5,0,6.28);ctx.fill();
+    }
+  }
+  function path(start){
+    // compute polyline for player 'start'
+    const w=W(),h=H(),topY=h*.16,botY=h*.86;
+    let col=start;const pts=[{x:colX(col),y:topY}];
+    for(let r=1;r<ROWS;r++){
+      const y=topY+(botY-topY)*(r/ROWS);
+      // move down to this row
+      pts.push({x:colX(col),y});
+      // check rung to the right (col) or left (col-1)
+      const rRight=rungs.find(g=>g.row===r&&g.col===col);
+      const rLeft=rungs.find(g=>g.row===r&&g.col===col-1);
+      if(rRight){col++;pts.push({x:colX(col),y});}
+      else if(rLeft){col--;pts.push({x:colX(col),y});}
+    }
+    pts.push({x:colX(col),y:botY});
+    return {pts,end:col};
+  }
+  function run(start){
+    if(locked||running||played.has(start))return;running=true;played.add(start);$("#lgo").disabled=true;
+    const {pts,end}=path(start);
+    // densify
+    const dense=[];const seg=6;
+    for(let i=0;i<pts.length-1;i++){for(let s=0;s<seg;s++){
+      dense.push({x:pts[i].x+(pts[i+1].x-pts[i].x)*s/seg,y:pts[i].y+(pts[i+1].y-pts[i].y)*s/seg});}}
+    dense.push(pts[pts.length-1]);
+    trail=dense;trail.progress=0;trail.color=ps[start].color;trail.length=dense.length;
+    /* ★ v2.9.3 — 속도를 **칸 수와 무관하게** 잡는다.
+       예전엔 ms당 0.06칸 고정이었는데 ROWS=max(6,n+3) 이라 인원이 늘면 줄도 늘어
+       12명이면 한 사람 내려오는 데 4.5초, 12명 다 타면 1분에 가까웠다.
+       전체 소요를 RUN_MS 로 고정하면 인원과 상관없이 항상 같은 템포가 된다. */
+    /* ★ v2.11.7 — 1500ms → **950ms**. 12명이면 한 판이 그만큼 짧아진다
+       (1.88초/명 → 1.30초/명, 12명 기준 약 7초 단축). 발소리 간격도 같이 좁아지므로
+       '칸'마다 울리는 tick 은 progress/3 기준을 그대로 두면 된다. */
+    const RUN_MS=950, spd=dense.length/RUN_MS;
+    let last=performance.now(),lastTick=-1;
+    (function step(t){
+      const dt=t-last;last=t;trail.progress+=dt*spd;
+      /* 발소리는 '칸'마다 — progress 를 %3 으로 재면 속도가 바뀔 때 간격이 들쭉날쭉해진다 */
+      const ti=(trail.progress/3)|0;
+      if(ti!==lastTick){lastTick=ti;tick(500+Math.random()*300);}
+      draw();
+      if(trail.progress<dense.length){anim=requestAnimationFrame(step);}
+      else{running=false;
+        const won=end===winIdx;
+        doneTrails.push({pts,color:ps[start].color});
+        trail=[];
+        if(won)logAdd("ladder",ps[start].name);
+        setTimeout(()=>{if(won)showWinner(ps[start].name,ps[start].color,"커피 당첨! 오늘은 이 분이 쏩니다 ☕");
+          else{const left=n-played.size;
+            $("#lhint").textContent=left>0
+              ?`${ps[start].name} 님은 '꽝'! 남은 ${left}명 중에 커피가 있어요.`
+              :`${ps[start].name} 님은 '꽝'!`;
+            $("#lgo").disabled=left===0;}},220);
+      }
+    })(performance.now());
+  }
+  // tap top area to choose a player
+  S.cv.addEventListener("pointerdown",e=>{
+    if(locked||running)return;const r=S.cv.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;
+    if(y<H()*.28){let best=0,bd=1e9;for(let i=0;i<n;i++){const d=Math.abs(colX(i)-x);if(d<bd){bd=d;best=i;}}
+      if(bd<40)run(best);}
+  });
+  // 아직 안 타본 참가자 중에서 랜덤 실행
+  $("#lgo").onclick=()=>{const rest=[];for(let i=0;i<n;i++)if(!played.has(i))rest.push(i);
+    if(rest.length)run(pick(rest));};
+  let raf=null;(function loop(){draw();raf=requestAnimationFrame(loop);})();
+  return ()=>{cancelAnimationFrame(raf);cancelAnimationFrame(anim);S.ro.disconnect();};
+}
+
+/* ============================================================
+   2) 룰렛 돌리기 (Roulette)
+   ============================================================ */
+function Roulette(host,ps){
+  const S=makeStage(host,`
+    <div class="controls"><button class="bigbtn alt" id="rgo" disabled>🛑 멈춤</button></div>
+    <div class="hint" id="rhint">휠을 <b>잡고 돌리듯</b> 쓸다가 튕기듯 떼세요! 👆💨</div>`);
+  const {ctx,W,H}=S;
+  const n=ps.length, SEG=6.2832/n;
+  let ang=rand(0,6.2832),raf=null;
+
+  /* ★ v2.9.3 — **실제 물리로 도는 룰렛**. 예전(v1.4.3~v2.9.2)은 목표 각도를 미리 뽑고
+     7.2초 이징으로 끌고 가서, 당첨자가 돌리기 전에 이미 정해져 있었다.
+     이제는 손이 준 각속도가 마찰로 줄다 **멈춘 자리**가 당첨이다.
+     ★ v2.9.4 — 입력을 **잡고 돌리기(drag-to-spin)** 로 바꿨다. 아래 입력 주석 참고. */
+  /* ★ v2.9.7 — **마찰을 속도에 따라 다르게** 준다.
+     예전엔 한 값(0.9915)이라, 아무것도 안 보이는 '흐릿한 고속' 구간이 길고 정작
+     핀에 걸리는 게 보이는 저속 구간은 짧았다. 빠를 땐 더 세게 깎고(0.9855) 느릴 땐
+     덜 깎아(0.9915), **보이는 구간을 늘리고 안 보이는 구간을 줄인다**.
+     최고 속도도 0.54 → 0.40 으로 낮췄다 — 0.54 는 칸당 한 프레임이라 그냥 색이 흐른다. */
+  const FR_FAST =0.9855;   // 최고 속도에서의 마찰
+  const FR_FREE =0.9915;   // 거의 멈출 때의 마찰(오래 끌어 준다)
+  const FR_BRAKE=0.9760;   // 멈춤 버튼 — 즉시가 아니라 3~4초에 걸쳐 스르륵
+  const V_MIN   =0.1100, V_MAX=0.4000;   // 출발 속도의 하한·상한
+  const LAUNCH_MIN=0.0750; // ★ 손을 뗄 때 이보다 느리면 **출발하지 않는다**
+  const GAIN    =2.0;      // 손의 각속도 → 출발 회전력 배율
+
+  /* ★ v2.9.7 — **디텐트(칸 중앙으로 끌어당기는 복원력)를 완전히 들어냈다.**
+     v2.9.4~2.9.6 에는 느려지면 칸 한가운데로 당기는 힘이 있었다. 실제 룰렛의
+     '바늘이 핀 사이로 떨어져 앉는' 느낌을 노린 것이었는데, 부작용이 컸다:
+       ① 멈출 때 **뒤로 되돌아가는 게 눈에 보였다** — 관성으로 도는 물건이 역행하면
+          "시스템이 결과를 옮겼다"로 읽힌다.
+       ② 항상 칸 정중앙에서 서니 **어디서 멈출지가 아니라 어느 칸인지만** 남았다.
+     이제 **손이 준 힘 + 마찰** 말고는 휠을 움직이는 게 아무것도 없다. 각속도는
+     부호가 절대 안 바뀌므로 역행이 원리적으로 불가능하고, 멈추는 자리는 순수하게
+     얼마나 세게 돌렸는지로 정해진다. 칸 경계에 걸쳐 서면 그것도 정직한 결과다
+     (당첨 칸은 `winnerIndex()` 가 바늘 위치로 명확히 가른다). */
+  const V_STOP  =0.0020;   // 이보다 느려지면 정지로 친다
+
+  let state="idle",vel=0,spent=false,braking=false;
+  let win=-1,zoom=1,hi=-1,holdUntil=0,pulse=0;
+  let tense=0,nextHb=0,hbGap=560,ducked=false;
+  let ptrRot=0,ptrVel=0;                    // 바늘의 감쇠 스프링(핀에서 놓여난 뒤 떨림)
+  let riding=false;                         // ★ v2.9.6 — 지금 핀을 타고 있는 중인가
+  let lastSgn=1;                            // 마지막으로 돌던 방향(멈춘 뒤 구속용)
+  /* ★ v2.11.0 — 바늘이 얼마나 눕는지는 **상수가 아니라 매 프레임 푸는 값**이다.
+     핀과 겹치지 않는 최소 각을 leanFor() 가 이분법으로 찾는다. 그래서 여기엔
+     최대 각도, 접촉 폭도, 놓는 시점도 상수가 없다 — 전부 기하가 정한다.
+     (v2.9.7~v2.10.0 에는 CW·RIDE_MAX·SNAP 같은 다이얼이 있었는데, 그 근사가
+      바로 "핀을 안 넘었는데 떨어지고 되돌아오며 뚫는" 증상의 원인이었다.) */
+  let lastT=performance.now();
+  /* ★ v2.9.5 — 한 칸 넘을 때마다 터지는 연출들. 전부 1로 튀었다가 스스로 잦아든다.
+     칸이 넘어가는 **순간**이 눈에 안 보이면 빠르게 돌 때 그냥 색이 흐르는 것처럼 보인다. */
+  let sparks=[];                            // 핀에서 튀는 불꽃
+  let segFlash=0;                           // 새로 가리킨 칸이 번쩍
+  let hitFlash=0;                           // 접점의 섬광
+  let pinPop=-1,pinPopV=0;                  // 방금 맞은 핀이 부풀었다 가라앉는다
+  let tipX=0,tipY=0;                        // 바늘 끝(불꽃이 여기서 튄다)
+  const smooth=x=>x*x*(3-2*x);
+  const hint=t=>{const e=$("#rhint");if(e)e.innerHTML=t;};
+  function thump(){                         // 심장박동
+    beep(58,.15,"sine",.24);setTimeout(()=>beep(44,.18,"sine",.18),165);
+    if(navigator.vibrate)navigator.vibrate(22);
+  }
+  function geo(){
+    const w=W(),h=H();
+    const R=Math.min(w,h)*.4*zoom;
+    return {w,h,cx:w/2,cy:h/2+(zoom-1)*h*.45,R};
+  }
+  /* 핀 크기. v2.11.0 에서 .032R → .058R 로 키웠다가 **너무 커 보여서** .036R 로 되돌린다.
+     걸리는 구간의 길이는 `핀 크기 + 날 두께`에 비례하므로 짧아지지만,
+     v2.11.2 의 '들린 채 버티기' 덕분에 작아도 **뚫리지는 않는다**.
+     칸이 많아지면(×N) 핀이 서로 닿지 않게 줄인다. */
+  const pinR=R=>Math.max(2.4,Math.min(R*.036,(R*.94)*SEG*0.22));
+  /* ★ v2.10.0 — 날의 치수를 한 곳에서 낸다. 예전엔 draw() 와 step() 이 각자
+     `56*zoom`, `R-pr*3.6` 을 따로 써서 한쪽만 고치면 조용히 어긋났다.
+       tipR = 날 끝 반지름 / pivR = 회전축 반지름
+       pinC = 핀 중심 반지름 / armR = 축에서 핀까지의 **날 위 거리**
+     걸림은 날 끝이 아니라 **핀 반지름에서** 일어나므로 armR·pinC 로 계산해야 한다. */
+  function bladeGeo(R){
+    /* ★ v2.11.2 — 날을 **다시 짧고 얇게**. 76×15 는 너무 길고 두꺼웠다.
+       원래 요청은 "끝을 더 내려 달라"였지 "길고 두껍게"가 아니었다.
+       길이·두께는 v2.9.x 수준(52×11)으로 되돌리되, **끝은 계속 깊이**
+       (`R - pr*3.0`) 내려서 핀을 살로 받는 건 유지한다. */
+    const pr=pinR(R), LEN=52*zoom, pw=11*zoom;
+    const tipR=R-pr*3.0, pivR=tipR+LEN, pinC=R-pr*1.25;
+    /* 날 끝이 **핀 바깥면**을 넘어서는 각. 여기를 넘으면 핀이 날 밑으로 빠져나간다 */
+    const c=(LEN*LEN+pivR*pivR-(pinC+pr)*(pinC+pr))/(2*pivR*LEN);
+    const lift=(c>=1)?0:(c<=-1?Math.PI:Math.acos(c));
+    return {pr,LEN,pw,tipR,pivR,pinC,armR:pivR-pinC,lift};
+  }
+  /* ★ v2.11.1 — 날은 **끝으로 갈수록 가늘어지는 사다리꼴**이다(어깨 pw → 0.54pw → 0.22pw).
+     v2.11.0 은 두께를 `pw*0.45` 고정으로 놓고 구속을 풀었는데, 많이 누울수록
+     핀이 닿는 지점이 **축 쪽(두꺼운 쪽)으로 올라간다**. 얇다고 계산한 만큼
+     실제로는 **날이 핀을 파고들었다**. 이제 닿는 위치의 국소 두께를 쓴다. */
+  function halfW(u,pw){
+    return u<=0.70 ? pw*(1-0.46*(u/0.70))
+                   : pw*(0.54-0.32*((u-0.70)/0.30));
+  }
+  /* 날 중심선(축→끝 선분)에서 점 C 까지 — {거리, 선분 파라미터} */
+  function distBlade(rot,C,b){
+    const py=-b.pivR;
+    const dx=-b.LEN*Math.sin(rot), dy=b.LEN*Math.cos(rot);
+    let t=((C.x)*dx+(C.y-py)*dy)/(dx*dx+dy*dy);
+    t=t<0?0:(t>1?1:t);
+    return {d:Math.hypot(C.x-dx*t, C.y-(py+dy*t)), t};
+  }
+  /* 이만큼 누웠을 때 핀과의 **여유**(음수면 파고든 것).
+     ★ SAFE=1.0px — 중심선+국소두께는 실제 다각형의 근사라 모서리에서 0.08px 정도
+     모자란다. 그 미세한 양도 화면에선 "물렸다"로 보이므로 여유를 둬서
+     실측 간격을 **0.91px 이상**으로 띄운다(다각형 전수 검사로 확인). */
+  const SAFE=1.0;
+  function gapAt(rot,C,b){
+    const r=distBlade(rot,C,b);
+    return r.d-(b.pr+halfW(r.t,b.pw)+SAFE);
+  }
+  /* ★ v2.11.3 — **각도를 푸는 방식을 버렸다.**
+     v2.11.0~2 는 "핀을 비키려면 몇 도 필요한가"를 이분법으로 풀고, 맨 앞에
+     `if(gapAt(0) >= 0) return 0;` 로 **0°에서 안 닿으면 자유**라고 판정했다.
+     그런데 바늘은 지금 30° 올라가 있을 수 있다. 핀이 제자리 선을 지나가면
+     **0°에선 안 닿지만 30°에선 닿는다** — 그런데도 "자유"가 되어 툭 떨어지고,
+     내려오는 길에 핀을 쓸고 지나갔다. 그게 남아 있던 관통이다.
+     이제는 각을 풀지 않는다. **지금 각에서 한 칸씩 내려보며 닿기 직전에 멈춘다.**
+     즉 닿아 있으면 무조건 걸려 있는 것이고, 날 아랫부분이 핀을 완전히
+     지나쳐 길이 열렸을 때에만 내려온다. */
+  function clearAt(b,pins,rot){
+    for(let i=0;i<pins.length;i++){
+      const phi=pins[i];
+      const C={x:b.pinC*Math.sin(phi), y:-b.pinC*Math.cos(phi)};
+      if(gapAt(rot,C,b)<0) return false;
+    }
+    return true;
+  }
+  /* 바늘 원위치(맨 위) 기준 핀의 각 위치. + = 회전이 커지는 쪽 */
+  function nearPins(){
+    const out=[];
+    for(let i=0;i<n;i++){
+      let p=(ang+i*SEG+Math.PI/2)%6.2832;
+      if(p>Math.PI)p-=6.2832; else if(p<-Math.PI)p+=6.2832;
+      if(Math.abs(p)<SEG*1.1) out.push(p);
+    }
+    return out;
+  }
+  /* 바늘이 기울어 있을 때, 날이 핀 반지름에서 **원위치보다 얼마나 나가 있는가**(각).
+     양수 = 회전이 커지는 쪽. 걸린 채로 멈췄을 때 당첨 칸을 이걸로 보정한다. */
+  function bladeOffset(R){
+    const b=bladeGeo(R);
+    /* ★ v2.11.4 — **날 끝의 실제 각**을 쓴다.
+       예전엔 `armR·sin(θ)/pinC` 라는 소각 근사였다. 핀 반지름에서 잰 값이라
+       크게 누울수록 실제 끝 위치와 벌어졌다 — 46° 에서 0.186 vs 0.222rad,
+       **한 칸(30°)의 7%** 차이다. 경계 근처면 옆 칸이 뽑힌다.
+       축 (0,−pivR) 에서 로컬 (0,LEN) 을 ptrRot 만큼 돌린 점의 각이 정답이다. */
+    return Math.atan2(-b.LEN*Math.sin(ptrRot), b.pivR-b.LEN*Math.cos(ptrRot));
+  }
+  /* 바늘이 실제로 가리키는 칸 (offset 을 반영) */
+  function winnerAt(off){
+    let a=(-Math.PI/2+off-ang)%6.2832;if(a<0)a+=6.2832;
+    return Math.floor(a/SEG)%n;
+  }
+  /* 바늘이 지금 칸 안 어디에 있나. 0 = 방금 넘은 핀, 1 = 다음 핀, 0.5 = 칸 한가운데 */
+  function segFrac(){let a=(-Math.PI/2-ang)%SEG;if(a<0)a+=SEG;return a/SEG;}
+
+  function draw(){
+    const {w,h,cx,cy,R}=geo();
+    ctx.clearRect(0,0,w,h);
+    for(let i=0;i<n;i++){
+      const a0=ang+i*SEG,a1=ang+(i+1)*SEG;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,a0,a1);ctx.closePath();
+      ctx.fillStyle=ps[i].color;
+      if(i===hi){
+        /* ★ v2.9.5 — 새로 가리킨 칸이 **번쩍**한다(segFlash). 이게 없으면 빠르게 돌 때
+           칸이 넘어가는 순간이 안 보이고 색이 그냥 흐르는 것처럼 읽힌다. */
+        const glow=state==="hold"?.55+.45*Math.sin(pulse):(.22+.40*segFlash);
+        ctx.fill();
+        ctx.save();ctx.globalAlpha=glow;ctx.fillStyle="#fff";ctx.fill();ctx.restore();
+      }else ctx.fill();
+      ctx.strokeStyle="rgba(0,0,0,.25)";ctx.lineWidth=n>28?1:2;ctx.stroke();
+      if(R*0.86*SEG>=13){
+        ctx.save();ctx.translate(cx,cy);ctx.rotate((a0+a1)/2);ctx.textAlign="right";ctx.textBaseline="middle";
+        ctx.fillStyle="#0b0e24";ctx.font=(i===hi?"900 ":"800 ")+clamp(Math.min(R*.12,R*0.86*SEG*0.72),9,22)+"px sans-serif";
+        ctx.fillText(clip(ps[i].name,6),R*.86,0);ctx.restore();
+      }
+    }
+    if(state==="hold"&&win>=0){
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,ang+win*SEG,ang+(win+1)*SEG);ctx.closePath();
+      ctx.strokeStyle="#fff";ctx.lineWidth=4;ctx.shadowColor="#fff";ctx.shadowBlur=18;ctx.stroke();ctx.shadowBlur=0;
+    }
+    /* ★ 흰 핀 — 칸 경계마다 하나씩, 휠과 **같이 돈다**. 바늘이 여기 걸려 '다다다닥' 한다. */
+    const pr=pinR(R);
+    for(let i=0;i<n;i++){
+      const a=ang+i*SEG, px=cx+Math.cos(a)*(R-pr*1.25), py=cy+Math.sin(a)*(R-pr*1.25);
+      /* ★ v2.9.5 — 방금 맞은 핀은 부풀었다 가라앉는다. 어느 핀에 걸렸는지가 보인다 */
+      const pop=(i===pinPop)?1+1.15*pinPopV:1;
+      ctx.beginPath();ctx.arc(px,py,pr*pop,0,6.28);
+      ctx.fillStyle="#fff";
+      ctx.shadowColor=(i===pinPop&&pinPopV>.05)?"rgba(255,226,140,1)":"rgba(255,255,255,.85)";
+      ctx.shadowBlur=pr*(2.2+5.0*(i===pinPop?pinPopV:0));
+      ctx.fill();ctx.shadowBlur=0;
+      ctx.beginPath();ctx.arc(px-pr*.28,py-pr*.28,pr*.38*pop,0,6.28);
+      ctx.fillStyle="rgba(255,255,255,.95)";ctx.fill();
+    }
+    // hub
+    ctx.beginPath();ctx.arc(cx,cy,R*.16,0,6.28);ctx.fillStyle="#fff";ctx.fill();
+    ctx.fillStyle="#0b0e24";ctx.font="700 "+clamp(R*.1,12,20)+"px sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("☕",cx,cy);
+    if(tense>.01){
+      const vg=ctx.createRadialGradient(cx,cy,R*.5,cx,cy,Math.max(w,h)*.8);
+      vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,`rgba(0,0,0,${.74*tense})`);
+      ctx.fillStyle=vg;ctx.fillRect(0,0,w,h);
+    }
+    /* ★ v2.9.4 — 바늘(플래퍼) 위치를 다시 잡았다.
+       예전엔 축이 R+6, 길이 20 이라 **끝이 반지름 R-22 까지 파고들어** 핀을 뚫고
+       지나가는 그림이었다. 이제 축을 밖으로 빼고 길이를 줄여 **끝이 딱 핀에 닿는다**:
+         축  = R + LEN - pr*0.6   (예전보다 위로 올라간다)
+         끝  = R - pr*0.6         (핀 바깥면을 살짝 파고드는 지점)
+       회전축이 끝이 아니라 **위쪽 꼭지**라서, 젖혀지면 끝이 좌우로 크게 흔들린다. */
+    /* ★ v2.9.5 — 바늘을 **확 키우고 핀을 물게** 했다.
+       v2.9.4 는 끝을 `R - pr*0.6`(핀 바깥면)에 뒀더니 **끝만 간신히 스치는** 그림이라
+       "걸린다"가 아니라 "지나간다"로 읽혔다. 끝을 핀 중심보다 안쪽(`R - pr*2.2`)까지
+       내려 **핀을 물고 밀어내는** 깊이를 준다. 길이·폭도 22/11 → 38/16.
+       축(pivR)은 끝에서 LEN 만큼 위 — 축이 밖에 있어야 젖힐 때 끝이 크게 휘둘린다. */
+    /* ★ 날 치수는 bladeGeo() 한 곳에서 — ride 계산과 반드시 같은 값이어야 한다.
+       LEN 38 → 56 → **72**: 길수록 축에서 핀까지의 팔(armR)이 길어져,
+       같은 각도로 누워도 **핀을 더 멀리까지 따라간다** = 더 오래 걸려 있다. */
+    const {LEN,pw,tipR,pivR}=bladeGeo(R);
+    /* ★ v2.9.9 — 끝을 **뭉툭한 패들**로. 바늘 끝이 한 점이면 핀과 닿는 면적이 0 이라
+       아무리 깊이 넣어도 '걸렸다'가 안 보인다. 실제 룰렛 플래퍼도 주걱 모양이다. */
+    const blade=()=>{ctx.beginPath();
+      ctx.moveTo(-pw,0);ctx.lineTo(pw,0);
+      ctx.lineTo(pw*.54,LEN*.70);ctx.lineTo(pw*.22,LEN);
+      ctx.lineTo(-pw*.22,LEN);ctx.lineTo(-pw*.54,LEN*.70);
+      ctx.closePath();};
+    ctx.save();ctx.translate(cx,cy-pivR);ctx.rotate(ptrRot);
+    // ① 바닥 그림자 — 젖혀진 쪽 반대로 살짝 밀어 입체감을 준다
+    ctx.save();ctx.translate(ptrRot*4*zoom,2.5*zoom);
+    blade();ctx.fillStyle="rgba(0,0,0,.32)";ctx.fill();ctx.restore();
+    // ② 본체 — 왼쪽 위가 밝고 오른쪽 아래로 진해지는 사선 그라디언트(플라스틱 느낌)
+    const bg=ctx.createLinearGradient(-pw,0,pw,LEN);
+    bg.addColorStop(0,"#ff9db0");bg.addColorStop(.42,"#ff4d6d");bg.addColorStop(1,"#b3143f");
+    blade();ctx.fillStyle=bg;ctx.shadowColor="#ff4d6d";ctx.shadowBlur=12+18*tense;ctx.fill();ctx.shadowBlur=0;
+    // ③ 테두리 — 어두운 선이 있어야 배경 위에서 형태가 끊긴다
+    blade();ctx.strokeStyle="rgba(74,8,26,.80)";ctx.lineWidth=Math.max(1,1.1*zoom);ctx.stroke();
+    // ④ 하이라이트 — 왼쪽 면을 따라 흐르는 가는 광택 띠
+    ctx.beginPath();
+    ctx.moveTo(-pw*.66,pw*.22);ctx.lineTo(-pw*.30,LEN*.80);
+    ctx.lineTo(-pw*.10,LEN*.76);ctx.lineTo(-pw*.38,pw*.20);
+    ctx.closePath();ctx.fillStyle="rgba(255,255,255,.42)";ctx.fill();
+    ctx.restore();
+    /* ⑤ 회전축 볼트 — 바늘이 **여기 매달려 흔들린다**는 게 보여야 젖힘이 읽힌다.
+       금속 링(방사형 그라디언트) + 가운데 나사 머리 */
+    const hg=ctx.createRadialGradient(cx-pw*.22,cy-pivR-pw*.22,1,cx,cy-pivR,pw*.55);
+    hg.addColorStop(0,"#ffffff");hg.addColorStop(.58,"#e7edf6");hg.addColorStop(1,"#94a1b5");
+    ctx.beginPath();ctx.arc(cx,cy-pivR,pw*.55,0,6.28);ctx.fillStyle=hg;ctx.fill();
+    ctx.strokeStyle="rgba(0,0,0,.34)";ctx.lineWidth=Math.max(1,zoom);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy-pivR,pw*.18,0,6.28);ctx.fillStyle="#6b7789";ctx.fill();
+
+    /* ★ v2.9.5 — 바늘 끝 위치를 기억해 둔다. 불꽃이 여기서 튄다.
+       축 (cx, cy-pivR) 에서 로컬 (0,LEN) 을 ptrRot 만큼 돌린 점. */
+    tipX=cx-Math.sin(ptrRot)*LEN;
+    tipY=(cy-pivR)+Math.cos(ptrRot)*LEN;
+
+    // 접점 섬광 — 맞는 순간 하얗게 터졌다 사라진다
+    if(hitFlash>.02){
+      const fr2=hitFlash;
+      const rg=ctx.createRadialGradient(tipX,tipY,0,tipX,tipY,pr*7*fr2+4);
+      rg.addColorStop(0,`rgba(255,255,255,${.95*fr2})`);
+      rg.addColorStop(.35,`rgba(255,226,140,${.55*fr2})`);
+      rg.addColorStop(1,"rgba(255,200,80,0)");
+      ctx.fillStyle=rg;
+      ctx.beginPath();ctx.arc(tipX,tipY,pr*7*fr2+4,0,6.28);ctx.fill();
+    }
+    // 불꽃 — 짧은 선으로 그려야 '튄다'로 보인다(점으로 그리면 먼지처럼 보인다)
+    if(sparks.length){
+      ctx.lineCap="round";
+      for(const sp of sparks){
+        ctx.globalAlpha=clamp(sp.life,0,1);
+        ctx.strokeStyle=sp.c;ctx.lineWidth=Math.max(1,pr*.42*sp.life);
+        ctx.beginPath();ctx.moveTo(sp.x,sp.y);
+        ctx.lineTo(sp.x-sp.vx*2.2,sp.y-sp.vy*2.2);ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+    }
+    // 아직 안 돌렸으면 안내를 깜빡인다
+    if(state==="idle"){
+      ctx.globalAlpha=.55+.25*Math.sin(performance.now()/380);
+      ctx.font="600 13px sans-serif";ctx.fillStyle="#fff";ctx.textAlign="center";
+      ctx.fillText("휠을 잡고 돌리듯 쓸어요 ↻",cx,cy+R+34);
+      ctx.globalAlpha=1;
+    }
+  }
+  function winnerIndex(){
+    let a=(-Math.PI/2-ang)%6.2832;if(a<0)a+=6.2832;
+    return Math.floor(a/SEG)%n;
+  }
+  /* 바늘이 핀을 넘었을 때. cnt=이번 프레임에 지나간 핀 개수(빠르면 2~3개씩 스친다) */
+  /* 바늘 바로 아래(꼭대기)에 있는 핀 번호 — 불꽃·팝을 그 핀에 붙이려고 찾는다 */
+  function nearestPin(){
+    let best=0,bd=9;
+    for(let i=0;i<n;i++){
+      let d=Math.abs(((ang+i*SEG+Math.PI/2+Math.PI)%6.2832+6.2832)%6.2832-Math.PI);
+      if(d<bd){bd=d;best=i;}
+    }
+    return best;
+  }
+  /* ★ v2.9.8 — 소리·불꽃은 **바늘이 핀에서 놓여나는 순간**에 낸다.
+     v2.9.7 까지는 '칸 경계가 바늘 원위치를 지날 때' 냈는데, 그때 바늘은 아직
+     핀을 붙잡고 한창 밀려 올라가는 중이다. 소리가 먼저 나고 모션이 나중에 와서
+     둘이 따로 놀았다. 실제로도 "탁" 소리는 플래퍼가 핀을 놓치고 내려칠 때 난다. */
+  function pinRelease(cnt){
+    const spd=clamp(Math.abs(vel)/V_MAX,0,1);
+    for(let k=0;k<cnt;k++) pinHit(spd,k*0.018);
+    hitFlash=1; pinPop=nearestPin(); pinPopV=1;
+    const dir=(vel>0?0:Math.PI);                       // 튀는 쪽 = 회전 방향
+    const cnt2=2+Math.round(spd*5);
+    for(let i=0;i<cnt2;i++){
+      const a=dir+rand(-0.75,0.75)-0.30;               // 살짝 위로 흩어진다
+      const v=(1.1+spd*3.6)*rand(0.55,1.45);
+      if(sparks.length<90)
+        sparks.push({x:tipX,y:tipY,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,
+                     c:Math.random()<.45?"#ffd166":"#fff"});
+    }
+    if(navigator.vibrate&&spd<.25)navigator.vibrate(14);
+  }
+  function launch(v,label){
+    if(spent||state!=="idle")return;
+    spent=true;state="spin";
+    vel=v;
+    $("#rgo").disabled=false;
+    tense=0;nextHb=0;hbGap=560;ducked=false;
+    const pct=Math.round(100*(Math.abs(vel)-V_MIN)/(V_MAX-V_MIN));
+    hint(`${label} ${pct>72?"엄청 세게":pct>38?"힘차게":"살짝"} 돌렸어요! 🎯`);
+    beep(300+420*clamp(Math.abs(vel)/V_MAX,0,1),.10,"triangle",.16);
+  }
+
+  /* ---- 입력: 잡고 돌리기(drag-to-spin) --------------------------------
+     ★ v2.9.4 — 예전엔 가로 이동량(dx)만 봐서 **휠 위쪽에서 좌우로 쓸 때만** 제대로
+     돌고, 양옆에서 위아래로 쓸면 거의 안 먹었다. 이제 손가락의 **중심 기준 각도**를
+     따라가므로 위·아래·대각선 어디서 어떻게 쓸어도 실제 휠처럼 돌아간다.
+
+       · 잡고 있는 동안:  휠이 손을 1:1로 따라 돈다. 핀 소리도 나고 바늘도 젖혀지지만
+                        **이건 아직 '돌린 것'이 아니다** — state 는 idle 그대로고
+                        당첨도 정해지지 않는다.
+       · 손을 뗄 때:     마지막 120ms 의 각속도를 본다. LAUNCH_MIN 이상이면 그제야
+                        출발(spin). 살살 놓으면 **출발하지 않고** 그 자리에 선다.
+       · 돌린 뒤:        어떤 터치도 안 먹는다. 잡아서 멈추거나 더 돌릴 수 없다 —
+                        이게 없으면 원하는 칸에서 손으로 잡아 결과를 고를 수 있다.
+     축 근처(r < R*0.15)는 각도가 폭주하므로 그 구간의 이동은 버린다. */
+  let dragging=false,dragPrev=0,dragTotal=0,dragSamples=null;
+  const localPt=e=>{const r=S.cv.getBoundingClientRect();
+    return {x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now()};};
+
+  S.cv.addEventListener("pointerdown",e=>{
+    if(spent||state!=="idle")return;        // ★ 한 판에 한 번 — 그 뒤 터치는 전부 무시
+    try{S.cv.setPointerCapture(e.pointerId);}catch(err){}
+    const g=geo(),p=localPt(e);
+    dragging=true;dragPrev=Math.atan2(p.y-g.cy,p.x-g.cx);dragTotal=0;
+    dragSamples=[{rot:0,t:p.t}];
+    hint("잡고 돌리는 중… 손을 <b>튕기듯</b> 떼면 출발! 👆💨");
+  });
+  S.cv.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    const g=geo(),p=localPt(e);
+    const a=Math.atan2(p.y-g.cy,p.x-g.cx);
+    let d=a-dragPrev;
+    while(d>Math.PI)d-=6.2832; while(d<-Math.PI)d+=6.2832;
+    dragPrev=a;
+    if(Math.hypot(p.x-g.cx,p.y-g.cy)<g.R*0.15)return;   // 축 근처는 버린다
+    const prev=dragSamples[dragSamples.length-1];
+    vel=(d/Math.max(1,p.t-prev.t))*16.667;              // 핀 소리·바늘 젖힘이 쓰는 순간 속도
+    ang+=d;dragTotal+=d;
+    dragSamples.push({rot:dragTotal,t:p.t});
+    if(dragSamples.length>8)dragSamples.shift();
+  });
+  const release=()=>{
+    if(!dragging)return;
+    dragging=false;
+    const smp=dragSamples;dragSamples=null;
+    vel=0;
+    if(spent||state!=="idle")return;
+    if(!smp||smp.length<2){hint("휠을 <b>잡고 돌리듯</b> 쓸어주세요 ↻");return;}
+    const last=smp[smp.length-1];
+    let first=smp[0];
+    for(const sp of smp) if(last.t-sp.t<=120){first=sp;break;}
+    const dtms=Math.max(8,last.t-first.t);
+    const w=((last.rot-first.rot)/dtms)*16.667*GAIN;    // rad/frame
+    if(Math.abs(w)<LAUNCH_MIN){
+      hint("살살 놓으면 안 돌아가요 — <b>튕기듯</b> 떼주세요! 👆💨");return;
+    }
+    const v0=Math.sign(w)*clamp(Math.abs(w),V_MIN,V_MAX);
+    launch(v0, v0>0?"시계방향으로":"반시계방향으로");
+  };
+  S.cv.addEventListener("pointerup",release);
+  S.cv.addEventListener("pointercancel",release);
+
+  $("#rgo").onclick=()=>{
+    if(state!=="spin")return;
+    braking=true;$("#rgo").disabled=true;
+    hint("브레이크! 🛑 스르륵 멈춥니다…");
+    beep(180,.18,"sawtooth",.14);
+  };
+
+  function step(ts){
+    const dt=clamp(ts-lastT,1,50);lastT=ts;
+    const f=dt/16.667;                                   // 60fps 기준 프레임 수
+    if(state==="spin"){
+      const before=ang;
+      /* ★ v2.9.7 — 마찰만으로 감속한다. 인위적인 힘은 **없다**.
+         빠를수록 세게 깎아(FR_FAST) 안 보이는 고속 구간을 줄이고,
+         느려질수록 덜 깎아(FR_FREE) 핀에 걸리는 게 보이는 구간을 늘린다. */
+      const sp0=clamp(Math.abs(vel)/V_MAX,0,1);
+      const fr=braking?FR_BRAKE:(FR_FREE+(FR_FAST-FR_FREE)*sp0);
+      vel*=Math.pow(fr,f);
+      ang+=vel*f;
+      /* 긴장 연출은 시간이 아니라 **속도**에 맞춘다 — 언제 멈출지 정해져 있지 않으므로 */
+      const slow=clamp(1-Math.abs(vel)/0.16,0,1);
+      tense+=(slow-tense)*.06;
+      zoom+=((1+.42*smooth(slow))-zoom)*.05;
+      if(slow>.30){
+        if(!ducked){ducked=true;musDuck(.24,.5);}
+        if(ts>=nextHb){thump();nextHb=ts+hbGap;hbGap=Math.max(300,hbGap-42);}
+        if(slow>.62)hint("슬슬… 멈춘다 😳");
+      }
+      /* ★ v2.9.7 — 정지 조건은 **속도 하나뿐**이다. 예전엔 '칸 중앙 10% 이내'를
+         같이 봤는데, 그건 디텐트가 중앙으로 끌어당겨 주니까 성립하던 조건이다.
+         디텐트를 뺀 지금 그 조건을 두면 경계 근처에서 영영 안 멈춘다. */
+      /* ★ v2.11.6 — v2.11.5 에서 "바늘이 똑바로 앉을 때까지 안 멈춘다"를 넣었다가
+         **되돌렸다.** 바늘이 핀에 얹힌 자세가 애매해 보인다고 억지로 떨어뜨린 건데,
+         그건 결과를 옮기는 것이지 애매함을 푸는 게 아니다.
+         **걸려 있으면 걸린 그대로 멈춘다.** 그 자세에서 날 끝이 가리키는 칸이 당첨이고,
+         그건 아래 hold 구간에서 매 프레임 다시 읽으므로 화면과 항상 일치한다. */
+      if(Math.abs(vel)<V_STOP){
+        /* ★ v2.10.0 — **걸린 채로 멈췄으면 바늘이 실제로 가리키는 칸이 당첨이다.**
+           바늘이 핀에 얹혀 옆으로 눕고 있으면, 날 끝은 원위치(맨 위 수직)가 아니라
+           `bladeOffset()` 만큼 옆으로 가 있다. 그 상태에서 원위치 기준으로 칸을
+           고르면 **화면에 보이는 바늘과 발표되는 당첨자가 다르다**.
+           눕지 않았을 때는 offset 이 0 이라 예전과 완전히 같은 결과가 나온다. */
+        vel=0;state="hold";win=winnerAt(bladeOffset(geo().R));hi=win;pulse=0;holdUntil=ts+1100;
+        beep(150,.10,"sine",.20);setTimeout(()=>beep(880,.12,"triangle",.18),110);   // 툭 → 딩
+        musDuck(1,.1);ptrVel-=.22;hint("멈췄다!");
+        $("#rgo").disabled=true;
+      }
+    }else if(state==="hold"){
+      /* ★ v2.11.4 — **당첨 칸을 hold 내내 다시 읽는다.**
+         예전엔 `|vel| < V_STOP` 이 되는 **그 순간** 한 번만 확정했다. 그런데 바늘은
+         그 뒤로도 1.1초 동안 핀에서 내려앉으며 움직인다 — 46° 에 걸려 있다가
+         0° 로 떨어지면 **화면의 바늘과 발표되는 칸이 완전히 달라진다**.
+         휠은 이미 멈췄으니 ang 은 고정이고, 바늘만 자리를 잡는다.
+         매 프레임 다시 읽으면 **발표 직전의 바늘이 가리키는 칸**이 그대로 당첨이다. */
+      win=winnerAt(bladeOffset(geo().R));hi=win;
+      pulse+=.16;tense+=(0-tense)*.08;
+      if(ts>=holdUntil){state="done";
+        logAdd("roulette",ps[win].name);
+        showWinner(ps[win].name,ps[win].color,"룰렛 당첨! 커피 부탁해요 ☕");}
+    }
+    /* ---- 바늘: 닿아 있으면 걸려 있는 것이다 ---------------------------
+       ★ v2.11.3 — 각도를 푸는 대신 **한 칸씩 움직여 본다**.
+         ① 지금 각에서 핀에 닿아 있으면 → 안 닿을 때까지 **밀려 올라간다**
+         ② 안 닿으면 스프링이 내려오려 한다 → 단, **닿기 직전까지만** 내려온다
+       ②가 핵심이다. 내려오는 경로를 한 칸씩 확인하므로, 날이 핀을 쓸고
+       지나가는 일이 원천적으로 불가능하다. 날 아랫부분이 핀을 완전히 지나쳐
+       길이 열렸을 때에만 0 까지 내려온다. */
+    {
+      const b2=bladeGeo(geo().R);
+      const sgn=Math.sign(vel)||lastSgn;
+      if(vel!==0) lastSgn=Math.sign(vel);
+      const pins=nearPins();
+      const S=-sgn;                       // 눕는 부호 (시계방향이면 ptrRot 음수)
+      const ST=0.008;                     // 각 해상도 (0.46°)
+      let mag=Math.abs(ptrRot);
+      const wasBlocked=riding;
+      if(!clearAt(b2,pins,S*mag)){
+        /* ① 핀이 밀어 올린다 — 안 닿는 각까지 */
+        let m=mag;
+        for(let i=0;i<200 && !clearAt(b2,pins,S*m);i++) m+=ST;
+        mag=m; ptrVel=0; riding=true;
+      }else{
+        /* ② 스프링이 내려오려 한다(주기 0.70초). 닿기 직전까지만 내려온다 */
+        ptrVel+=(-mag*.022-ptrVel*.135)*f;
+        let target=mag+ptrVel*f;
+        if(target<0){target=0;ptrVel=0;}
+        let m=mag, hitPin=false;
+        while(m>target){
+          const nxt=Math.max(target,m-ST);
+          if(!clearAt(b2,pins,S*nxt)){hitPin=true;break;}
+          m=nxt;
+        }
+        if(hitPin) ptrVel=0;
+        mag=m; riding=hitPin;
+      }
+      ptrRot=clamp(S*mag,-1.30,1.30);
+      if(wasBlocked&&!riding) pinRelease(Math.max(1,Math.min(3,Math.round(Math.abs(vel)*f/SEG))));
+      /* ★ v2.11.7 — **멈춘 뒤에는 이 줄이 hi 를 덮어쓰면 안 된다.**
+         이 블록은 state 와 무관하게 매 프레임 돌기 때문에, hold 구간에서
+         위(상태머신)가 `hi = win`(날 끝 기준)으로 맞춰 놓은 걸
+         **곧바로 12시 기준으로 되돌려 놓고 있었다.**
+         그래서 화면의 흰 강조는 12시 칸, 발표되는 이름은 날 끝 칸 — 서로 달랐다.
+         이게 "가리키는 방향이 당첨이 안 된다"의 정체다.
+         돌아가는 동안에는 12시 기준이 맞다(바늘이 크게 흔들려 끝 기준이면 깜빡인다). */
+      if(state==="spin"||state==="idle"){
+        const cur=winnerIndex();
+        if(cur!==hi){hi=cur;segFlash=1;}
+      }
+    }
+    /* ★ v2.9.5 — 한 칸 연출들의 감쇠. 전부 프레임률과 무관하게 f 를 곱한다 */
+    segFlash*=Math.pow(0.86,f); hitFlash*=Math.pow(0.78,f); pinPopV*=Math.pow(0.84,f);
+    if(sparks.length){
+      for(const sp of sparks){
+        sp.x+=sp.vx*f; sp.y+=sp.vy*f; sp.vy+=0.13*f; sp.vx*=Math.pow(0.96,f);
+        sp.life-=0.052*f;
+      }
+      sparks=sparks.filter(sp=>sp.life>0);
+    }
+    draw();raf=requestAnimationFrame(step);
+  }
+  raf=requestAnimationFrame(step);
+  return ()=>{cancelAnimationFrame(raf);S.ro.disconnect();};
+}
+
+/* ============================================================
+   3) 마블레이스 (Marble race) — custom physics + camera follow
+   ============================================================ */
+function Marble(host,ps){
+  const S=makeStage(host,`
+    <div class="rankbox" id="rank"></div>
+    <div class="controls"><button class="bigbtn" id="mgo">🏁 출발!</button></div>
+    <div class="hint" id="mhint">이름 공이 코스를 따라 굴러떨어져요. 1등이 커피 당첨!</div>`);
+  const {ctx,W,H}=S;
+  /* ★ v1.4.3 — 당첨 규칙을 게임 시작 전에 고른다.
+       first = 먼저 도착한 공이 당첨 (예전 방식, 1등이 나오면 거기서 끝)
+       last  = 마지막에 도착한 공이 당첨 (1등이 나와도 안 끝나고 전원 완주까지 간다)
+     MODE는 아래 물리·카메라·연출이 전부 참조하므로 팝업에서 정해지기 전엔 출발할 수 없다. */
+  let MODE=null;
+  function askMode(){
+    const ov=document.createElement("div");
+    ov.style.cssText=`position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;
+      background:rgba(8,10,26,.86);backdrop-filter:blur(7px);`;
+    ov.innerHTML=`
+      <div style="font-size:44px;line-height:1;">🏁</div>
+      <div style="font-size:20px;font-weight:900;">누가 당첨될까요?</div>
+      <div style="color:var(--sub);font-size:13px;font-weight:600;margin-bottom:6px;">규칙을 고르세요</div>
+      <button id="mFirst" class="bigbtn" style="max-width:300px;width:100%;margin:0;">🥇 First — 먼저 도착한 사람</button>
+      <button id="mLast" class="bigbtn alt" style="max-width:300px;width:100%;margin:0;">🐢 Last — 마지막에 도착한 사람</button>
+      <div style="color:var(--sub);font-size:12px;font-weight:600;line-height:1.5;margin-top:4px;">
+        First는 1등이 나오면 바로 끝나고,<br>Last는 혼자 남는 순간 그 사람이 당첨이에요.</div>`;
+    S.wrap.appendChild(ov);
+    const choose=m=>{MODE=m;ov.remove();beep(720,.12,"triangle",.2);
+      $("#mhint").textContent = m==="first"
+        ? "먼저 도착한 공이 당첨! 🥇"
+        : "혼자 남는 공이 당첨! 끝까지 버티면 지는 거예요 🐢";};
+    ov.querySelector("#mFirst").onclick=()=>choose("first");
+    ov.querySelector("#mLast").onclick=()=>choose("last");
+  }
+  askMode();
+  const WW=340, L=18, R=322, CX=WW/2;     // 좁고 긴 코스 (원본 느낌)
+
+  /* ===== 맵 시스템 =====
+     게임에 들어올 때마다 MAPS 중 하나를 뽑아 코스를 새로 짓는다.
+     맵을 추가하려면 build 함수를 만들어 MAPS 배열에 넣기만 하면 된다. */
+  function newMap(name){
+    const segs=[],pegs=[],spinners=[];
+    const M={name,segs,pegs,spinners,finishY:0,
+      // 굵은 흰 벽 — 코스의 큰 뼈대(경사 램프/깔때기)
+      wall:(x1,y1,x2,y2)=>segs.push({a:{x:x1,y:y1},b:{x:x2,y:y2},w:3,kind:"wall"}),
+      // 짧게 기울어진 막대 — 지그재그 장애물
+      bar:(cx,cy,len,deg,w=4.5)=>{const t=deg*Math.PI/180,dx=Math.cos(t)*len/2,dy=Math.sin(t)*len/2;
+        segs.push({a:{x:cx-dx,y:cy-dy},b:{x:cx+dx,y:cy+dy},w,kind:"bar"});},
+      peg:(x,y,r=6)=>pegs.push({x:clamp(x,L+34,R-34),y,r}),
+      // kick: 맞았을 때 튕겨나가는 힘. 회전 속도(omega)와 분리해 둬서
+      //       "날개는 천천히 도는데 맞으면 확 날아간다"를 만들 수 있다.
+      spin:(cx,cy,len,omega,w=7,gate=false,blades=1,kick=1.6)=>spinners.push({cx,cy,len,angle:rand(0,6.28),omega,w,gate,blades,kick}),
+      // 회전 막대 앞/뒤로 반드시 띄워야 하는 거리.
+      // 날개가 도는 원(len) + 막대 굵기(w) + 공 지름 + 여유. 이보다 붙이면 날개가
+      // 벽·막대를 파고들어 공을 코스 거꾸로 쳐올리고 거기서 무한 핑퐁하며 갇힌다.
+      clr:(len,w)=>len+w+22};
+    /* ★ 되쳐올림 구간 — 좌우 십자 날개 한 쌍.
+       왼쪽은 왼벽까지, 오른쪽은 오른벽까지 닿고 가운데서 서로 겹치도록 폭을 잡아서
+       "어느 쪽으로 내려와도 반드시 하나는 맞는다". 세로로 엇갈려 놓은 건 두 날개의
+       회전 원이 서로 부딪히지 않게 하기 위한 것. kick=3.0 이라 맞으면 확 솟구친다. */
+    /* ★ 오른쪽 날개는 **항상** 왼쪽과 반대로 돈다(omega 부호 반전). 이건 다이얼이 아니라 규칙이다 —
+       나란한 두 십자가 같은 쪽으로 돌면 둘이 공을 같은 방향으로 쓸어 한쪽 쏠림이 심해진다.
+       v1.4.1에서 잠깐 방향 인자를 뒀다가 v1.4.2에서 폐기했다. 속도차만 RATIO로 준다. */
+    M.launcher=(y,omega)=>{
+      // 같은 높이에 나란히. 두 날개가 도는 원이 가운데서 겹쳐(빈틈 16px < 공 지름 20px)
+      // 어느 쪽으로 내려와도 반드시 하나는 맞는다. 양 끝도 벽까지 7px만 남긴다.
+      const LEN=68,W=7;
+      /* ★ 좌우 속도차(RATIO) — 두 날개가 같은 속도로 정확히 대칭 회전하면 위상이 영원히
+         맞물려 "왼쪽으로 떨어진 공은 계속 왼쪽" 패턴이 굳는다. 오른쪽만 1.35배로 돌려
+         위상을 계속 어긋나게 하면, 왼쪽에서 떨어진 공도 오른쪽 십자에 걸려 다시
+         솟구쳤다 반대편으로 떨어진다. 시뮬 24판: 역전(되쳐올림) 판당 7회→9회.
+         값을 올릴수록 어긋남이 커지지만 1등 도착도 느려진다(1.5에서 t1 최소 25초). */
+      const RATIO=1.35;
+      M.spin(L+76,y,LEN,omega,W,false,2,4.0);
+      M.spin(R-76,y,LEN,-omega*RATIO,W,false,2,4.0);   // ★ 부호 반전 — 좌우 반대 회전
+      return y+M.clr(LEN,W);
+    };
+    /* 지그재그 막대 뭉치 — 줄마다 엇갈리게 흩어놓아 공이 좌우로 계속 튄다.
+       ★ v1.2.0에서 파친코 못밭(둥근 못)으로 바꿨다가 v1.2.1에서 되돌렸다.
+       못 사이 틈(간격38-못지름14=24px)이 공 지름 20px과 너무 빠듯해 공이 두 못
+       사이에 끼어 아예 멈췄다 — 틈을 32px로 넓혀도(간격46/반지름6) 40판 중 19판
+       미완주. 사선 막대는 같은 조건에서 40판 중 0판이다.
+       "한쪽으로만 떨어지는" 문제는 이 막대들이 아니라 위쪽 긴 램프가 원인이라,
+       램프 직후의 흩뿌리기 런처로 푼다(아래 참고). */
+    /* ★ v2.9.2 — 폭 전체 빗. **출발 편향을 없애는 유일한 부품**이다.
+       문제: 회전 날개가 쓸고 지나는 영역은 **원**이라 세로 두께가 x마다 다르다.
+         바퀴 중심 바로 위(x=94/246)는 136px, 가장자리(x=46)는 96px,
+         정중앙(x=170)은 **0px** — 가운데로 떨어진 공만 날개를 안 맞고 그냥 내려간다.
+         그 리드를 아래 3000px 코스가 끝내 못 지운다(구간별 상관 측정:
+         첫 150px 0.73 / 그 아래 전 구간 ≈0).
+       해법: 날개 방향을 바꾸는 게 아니라(시뮬 — 중앙편향이 좌우편향으로 바뀔 뿐이다),
+         그 앞에 **x에 균일한 막대 줄**을 깔아 어디서 출발하든 같은 높이에서 똑같이 얻어맞게 한다.
+       간격 62 = 막대 가로폭(21·cos34°=17.4) + 굵기(4.5×2) 를 뺀 **통과폭 35px**.
+         좁으면(56) 공(지름 20)이 끼어 미완주가 난다(90판 중 6판).
+         넓으면(68) 틈으로 그냥 빠져 가운데 유리가 되살아난다(rank corr 0.076).
+       3줄인 이유: 한 줄은 틈이 공보다 넓어야 안 끼는데, 그러면 틈으로 새는 공이 생긴다.
+         반 칸씩 엇갈려 쌓으면 1줄 틈을 통과한 공이 2줄 막대에 반드시 걸린다.
+       ※ 양 끝을 벽에 붙이는 균등분배도 재봤는데 오히려 나빴다(rank corr 0.047 vs 0.03). */
+    M.comb=(y0,rows=3,gap=46)=>{
+      const SP=62, LN=21;
+      for(let r=0;r<rows;r++){
+        const off=(r%2)?SP/2:0;
+        let i=0;
+        for(let x=L+14+off;x<=R-14;x+=SP){ M.bar(x,y0+r*gap,LN,(i+r)%2?34:-34); i++; }
+      }
+      return y0+(rows-1)*gap;
+    };
+    M.zig=(y0,rows=3,gap=58)=>{
+      for(let r=0;r<rows;r++){
+        const odd=r%2, cnt=odd?3:4, off=odd?50:0;
+        for(let i=0;i<cnt;i++) M.bar(L+42+off+i*68, y0+r*gap, 21, (i+r)%2?34:-34);
+      }
+      return y0+(rows-1)*gap;
+    };
+    return M;
+  }
+
+  /* ---- 맵 1) 지그재그 슬로프 ----
+     완만한 경사 램프를 굴러 내려가다가 지그재그 막대 뭉치를 통과한다.
+     수직 낙하 구간을 짧게 끊어놔서 "장애물 지나면 한 번에 뚝 떨어지는" 느낌이 없다. */
+  function mapZigzag(){
+    const M=newMap("지그재그 슬로프");
+    M.wall(L,-60,L,999999); M.wall(R,-60,R,999999);           // 바깥 벽
+    /* ★ v2.4.0 — **출발 깔때기를 들어냈다.**
+       예전엔 여기 ∨자 깔때기가 있어 출발한 공이 전부 가운데로 모였다. 보기에도
+       "가운데 공이 먼저 떨어지겠네"였고, 실제로도 가운데 출발이 유리했다.
+       대신 출발 직후에 **흩뿌리기 런처**를 놓는다 — 날개에 맞는 순간의 각도가
+       공마다 달라서 어느 자리에서 출발했든 똑같이 흩어진다.
+       tools/marble-sim.js 60판 측정 (공 12개, 공정한 평균순위 = 6.5):
+         깔때기   출발편향 0.165 / 왼·가운데·오른쪽 평균순위 6.78 · 5.86 · 6.86
+         런처     출발편향 0.126 / 6.68 · 6.16 · 6.65   ← 채택 (가운데 유리가 절반으로)
+       ※ '출발 직후 중앙 쐐기 ∧' 도 재봤는데 과보정이었다 —
+         편향 −0.348, 가운데 평균순위 7.95 로 오히려 가운데가 크게 불리해졌다. 폐기.
+       ※ 자리(slot)는 어차피 매판 섞이므로 **사람** 단위 공정성은 원래부터 확보돼 있다.
+         여기서 고친 건 '가운데 자리'가 유리한 것과, 시작하자마자 뭉치는 그림이다. */
+    // ★ 회전 막대는 "날개가 도는 원"만큼 위아래 여유를 줘야 한다.
+    //   여유가 없으면 날개가 위쪽 램프를 파고들어 공을 코스 거꾸로 쳐올리고, 거기서 핑퐁하며 갇힌다.
+    //   필요 여유 = len(날개 길이) + w(굵기) + 공 반지름(10). 아래 숫자들은 그 규칙을 지킨 값.
+    /* ★ v2.9.2 — 빗을 먼저 깔고, 런처는 clr(68,7)=97 만큼 띄워 그 밑에 둔다.
+       붙이면 날개가 빗 막대를 파고들어 공을 코스 거꾸로 쳐올리고 거기서 핑퐁한다. */
+    let y=M.comb(70,3)+97;                                    // ★ 폭 전체 빗 (출발 편향 제거)
+    y=M.launcher(y,0.021);                                    // ★ 출발 직후 흩뿌리기
+    /* ★ v2.6.0 — 여기 있던 **긴 흰색 램프 두 개를 들어냈다.**
+       램프는 닿은 공을 전부 같은 쪽으로 흘려보내 한 줄로 모으는 게 문제였다
+       (VERSION.md 3-5 참고 — 그 때문에 아래에 흩뿌리기 런처를 넣어야 했다).
+       중간 구간과 같은 **파란 막대 뭉치**로 바꾸니 공이 계속 좌우로 튄다. */
+    y=M.zig(y,4,62)+M.clr(70,7);                              // 막대 뭉치 #0-1
+    y=M.zig(y,4,62)+M.clr(70,7);                              // 막대 뭉치 #0-2
+    /* ★ 램프 직후 런처 — 긴 램프는 공을 한 줄로 모아 벽에 붙여 내려보낸다.
+       그 상태로는 아래에 뭘 놓아도 전부 같은 쪽으로 흘러서 순위가 안 갈린다.
+       회전 날개만이 뭉친 줄기를 실제로 흩뜨린다(맞는 순간의 날개 각도가 공마다 다르므로).
+       여기서 좌우로 흩어 놓아야 아래 못밭이 제 일을 한다. */
+    y=M.launcher(y,0.026);                                    // ★ 흩뿌리기 런처 (회전 반대)
+    y=M.zig(y)+M.clr(70,7);                                   // 지그재그 막대 뭉치 #1
+    y=M.launcher(y,0.030);                                    // ★ 좌우 십자 날개 (되쳐올림 #1) — v1.4.1에서 −0.030→+0.030 (오른쪽은 항상 반대라 −0.0405)
+    M.wall(L,y,R-64,y+156); y+=156+M.clr(128,8);              // 급경사 램프 ↘
+    M.spin(CX,y,128,-0.026,8,false,2,1.7); y+=M.clr(128,8);   // 중앙 십자 날개 (폭 전체를 쓸어낸다, 회전 반대)
+    y=M.zig(y)+96;                                            // 지그재그 막대 뭉치 #2
+    M.wall(CX-76,y+76,CX,y); M.wall(CX,y,CX+76,y+76); y+=140; // 중앙 쐐기 ∧ — 좌우로 가름
+    M.wall(R,y,L+64,y+156); y+=156+M.clr(70,7);               // 급경사 램프 ↙
+    y=M.launcher(y,0.034);                                    // ★ 좌우 십자 날개 (되쳐올림 #2, 회전 반대)
+    y=M.zig(y)+200;                                           // 지그재그 #3 (관문 날개 반경 136 + 여유 64)
+    /* ★ 마지막 관문 — 십자(2날개, len102)를 **단일 막대(1날개, len136)**로 바꿨다.
+       ① len136 = 코스 폭 전체. 양옆에 16px만 남아 공 지름(20)보다 좁으니 옆으로 못 빠진다.
+       ② blades=1 = 갈래가 2개뿐이라 열림/닫힘 주기가 십자의 두 배로 길다.
+          공이 한두 개씩 끊어서 통과 → 물 쏟아지듯 우르르 빠지지 않는다.
+       ③ omega 0.022 (v1.2.5에서 0.018→0.022 상향) = 쓸어내는 주기가 짧아져 골대 앞
+          역전이 판당 12회→23회로 늘었다. 예전엔 0.024에서 공이 깔때기 벽에 끼어
+          40판 중 7판 미완주였는데, BAR_POP(튕겨나감 하한)이 생겨 끼임이 사라졌다.
+       ④ kick 3.4 (1.7에서 상향) = 느리게 돌아도 맞으면 세게 튕겨 되쳐올라간다.
+       조절 다이얼: 더 오래 막고 싶으면 omega를 내리고(0.018 등),
+       역전을 더 자주 보고 싶으면 blades=2(십자)로 — 대신 12명이 한꺼번에 쏟아진다. */
+    /* ★ v2.8.0 — 관문 막대를 **통로 안으로 내렸다**. 깔때기 위에 있던 하나짜리
+       긴 막대를 없애고, 통로 중간에 **엇갈린 반쪽 관문 두 개**를 넣는다.
+       ─ 오른쪽 관문(CX+62)은 통로 **왼쪽 48px**를 비워 두고,
+         왼쪽 관문(CX−62)은 통로 **오른쪽 48px**를 비워 둔다 → 길은 항상 있지만
+         지그재그로 weaving 해야 하고, 그때마다 날개에 얻어맞는다.
+       ─ 회전 방향이 핵심: 날개에서 **통로 쪽**이 위로 올라가야 공이 들어 올려진다.
+         y가 아래로 커지는 좌표라, 중심 기준 **왼쪽**에 있는 점은 ω>0 일 때 위로,
+         **오른쪽**에 있는 점은 ω<0 일 때 위로 간다. 그래서 오른쪽 관문은 +0.030,
+         왼쪽 관문은 −0.030 이다.
+       ─ 두 관문의 **회전 원이 겹치면 안 된다**(len 74 × 2 = 148 < 간격 155).
+         겹치면 공이 두 날개 사이에 끼어 미완주가 난다(실제로 4/30판이었다).
+       tools/marble-sim.js 30판 비교 — 통로 재탈출 / 얹힘% / 강제탈출 / 미완주:
+         깔때기 위 막대 하나(v2.7.0)   2.9 / 0.45 /  479 / 0
+         통로 중앙에 긴 막대 하나      118  / 0.70 / 5741 / 4  ← 통로가 막힌다
+         엇갈린 관문(통로 104폭)        8.9 / 0.60 / 2487 / 4  ← 틈이 좁아 낀다
+         **엇갈린 관문(통로 120폭) 채택 4.3 / 0.34 /  274 / 0**  1등 27.7초 */
+    const HW=60, CORR=330;
+    y+=20;
+    M.wall(L,y,CX-HW,y+36); M.wall(R,y,CX+HW,y+36);           // 깔때기 대각선
+    const YC=y+36;
+    M.wall(CX-HW,YC,CX-HW,YC+CORR);                           // 통로 왼벽 (직각)
+    M.wall(CX+HW,YC,CX+HW,YC+CORR);                           // 통로 오른벽
+    M.spin(CX+62,YC+85, 74, 0.030,7,true,1,2.8);              // 위쪽 반쪽 관문(왼쪽이 열림)
+    M.spin(CX-62,YC+240,74,-0.030,7,true,1,2.8);              // 아래쪽 반쪽 관문(오른쪽이 열림)
+    M.finishY=YC+CORR+34;
+    return M;
+  }
+
+  const MAPS=[mapZigzag];                  // ★ 맵 2·3은 여기에 추가
+  const MAP=MAPS[(Math.random()*MAPS.length)|0]();
+  const segs=MAP.segs, pegs=MAP.pegs, spinners=MAP.spinners, finishY=MAP.finishY;
+  {const h=$("#mhint"); if(h)h.innerHTML=`🗺️ <b>${MAP.name}</b> — 1등이 커피 당첨!`;}
+
+  const n=ps.length;let balls=[],started=false,finished=[],raf=null,camY=0,camX=0,announced=false;
+  /* ★ v2.2.0 — 미니맵을 끌어 코스를 직접 훑어볼 수 있다.
+     mm 은 매 프레임 미니맵이 자기 사각형을 여기 적어 둔다(그려야 위치를 아니까).
+     manual>0 인 동안에는 자동 추적을 끄고 manualY 를 따라간다. 손을 떼면
+     manual 이 서서히 0으로 줄고 다시 선두 공을 따라간다. */
+  let mm=null, manual=0, manualY=0;
+  function reset(){
+    // ★ 출발 슬롯을 매판 섞어서 같은 사람이 늘 같은 자리에서 시작하지 않게 한다
+    const slots=ps.map((_,i)=> n===1? WW/2 : 46 + i*(WW-92)/(n-1));
+    for(let i=slots.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;const t=slots[i];slots[i]=slots[j];slots[j]=t;}
+    /* ★ v2.2.0 — 출발선을 더 위(y 78→26)로 올리고 **완전히 균등**하게 맞춘다.
+       예전엔 y 에 ±8, vx 에 ±0.16 씩 흔들려서 시작하자마자 뒤처지는 공이
+       생겼다. 자리(slot)는 이미 매판 섞이므로 공정성은 그걸로 충분하고,
+       출발 조건까지 흔들 이유가 없다. x 만 ±1.5 로 아주 살짝 흔들어
+       완전히 겹쳐 붙어 출발하는 것만 막는다. */
+    balls=ps.map((p,i)=>{
+      return {x:clamp(slots[i]+rand(-1.5,1.5),L+14,R-14), y:26,
+              vx:0, vy:0, r:10,
+              color:p.color, name:p.name, idx:i, done:false, rank:0};
+    });
+    finished=[];camY=0;camX=0;announced=false;
+  }
+  reset();
+  /* 미니맵 드래그 */
+  function mmPick(e){
+    if(!mm)return false;
+    const r=S.cv.getBoundingClientRect();
+    /* ★ 미니맵은 ctx.restore() 뒤에 그리므로 **화면(CSS px) 좌표계**다.
+       월드 좌표로 착각해 scale 로 나누면 판정이 통째로 어긋난다. */
+    const px=e.clientX-r.left, py=e.clientY-r.top;
+    if(px<mm.mx-8||px>mm.mx+mm.mw+8||py<mm.my-8||py>mm.my+mm.mh+8)return false;
+    const f=clamp((py-mm.my)/mm.mh,0,1);
+    manualY=mm.yTop+(mm.yBot-mm.yTop)*f; manual=180;     // 약 3초간 유지 (1.2초는 훑어보기엔 짧다)
+    return true;
+  }
+  let mmDrag=false;
+  S.cv.addEventListener("pointerdown",e=>{if(mmPick(e)){mmDrag=true;S.cv.setPointerCapture?.(e.pointerId);}});
+  S.cv.addEventListener("pointermove",e=>{if(mmDrag)mmPick(e);});
+  const mmUp=()=>{mmDrag=false;};
+  S.cv.addEventListener("pointerup",mmUp);S.cv.addEventListener("pointercancel",mmUp);
+  // ★ 속도 — 한 판이 1등 도착 12~17초로 끝나게 맞춘 값. SUB(서브스텝)은 MAXV를 올린 만큼
+  //   같이 올려야 한다(한 스텝 이동거리 MAXV/SUB 가 공 반지름보다 훨씬 작아야 벽을 뚫지 않는다).
+  const G=0.115, E=0.34, FR=0.995, MAXV=5.2, SUB=11;
+  /* ★ 막대 탄성 — 벽(램프)은 E=0.34 그대로 굴러 내려가고, **막대·못·회전날개만**
+     BAR_E로 더 세게 튕긴다. E가 낮으면 공이 막대에 들러붙어 스르륵 미끄러지는데,
+     그 느낌을 없애고 "통~" 하고 떨어져 나오게 만드는 값. */
+  const BAR_E=0.70;                         // ★ 막대류 반발계수 (벽 0.34 → 막대 0.70)
+  /* ★ 튕겨나감 하한 — 부딪힌 뒤 막대 표면에서 멀어지는 속도가 이보다 작으면
+     이 값까지 끌어올린다. 살짝 스친 공도 반드시 "통" 하고 떨어져 나가므로
+     막대에 얹혀 붙어가는 공이 사라진다. */
+  const BAR_POP=1.1;
+  const SPINMIN=1.9;                        // ★ 회전 막대 충돌 후 보장되는 최소 속력(끼임 방지)
+  /* ★ 눌러붙음 차단 — 막대류(막대·못·회전날개)에 닿은 서브스텝마다 +1, 안 닿으면 -1.
+     정상적으로 "통" 튕기는 공은 한 서브스텝만 닿고 떨어지므로 0 근처를 맴돈다.
+     STICK_SUB를 넘었다 = 계속 얹혀 실려가고 있다 → 마지막 접촉면 바깥으로 강제로 걷어낸다.
+     벽(램프)은 굴러 내려가는 게 정상이라 세지 않는다. */
+  const STICK_SUB=14, STICK_EJECT=2.9;
+  let slowmo=1, zoomF=1;                    // 결승 임박 슬로모션/확대
+  const MINI_H=200;                         // ★ 미니맵 세로 길이(px)
+  const BACKMAX=210;                        // ★ 최고점 대비 이만큼까지만 거슬러 오를 수 있다
+  /* ★ 마지막 관문 앞뒤 구간만 가드를 푼다. 여기선 '막혀서 기다리는 것'이 연출인데
+     정체 탈출(70프레임)이 그대로 돌면 걸린 공을 1.2초 만에 밀어내버려서
+     관문이 관문 노릇을 못 한다. 대신 한계를 넉넉히 두되 결국은 밀어내 완주는 보장한다. */
+  const GATE_Y=spinners.length?spinners[spinners.length-1].cy:1e9, GATE_R=200;
+  const inGate=b=>Math.abs(b.y-GATE_Y)<GATE_R;
+  function segClosest(p,a,b){
+    const abx=b.x-a.x,aby=b.y-a.y;const t=clamp(((p.x-a.x)*abx+(p.y-a.y)*aby)/(abx*abx+aby*aby||1),0,1);
+    return {x:a.x+abx*t,y:a.y+aby*t};
+  }
+  function physics(){
+    for(let s=0;s<SUB;s++){
+      for(const b of balls){
+        if(b.done)continue;
+        let hit=false;                       // ★ 이번 서브스텝에 막대류에 닿았나
+        b.vy+=(G*slowmo)/SUB;b.x+=b.vx*slowmo/SUB;b.y+=b.vy*slowmo/SUB;
+        for(const sg of segs){
+          const c=segClosest(b,sg.a,sg.b);let dx=b.x-c.x,dy=b.y-c.y;let d=Math.hypot(dx,dy);
+          const rr=b.r+sg.w;
+          if(d<rr){if(d<.001){d=.001;dx=0;dy=-1;}const nx=dx/d,ny=dy/d,ov=rr-d;
+            b.x+=nx*ov;b.y+=ny*ov;const vn=b.vx*nx+b.vy*ny;
+            const EE=sg.kind==="bar"?BAR_E:E;                 // ★ 막대만 탄성 ↑ (벽은 그대로)
+            b.vx-=(1+EE)*vn*nx;b.vy-=(1+EE)*vn*ny;b.vx*=FR;b.vy*=FR;
+            if(sg.kind==="bar"){b.vx+=rand(-.10,.10);          // 막대 위에 정확히 얹혀 멈추는 것 방지
+              const v2=b.vx*nx+b.vy*ny;                        // ★ 통~ 튕겨나감 하한
+              if(v2<BAR_POP){b.vx+=(BAR_POP-v2)*nx;b.vy+=(BAR_POP-v2)*ny;}
+              hit=true;b.cnx=nx;b.cny=ny;}}
+        }
+        for(const g of pegs){let dx=b.x-g.x,dy=b.y-g.y;let d=Math.hypot(dx,dy);const rr=b.r+g.r;
+          if(d<rr){if(d<.001){d=.001;dx=rand(-1,1);dy=-1;}const nx=dx/d,ny=dy/d,ov=rr-d;
+            b.x+=nx*ov;b.y+=ny*ov;const vn=b.vx*nx+b.vy*ny;
+            b.vx-=(1+BAR_E)*vn*nx;b.vy-=(1+BAR_E)*vn*ny;b.vx+=rand(-.12,.12);
+            const v2=b.vx*nx+b.vy*ny;                          // ★ 통~ 튕겨나감 하한
+            if(v2<BAR_POP){b.vx+=(BAR_POP-v2)*nx;b.vy+=(BAR_POP-v2)*ny;}
+            hit=true;b.cnx=nx;b.cny=ny;}
+        }
+        // ★ 회전 막대(스피너) 충돌 — 표면 회전속도를 실어 튕겨냄
+        for(const sp of spinners){
+          for(let k=0;k<sp.blades;k++){                                   // ★ 날개 수만큼 (blades=2 → 십자 4갈래)
+            const ang=sp.angle+k*Math.PI/sp.blades;
+            const ca=Math.cos(ang)*sp.len, sa=Math.sin(ang)*sp.len;
+            const c=segClosest(b,{x:sp.cx+ca,y:sp.cy+sa},{x:sp.cx-ca,y:sp.cy-sa});
+            let dx=b.x-c.x,dy=b.y-c.y,d=Math.hypot(dx,dy);const rr=b.r+sp.w;
+            if(d<rr){if(d<.001){d=.001;dx=0;dy=-1;}const nx=dx/d,ny=dy/d,ov=rr-d;
+              b.x+=nx*ov;b.y+=ny*ov;
+              const s0=Math.hypot(b.vx,b.vy);                              // ★ 맞기 직전 속력
+              const svx=-sp.omega*(c.y-sp.cy), svy=sp.omega*(c.x-sp.cx);   // ω×r (접선속도)
+              const vn=(b.vx-svx)*nx+(b.vy-svy)*ny;
+              b.vx-=(1+BAR_E)*vn*nx;b.vy-=(1+BAR_E)*vn*ny;
+              // 막대에 맞아 튕김. 위로(-y) 쳐올리는 힘은 "역전 연출"이라 일부러 크게 열어뒀다.
+              // (kick=3.0인 런처에 제대로 맞으면 100~150px 솟구친다)
+              // 무한 핑퐁으로 갇히지 않게 아래 BACKMAX 가드가 상한을 잡아준다.
+              const K=sp.kick;
+              b.vx+=clamp(svx*K,-1.6*K,1.6*K);b.vy+=clamp(svy*K,-2.2*K,1.5*K);
+              /* ★ 속력 보존 — 막대는 공의 '방향'만 바꾸고 '빠르기'는 올리지 않는다.
+                 kick이 더한 접선속도를 그대로 두면 막대를 지날 때마다 공이 갑자기 가속해
+                 코스 뒤로 갈수록 걷잡을 수 없이 빨라졌다. 방향(되쳐올림 연출)은 그대로 두고
+                 속력만 맞기 직전 값으로 되돌린다. SPINMIN은 막대에 딱 붙어 멈춘 공이
+                 s0≈0 때문에 영영 못 빠져나오는 걸 막는 하한. */
+              const s1=Math.hypot(b.vx,b.vy), cap=Math.max(s0,SPINMIN);
+              if(s1>cap){const f=cap/s1;b.vx*=f;b.vy*=f;}
+              /* ★ 통~ 튕겨나감 하한 — 반드시 **속력 보정 뒤에** 걸어야 한다.
+                 v1.4.0까지는 보정 앞에 있어서 위 f배율(맞기 직전 속력으로 되돌리는 값)이
+                 하한까지 같이 깎아버렸다. 그러면 이탈속도가 날개 표면 속도(최대 3.1px/f)보다
+                 작아져 날개가 다음 서브스텝에 다시 따라붙는다 = 날개에 얹혀 같이 도는 공.
+                 날개 표면 기준(-sv) 이탈속도를 마지막에 보장해야 예외 없이 떨어져 나간다. */
+              {const v2=(b.vx-svx)*nx+(b.vy-svy)*ny;
+               if(v2<BAR_POP){b.vx+=(BAR_POP-v2)*nx;b.vy+=(BAR_POP-v2)*ny;}}
+              hit=true;b.cnx=nx;b.cny=ny;}
+          }
+        }
+        /* ★ 눌러붙음 차단 — 물리식으로 다 막아도 여러 면이 동시에 밀면 결국 얹히는
+           경우가 남는다. 여기서 "닿아 있는 시간"을 직접 재서 한계를 넘으면 마지막
+           접촉면 법선 방향으로 통째로 걷어낸다. 막대에 붙어 실려가는 공은 없다. */
+        b.touch = hit ? (b.touch||0)+1 : Math.max(0,(b.touch||0)-1);
+        if(b.touch>STICK_SUB){
+          const nx=b.cnx||0, ny=b.cny||-1;
+          b.x+=nx*3;b.y+=ny*3;                       // 접촉면에서 확실히 떼어놓고
+          b.vx=nx*STICK_EJECT+rand(-.5,.5);
+          b.vy=ny*STICK_EJECT+0.7;                   // 아래로 살짝 실어 코스를 계속 내려가게
+          b.touch=0;
+        }
+      }
+      for(let i=0;i<balls.length;i++)for(let j=i+1;j<balls.length;j++){
+        const a=balls[i],b=balls[j];if(a.done||b.done)continue;
+        let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),rr=a.r+b.r;
+        if(d<rr){if(d<.001){d=.001;dx=rand(-1,1);dy=rand(-1,1);}const nx=dx/d,ny=dy/d,ov=(rr-d)/2;
+          a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;
+          const dvn=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(dvn<0){const imp=dvn*.5;
+            a.vx+=imp*nx;a.vy+=imp*ny;b.vx-=imp*nx;b.vy-=imp*ny;}}
+      }
+      for(const b of balls){if(b.done)continue;
+        b.vx=clamp(b.vx,-MAXV,MAXV);b.vy=clamp(b.vy,-MAXV,MAXV);
+        b.x=clamp(b.x,L+4,R-4);
+        if(b.y>=finishY){b.done=true;b.rank=finished.length+1;finished.push(b);
+          console.log("[MARBLE] #"+b.rank+" "+b.name+" t="+((performance.now()-T0)/1000).toFixed(1)+"s");
+          beep(760-finished.length*45,.16,"triangle",.2);}
+      }
+    }
+    // ★ 끼임 방지: 오래 멈춰있으면 살짝 밀어 반드시 바닥까지 내려가게
+    for(const b of balls){if(b.done)continue;
+      if(Math.hypot(b.vx,b.vy)<0.18){if((b.stuck=(b.stuck||0)+1)>16){b.vx+=rand(-.9,.9);b.vy+=0.7;b.stuck=0;}}
+      else b.stuck=0;
+    }
+    // ★ 되쳐올라가는 연출은 허용하되, 최고 도달점보다 BACKMAX 이상 거슬러 오르면
+    //   초과한 만큼 아래로 당긴다. 덕분에 "올라갔다 내려갔다"는 살고 영구 정체는 막힌다.
+    for(const b of balls){if(b.done)continue;
+      const over=(b.bestY===undefined?0:b.bestY-(inGate(b)?330:BACKMAX)-b.y);
+      if(over>0)b.vy+=Math.min(1.0,over*0.02);
+    }
+    // ★ 정체 감지: 제자리에서 움직이기만 하고 아래로 못 내려가면(막대 사이 끼임 등)
+    //   점점 세게 밀어내서 '무조건' 완주하게 만든다.
+    for(const b of balls){if(b.done)continue;
+      if(b.y>(b.bestY===undefined?-1e9:b.bestY)+0.5){b.bestY=b.y;b.stall=0;
+        // 80px 이상 실제로 나아갔으면 "탈출 횟수"를 리셋한다(아래 escalation의 기준점)
+        if(b.escY===undefined||b.y>b.escY+80){b.esc=0;b.escY=b.y;}}
+      else if((b.stall=(b.stall||0)+1)>(inGate(b)?160:70)){
+        /* ★ 밀어내는 힘을 갈수록 키운다(escalation). 고정 2.6이면 마지막 관문처럼
+           날개가 반복해서 되쳐올리는 자리에서 밀어내기와 되쳐올림이 비겨서
+           공이 골대 앞에 영원히 갇힌다(30판 중 4~5판 미완주). 갇힌 횟수만큼
+           세게 밀면 연출은 그대로 두고 완주만 확실히 보장된다. */
+        b.esc=(b.esc||0)+1;
+        b.vx+=rand(-1.8,1.8);b.vy+=Math.min(7,2.6+b.esc*0.9);b.y+=3+Math.min(12,b.esc);b.stall=40;
+      }
+    }
+  }
+  function draw(){
+    const w=W(),h=H();const scale=(w/WW)*zoomF;const viewH=h/scale, viewW=w/scale;
+    /* ★ v2.9.3 — 카메라가 쫓는 공은 **모드마다 다르다**.
+       first: 선두(제일 아래) — 1등이 결정되는 곳이 거기다.
+       last : **제일 위에 남은 공** — 당첨자가 거기 있다. 먼저 내려간 공들은
+              이미 탈락이 확정돼서 볼 이유가 없는데, 예전엔 선두만 따라가느라
+              정작 주인공이 화면 위로 사라진 채 끝났다. */
+    let lead=-1,lx=WW/2;
+    if(MODE==="last"){
+      let top=Infinity;
+      for(const b of balls) if(!b.done&&b.y<top){top=b.y;lx=b.x;}
+      if(top<Infinity)lead=top;
+    }else{
+      for(const b of balls) if(!b.done&&b.y>lead){lead=b.y;lx=b.x;}
+    }
+    if(lead<0){lead=finishY;lx=WW/2;}
+    const tY=clamp(lead-viewH*.46,-40,finishY+150-viewH);
+    if(manual>0){
+      manual=Math.max(0,manual-1);
+      camY+=(clamp(manualY-viewH*0.5,-40,finishY+150-viewH)-camY)*0.40;
+    }else camY+=(tY-camY)*(started?.12:1);
+    const tX=clamp(lx-viewW/2,0,Math.max(0,WW-viewW));
+    camX+=(tX-camX)*(started?.14:1);
+    ctx.clearRect(0,0,w,h);ctx.save();ctx.scale(scale,scale);ctx.translate(-camX,-camY);
+    // 코스 배경
+    ctx.fillStyle="rgba(255,255,255,.025)";ctx.fillRect(L,camY,R-L,viewH);
+    // 못
+    for(const g of pegs){if(g.y<camY-20||g.y>camY+viewH+20)continue;
+      ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,6.28);ctx.fillStyle="#7afcff";
+      ctx.shadowColor="#7afcff";ctx.shadowBlur=10;ctx.fill();ctx.shadowBlur=0;}
+    // 벽(흰색) + 지그재그 막대(시안색)
+    ctx.lineCap="round";
+    for(const sg of segs){
+      if(Math.max(sg.a.y,sg.b.y)<camY-20||Math.min(sg.a.y,sg.b.y)>camY+viewH+20)continue;
+      const isBar=sg.kind==="bar";
+      ctx.strokeStyle=isBar?"#7afcff":"rgba(255,255,255,.9)";
+      ctx.lineWidth=isBar?sg.w*1.8:3.4;
+      ctx.shadowColor=isBar?"#7afcff":"rgba(180,210,255,.6)";ctx.shadowBlur=isBar?12:7;
+      ctx.beginPath();ctx.moveTo(sg.a.x,sg.a.y);ctx.lineTo(sg.b.x,sg.b.y);ctx.stroke();}
+    ctx.shadowBlur=0;
+    // ★ 회전 막대(스피너) — gate는 빨강(위험)
+    for(const sp of spinners){ if(sp.cy<camY-100||sp.cy>camY+viewH+100)continue;
+      const col=sp.gate?"#ff4d5e":"#ff7eb3";
+      ctx.strokeStyle=col;ctx.lineWidth=sp.w*2;ctx.lineCap="round";
+      ctx.shadowColor=col;ctx.shadowBlur=sp.gate?22:16;
+      for(let k=0;k<sp.blades;k++){
+        const ang=sp.angle+k*Math.PI/sp.blades;
+        const ca=Math.cos(ang)*sp.len, sa=Math.sin(ang)*sp.len;
+        ctx.beginPath();ctx.moveTo(sp.cx-ca,sp.cy-sa);ctx.lineTo(sp.cx+ca,sp.cy+sa);ctx.stroke();
+      }
+      ctx.shadowBlur=0;
+      ctx.beginPath();ctx.arc(sp.cx,sp.cy,5.5,0,6.28);ctx.fillStyle="#fff";ctx.fill();
+      ctx.beginPath();ctx.arc(sp.cx,sp.cy,2.5,0,6.28);ctx.fillStyle=col;ctx.fill();
+    }
+    // 결승선
+    if(finishY>camY-30&&finishY<camY+viewH+40){
+      for(let x=L;x<R;x+=18){ctx.fillStyle=((x/18)|0)%2?"#fff":"#141414";ctx.fillRect(x,finishY,18,12);}
+      ctx.fillStyle="#ffd166";ctx.font="800 20px sans-serif";ctx.textAlign="center";
+      ctx.fillText("🏁 FINISH",WW/2,finishY+38);
+    }
+    // 공
+    for(const b of balls){
+      if(b.done&&b.rank>3&&b.y<camY-40)continue;
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,6.28);ctx.fillStyle=b.color;
+      ctx.shadowColor=b.color;ctx.shadowBlur=16;ctx.fill();ctx.shadowBlur=0;
+      ctx.strokeStyle="rgba(255,255,255,.8)";ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle="#0b0e24";ctx.font="800 10px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText(clip(b.name,3),b.x,b.y);
+    }
+    ctx.restore();
+
+    /* ★ 미니맵 — 왼쪽 상단에 전체 코스 + 현재 위치 */
+    (function minimap(){
+      const mw=52, mh=Math.min(h-90,MINI_H), mx=12, my=12;
+      if(mh<60)return;
+      const yTop=-70, yBot=finishY+70;
+      const sx=mw/(R-L), sy=mh/(yBot-yTop);
+      mm={mx,my,mw,mh,yTop,yBot};              // 터치 판정용 (화면 px 기준)
+      const PX=x=>mx+(x-L)*sx, PY=y=>my+(y-yTop)*sy;
+      ctx.save();
+      ctx.fillStyle="rgba(10,12,30,.6)";ctx.beginPath();
+      ctx.roundRect(mx-5,my-5,mw+10,mh+10,9);ctx.fill();
+      ctx.strokeStyle="rgba(255,255,255,.20)";ctx.lineWidth=1;ctx.stroke();
+      ctx.beginPath();ctx.rect(mx-2,my-2,mw+4,mh+4);ctx.clip();
+      // 현재 보고 있는 구간(밝은 띠)
+      ctx.fillStyle="rgba(255,255,255,.10)";
+      ctx.fillRect(mx,PY(camY),mw,Math.max(3,viewH*sy));
+      // 코스
+      ctx.lineWidth=1;ctx.lineCap="butt";
+      for(const sg of segs){
+        ctx.strokeStyle=sg.kind==="bar"?"rgba(122,252,255,.5)":"rgba(255,255,255,.42)";
+        ctx.beginPath();ctx.moveTo(PX(sg.a.x),PY(sg.a.y));ctx.lineTo(PX(sg.b.x),PY(sg.b.y));ctx.stroke();}
+      for(const g of pegs){ctx.fillStyle="rgba(122,252,255,.6)";
+        ctx.beginPath();ctx.arc(PX(g.x),PY(g.y),1,0,6.28);ctx.fill();}
+      for(const sp of spinners){ctx.fillStyle=sp.gate?"#ff4d5e":"#ff7eb3";
+        ctx.beginPath();ctx.arc(PX(sp.cx),PY(sp.cy),2.2,0,6.28);ctx.fill();}
+      // 결승선
+      ctx.strokeStyle="#ffd166";ctx.lineWidth=1.6;
+      ctx.beginPath();ctx.moveTo(PX(L),PY(finishY));ctx.lineTo(PX(R),PY(finishY));ctx.stroke();
+      // 보고 있는 구간 테두리
+      ctx.strokeStyle="rgba(255,255,255,.55)";ctx.lineWidth=1;
+      ctx.strokeRect(mx+.5,PY(camY)+.5,mw-1,Math.max(3,viewH*sy));
+      // 달리는 공
+      for(const b of balls){if(b.done)continue;
+        ctx.fillStyle=b.color;ctx.shadowColor=b.color;ctx.shadowBlur=7;
+        ctx.beginPath();ctx.arc(PX(b.x),PY(b.y),2.7,0,6.28);ctx.fill();ctx.shadowBlur=0;}
+      ctx.restore();
+      /* 끌어서 볼 수 있다는 힌트 */
+      ctx.save();ctx.globalAlpha=manual>0?.95:.5;
+      ctx.fillStyle=manual>0?"#ffd166":"rgba(255,255,255,.75)";
+      ctx.font="700 9px system-ui, sans-serif";ctx.textAlign="center";
+      ctx.fillText(manual>0?"직접 보는 중":"끌어서 보기", mx+mw/2, my+mh+16);
+      ctx.restore();
+    })();
+
+    let order=[...balls].sort((a,b)=>(a.done?a.rank:99)-(b.done?b.rank:99)||b.y-a.y);
+    /* last 모드에선 순위표를 뒤집는다 — 궁금한 건 선두가 아니라 "지금 누가 꼴찌냐"다.
+       이미 도착한 공은 당첨 후보에서 빠졌으므로 목록 아래로 밀린다. */
+    if(MODE==="last")order.reverse();
+    const rk=$("#rank");if(rk)rk.innerHTML=order.slice(0,6).map((b,i)=>{
+      const label = b.done
+        ? (MODE==="last" ? "✅"+b.rank+"위" : (["🥇","🥈","🥉"][b.rank-1]||b.rank+"위"))
+        : (MODE==="last" ? (i===0?"🐢 꼴찌":"뒤에서 "+(i+1)) : (i+1)+"등");
+      return `<div class="r"><i style="background:${b.color}"></i>${label}. ${clip(b.name,5)}</div>`;}).join("");
+  }
+  let T0=0;
+  function start(){if(started||!MODE)return;started=true;T0=performance.now();$("#mgo").disabled=true;beep(880,.15,"square");
+    console.log("[MARBLE] start map="+MAP.name+" finishY="+finishY);}
+  $("#mgo").onclick=start;
+  /* ★ 물리는 60fps 고정 틱으로 돌린다.
+     rAF 한 프레임 = 물리 한 스텝으로 두면 '화면 주사율 = 게임 속도'가 되어버린다.
+     실제로 157Hz PC에서는 1등이 7초, 60Hz 폰에서는 19초로 같은 코스가 2.6배 차이났다.
+     경과 시간을 모아 1/60초 단위로만 물리를 진행시켜 어느 기기에서나 같은 속도가 되게 한다.
+     탭을 비우면(백그라운드) rAF가 멈추므로, 돌아왔을 때 밀린 시간은 200ms까지만 인정하고
+     그만큼(=최대 12틱)만 따라잡는다. 그 이상은 버려서 화면이 순간이동하지 않게 한다. */
+  const STEP=1000/60, MAXTICK=12;
+  let lastT=0, acc=0;
+  function tickOnce(){
+    // ★ 결승 임박 → 슬로모션 + 확대 (1등이 정해지는 순간을 극적으로)
+    let ly=-1;for(const b of balls){if(!b.done&&b.y>ly)ly=b.y;}
+    /* 결정적인 순간에만 슬로모션을 건다 — first는 1등이 나오기 직전,
+       last는 **둘 남았을 때**. 그 둘 중 먼저 들어가는 쪽이 살고 남는 쪽이 당첨이라,
+       꼴찌가 갈리는 순간이 바로 여기다(하나 남은 뒤엔 이미 결판이 나 있다). */
+    const critical = MODE==="last" ? (balls.length-finished.length===2) : (finished.length===0);
+    const prox=(started&&critical&&ly>0)?clamp((ly-(finishY-560))/560,0,1):0;
+    slowmo=1-prox*0.66; zoomF=1+prox*0.95;
+    for(const sp of spinners) sp.angle+=sp.omega*slowmo;   // 막대 회전 (슬로모션 반영)
+    if(started)physics();
+  }
+  (function loop(ts){
+    const now=ts||performance.now();
+    if(!lastT)lastT=now;
+    acc+=Math.min(now-lastT,200); lastT=now;
+    let k=0; while(acc>=STEP&&k<MAXTICK){acc-=STEP;k++;tickOnce();}
+    draw();
+    /* ★ first는 첫 도착에서 끝.
+       last는 **혼자 남는 순간** 끝난다 — 남은 공이 결승선을 통과하는 걸 볼 필요가 없다.
+       어차피 순위가 확정된 뒤라 마지막 한 개가 코스를 마저 내려오는 동안은 아무 일도 안 일어나고,
+       그 구간이 제일 길다(전원 완주 53초 중 뒤쪽 20초 이상). */
+    const left = balls.length-finished.length;
+    const settled = MODE==="last" ? (left<=1) : (finished.length===1);
+    if(settled&&!announced){announced=true;
+      // last: 아직 안 들어온 그 한 개가 당첨. (같은 틱에 전부 들어왔으면 마지막 도착자)
+      const w = MODE==="last" ? (balls.find(b=>!b.done) || finished[finished.length-1]) : finished[0];
+      console.log("[MARBLE] mode="+MODE+" winner="+w.name+" t="+((performance.now()-T0)/1000).toFixed(1)+"s");
+      logAdd("marble",w.name);
+      setTimeout(()=>showWinner(w.name,w.color,
+        MODE==="last"?"꼴찌 도착! 커피 당첨입니다 ☕":"1등 도착! 커피 당첨입니다 ☕"),800);}
+    raf=requestAnimationFrame(loop);
+  })();
+  return ()=>{cancelAnimationFrame(raf);S.ro.disconnect();};
+}
+
+/* ============================================================
+   4) 뽑기 상자 (Lucky Box) — v2.3.0 다중 당첨
+   ★ 커피 당첨자를 1~N명까지 정할 수 있다. 예전엔 커피 상자가 딱 하나라
+     하나 나오면 곧바로 팝업이 뜨고 끝났는데, 2~3명이 걸리는 날도 있으니
+     **당첨이 나와도 멈추지 않고** 정해진 인원이 다 나올 때까지 계속 돈다.
+     그때그때 걸린 사람은 오른쪽 아래 명단에 쌓인다(힌트가 아래 있어서
+     위가 아니라 아래쪽에 붙였다).
+   ============================================================ */
+function BoxGame(host,ps){
+  const n=ps.length;
+  const wrap=document.createElement("div");wrap.className="host";
+  wrap.innerHTML=`
+    <div class="stage" id="boxstage" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;overflow:hidden;position:relative;"></div>
+    <div class="hint" id="bhint"></div>`;
+  host.appendChild(wrap);
+  const stage=wrap.querySelector("#boxstage"),hint=wrap.querySelector("#bhint");
+  let cleanup=()=>{};
+
+  /* ---- 1단계: 상자 개수 + 당첨자 수 설정 ---- */
+  function setup(){
+    const MIN=5, MAX=50;
+    let count=clamp(20,MIN,MAX);
+    let wins=1;
+    const maxWins=()=>Math.max(1,Math.min(9,count-1));   // 상자보다 당첨이 많을 수는 없다
+    const stepper=(id,label,val,sub)=>`
+      <div style="font-size:15px;font-weight:900;margin-bottom:2px;">${label}</div>
+      <div style="display:flex;align-items:center;gap:14px;margin:6px 0 4px;">
+        <button id="${id}Minus" style="width:46px;height:46px;border-radius:14px;border:1px solid var(--card-brd);background:var(--card);color:#fff;font-size:23px;font-weight:900;">−</button>
+        <div id="${id}Num" style="font-size:36px;font-weight:900;min-width:56px;text-align:center;">${val}</div>
+        <button id="${id}Plus" style="width:46px;height:46px;border-radius:14px;border:1px solid var(--card-brd);background:var(--card);color:#fff;font-size:23px;font-weight:900;">＋</button>
+      </div>
+      <div style="color:var(--sub);font-size:11.5px;font-weight:600;margin-bottom:14px;">${sub}</div>`;
+    stage.innerHTML=`
+      <div style="font-size:40px;line-height:1;margin-bottom:2px;">🎁</div>
+      ${stepper("b","상자 개수 정하기",count,`${MIN}~${MAX}개 (참가자 ${n}명이 돌아가며 뽑아요)`)}
+      <div style="font-size:40px;line-height:1;margin:2px 0;">☕</div>
+      ${stepper("w","커피 당첨자 수 정하기",wins,`<span id="wSub">1~${maxWins()}명 — 정해진 인원이 다 나올 때까지 계속돼요</span>`)}`;
+    hint.textContent="상자 개수와 당첨자 수를 정하고 시작하세요!";
+    const bNum=stage.querySelector("#bNum"), wNum=stage.querySelector("#wNum"), wSub=stage.querySelector("#wSub");
+    const upd=()=>{
+      if(wins>maxWins())wins=maxWins();
+      bNum.textContent=count; wNum.textContent=wins;
+      wSub.textContent=`1~${maxWins()}명 — 정해진 인원이 다 나올 때까지 계속돼요`;
+    };
+    stage.querySelector("#bMinus").onclick=()=>{count=Math.max(MIN,count-1);upd();beep(360,.06);};
+    stage.querySelector("#bPlus").onclick=()=>{count=Math.min(MAX,count+1);upd();beep(520,.06);};
+    stage.querySelector("#wMinus").onclick=()=>{wins=Math.max(1,wins-1);upd();beep(360,.06);};
+    stage.querySelector("#wPlus").onclick=()=>{wins=Math.min(maxWins(),wins+1);upd();beep(520,.06);};
+    let ctr=wrap.querySelector(".controls");
+    if(!ctr){ctr=document.createElement("div");ctr.className="controls";
+      const b=document.createElement("button");b.className="bigbtn";b.id="bStart";b.textContent="🎬 뽑기 시작";
+      ctr.appendChild(b);wrap.insertBefore(ctr,hint);}
+    wrap.querySelector("#bStart").onclick=()=>play(count,wins);
+  }
+
+  /* ---- 2단계: 턴제 뽑기 (당첨자 수만큼 나올 때까지) ---- */
+  function play(count,wins){
+    /* 커피 상자를 wins개 고른다 — 서로 다른 칸으로 */
+    const pool=[];for(let i=0;i<count;i++)pool.push(i);
+    shuffle(pool);
+    const coffee=new Set(pool.slice(0,wins));
+    let opened=0,turn=0,over=false,found=0;
+    const winners=[];
+    wrap.querySelector(".controls")?.remove();
+    stage.innerHTML="";
+    const grid=document.createElement("div");
+    grid.style.cssText=`display:flex;flex-wrap:wrap;align-content:center;justify-content:center;margin-top:26px;`;
+    const boxes=[];
+    for(let i=0;i<count;i++){
+      const b=document.createElement("button");
+      b.style.cssText=`border-radius:16px;border:1px solid var(--card-brd);
+        font-weight:900;color:#0b0e24;transition:transform .3s,background .3s,opacity .3s;
+        background:linear-gradient(135deg,${PALETTE[i%12]},#ffffff33);box-shadow:0 6px 16px rgba(0,0,0,.28);`;
+      b.textContent="🎁";
+      b.onclick=()=>openBox(i,b);
+      boxes.push(b);grid.appendChild(b);
+    }
+    stage.appendChild(grid);
+
+    /* ★ 지금 누구 차례인지 — 힌트 줄은 화면 밖이라 잘 안 보인다는 지적이 있어
+       **상자 화면 안 위쪽**에 크게 띄운다. */
+    const turnbar=document.createElement("div");
+    turnbar.style.cssText=`position:absolute;left:8px;right:8px;top:8px;z-index:5;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      background:rgba(10,12,30,.72);border:1px solid rgba(255,255,255,.16);
+      border-radius:14px;padding:9px 12px;backdrop-filter:blur(6px);pointer-events:none;`;
+    stage.appendChild(turnbar);
+
+    /* ★ 당첨자 명단 — 오른쪽 아래. 뽑을 때마다 여기에 쌓인다 */
+    const panel=document.createElement("div");
+    panel.style.cssText=`position:absolute;right:8px;bottom:8px;z-index:5;max-width:44%;
+      background:rgba(10,12,30,.72);border:1px solid rgba(255,255,255,.16);border-radius:12px;
+      padding:8px 10px;backdrop-filter:blur(6px);font-size:12px;font-weight:800;line-height:1.6;
+      pointer-events:none;`;
+    const panelTitle=`<div style="color:var(--sub);font-size:10.5px;font-weight:800;margin-bottom:2px;">☕ 당첨자 <span id="wCnt">0</span>/${wins}</div>`;
+    panel.innerHTML=panelTitle+`<div id="wList" style="color:rgba(255,255,255,.45);">아직 없어요</div>`;
+    stage.appendChild(panel);
+    const wCnt=()=>panel.querySelector("#wCnt"), wList=()=>panel.querySelector("#wList");
+
+    /* ★ 상자 크기 — 명단 패널과 겹치지 않게 아래·오른쪽 여유를 준다.
+       상한도 150 → 112 로 낮췄다. 상자가 너무 크면 몇 개 없을 때 화면을 다 먹어
+       명단이 상자 위에 얹힌다. */
+    let relayoutRaf=0;
+    function relayout(){
+      const w=stage.clientWidth-12, h=stage.clientHeight-56-(count<=12?52:34);
+      if(w<40||h<40)return;
+      const gap=count>30?6:8;
+      let best=0,bestCols=1;
+      for(let cols=1;cols<=count;cols++){
+        const rows=Math.ceil(count/cols);
+        const s=Math.min((w-gap*(cols-1))/cols,(h-gap*(rows-1))/rows);
+        if(s>best){best=s;bestCols=cols;}
+      }
+      const sz=Math.max(26,Math.min(Math.floor(best),112));
+      grid.style.gap=gap+"px";
+      grid.style.width=(bestCols*sz+gap*(bestCols-1))+"px";
+      for(const b of boxes){b.style.width=b.style.height=sz+"px";b.style.fontSize=Math.round(sz*.44)+"px";}
+    }
+    const ro=new ResizeObserver(()=>{cancelAnimationFrame(relayoutRaf);relayoutRaf=requestAnimationFrame(relayout);});
+    ro.observe(stage);relayout();
+    cleanup=()=>{ro.disconnect();cancelAnimationFrame(relayoutRaf);};
+
+    function showTurn(){
+      const p=ps[turn%n];
+      turnbar.innerHTML=`<span style="font-size:12px;font-weight:800;color:var(--sub);">지금 차례</span>`+
+        `<b style="font-size:24px;font-weight:900;color:${p.color};letter-spacing:-.5px;">${p.name}</b>`+
+        `<span style="font-size:12px;font-weight:800;color:var(--sub);">${found}/${wins} 당첨</span>`;
+      hint.textContent="상자를 하나 여세요!";
+    }
+    showTurn();
+    function addWinner(who){
+      winners.push(who);
+      wCnt().textContent=found;
+      wList().style.color="#fff";
+      wList().innerHTML=winners.map((p,i)=>
+        `<div>☕ <span style="color:${p.color};">${p.name}</span></div>`).join("");
+    }
+    function openBox(i,b){
+      if(over||b.dataset.done)return;b.dataset.done=1;opened++;
+      const who=ps[turn%n];
+      b.style.transform="rotateY(180deg) scale(1.08)";beep(480+opened*25,.12);
+      const win=coffee.has(i);
+      setTimeout(()=>{
+        b.style.transform="scale(1)";
+        if(win){
+          found++;b.textContent="☕";
+          b.style.background="linear-gradient(135deg,#ffd166,#ff758c)";
+          addWinner(who);
+          logAdd("box",who.name);                    // ★ 기록에 남긴다
+          if(navigator.vibrate)navigator.vibrate([40,50,120]);
+          if(found>=wins){                           // 정해진 인원이 다 나왔다 → 끝
+            over=true;
+            boxes.forEach(x=>{if(!x.dataset.done)x.style.opacity=.28;});
+            hint.textContent=`커피 상자 ${wins}개 모두 발견! 🎉`;
+            turnbar.innerHTML=`<b style="font-size:19px;font-weight:900;">☕ 당첨자 ${wins}명 확정!</b>`;
+            const names=winners.map(p=>p.name).join(", ");
+            setTimeout(()=>showWinner(names,"#fff",
+              wins>1?`이 ${wins}분이 오늘 커피를 쏩니다! ☕`:"커피 상자를 연 사람이 오늘 커피를 쏩니다! ☕"),480);
+          }else{                                     // 아직 남았다 → 계속
+            beep(880,.16,"triangle",.2);
+            turn++;showTurn();
+          }
+        }else{
+          b.textContent="🫧";b.style.background="rgba(255,255,255,.06)";b.style.opacity=.5;
+          turn++;showTurn();
+        }
+      },240);
+    }
+  }
+  setup();
+  return ()=>cleanup();
+}
+
+/* ============================================================
+   5) 폭탄 돌리기 (Bomb Pass)
+   ============================================================ */
+function Bomb(host,ps){
+  const wrap=document.createElement("div");wrap.className="host";
+  wrap.innerHTML=`
+    <div class="stage" id="bombStage" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;overflow:hidden;">
+      <div style="font-size:14px;font-weight:800;color:var(--sub);margin-bottom:4px;">지금 차례</div>
+      <div id="bombName" style="font-size:30px;font-weight:900;margin-bottom:10px;">${ps[0].name}</div>
+      <div id="bombEmo" style="font-size:104px;line-height:1;will-change:transform;">💣</div>
+      <div id="bombMsg" style="margin-top:12px;color:var(--sub);font-weight:700;font-size:14px;">버튼을 누르고 폰을 다음 사람에게!</div>
+    </div>
+    <div class="controls"><button class="bigbtn" id="bpass" style="background:linear-gradient(135deg,#ff8787,#ff758c);">🔥 전달하기</button></div>
+    <div class="hint">돌리다 보면 언젠가 펑! 차례는 무작위지만 한 바퀴에 모두 한 번씩은 쥐어요</div>`;
+  host.appendChild(wrap);
+  const st=wrap.querySelector("#bombStage"),nameEl=wrap.querySelector("#bombName"),
+        emo=wrap.querySelector("#bombEmo"),btn=wrap.querySelector("#bpass"),msg=wrap.querySelector("#bombMsg");
+  /* ★ v1.4.4 — 무작위이되 "한 바퀴 안에 전원 1번씩"을 보장한다(셔플 봉지 방식).
+     v1.4.3의 순수 무작위는 재미있지만 운 나쁘면 한 사람이 게임 내내 한 번도 안 걸렸다.
+     이제 전원을 섞어 담은 봉지에서 하나씩 꺼내고, 봉지가 비면 새로 섞어 채운다.
+       - 봉지 하나(=n번) 안에서는 모두 정확히 한 번씩 나온다
+       - 봉지 경계에서는 같은 사람이 연달아 나올 수 있다 → "내가 또?"는 그대로 살아있다
+     터지는 탭 수 limit이 최소 n×1.6이라 봉지는 반드시 한 번 이상 다 비워진다
+     = 누구든 최소 한 번은 폭탄을 쥔다. */
+  let bag=[];
+  const nextIdx=()=>{
+    if(!bag.length){
+      bag=ps.map((_,i)=>i);
+      for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}
+    }
+    return bag.pop();
+  };
+  let idx=nextIdx(),taps=0,limit=Math.floor(rand(ps.length*1.6,ps.length*4)),over=false,heat=0,raf=null,t0=performance.now();
+  function refresh(){nameEl.textContent=ps[idx].name;nameEl.style.color=ps[idx].color;}
+  refresh();
+  // ★ 실시간 펄스: 뜨거워질수록 더 크고 빠르게 커졌다 작아짐
+  (function pulse(t){
+    if(over){return;}
+    const el=(t-t0)/1000;
+    const freq=1.6+heat*9;                 // 점점 빠르게
+    const amp=0.06+heat*0.34;              // 점점 크게
+    const s=1+Math.sin(el*freq*Math.PI*2)*amp;
+    const glow=10+heat*46;
+    emo.style.transform=`scale(${s.toFixed(3)})`;
+    emo.style.filter=`drop-shadow(0 0 ${glow}px rgba(255,${Math.round(150-heat*120)},50,.95))`;
+    // 화면 미세 진동 (뜨거울 때만)
+    if(heat>0.5){const q=(heat-0.5)*6;st.style.transform=`translate(${rand(-q,q)}px,${rand(-q,q)}px)`;}
+    else st.style.transform="";
+    raf=requestAnimationFrame(pulse);
+  })(t0);
+  function pass(){
+    if(over)return;taps++;heat=Math.min(1,taps/limit);
+    tick(280+heat*640);
+    emo.textContent=heat>.78?"🧨":"💣";
+    msg.textContent=heat>.8?"곧 터진다...! 빨리 넘겨! 🔥":heat>.5?"슬슬 위험해요 😅":"버튼을 누르고 폰을 다음 사람에게!";
+    if(navigator.vibrate)navigator.vibrate(Math.round(15+heat*55));   // ★ 넘길 때 진동
+    if(taps>=limit){explode();return;}
+    idx=nextIdx();refresh();      // ★ 셔플 봉지 — 무작위이되 한 바퀴에 전원 1번씩
+  }
+  function explode(){
+    over=true;btn.disabled=true;cancelAnimationFrame(raf);
+    emo.textContent="💥";boom();
+    if(navigator.vibrate)navigator.vibrate([250,80,250,80,500]);      // ★ 폭발 진동
+    msg.textContent="펑! 💥";
+    const who=ps[idx];
+    // 폭발 확대 + 화면 흔들림
+    let f=0;emo.style.transition="transform .1s";
+    const blast=setInterval(()=>{
+      f++;emo.style.transform=`scale(${1.4+f*0.12})`;
+      emo.style.filter=`drop-shadow(0 0 ${40+f*10}px rgba(255,120,40,.95))`;
+      st.style.transform=`translate(${rand(-10,10)}px,${rand(-10,10)}px)`;
+      if(f>=8){clearInterval(blast);st.style.transform="";}
+    },40);
+    confetti(120);
+    logAdd("bomb",who.name);
+    setTimeout(()=>showWinner(who.name,who.color,"폭탄 당첨! 오늘 커피는 이 분이 쏩니다 ☕"),650);
+  }
+  btn.onclick=pass;
+  return ()=>{over=true;cancelAnimationFrame(raf);};
+}
+
+/* ============================================================
+   6) 악어 이빨 (Crocodile Teeth) — v2.0.0 **실제 3D (WebGL)**
+   ------------------------------------------------------------
+   ★ v1.x는 전부 Canvas 2D에 명암을 칠해 3D처럼 **보이게** 한 것이었다.
+     그래서 세 가지를 끝내 해결하지 못했다:
+       ① 머리 실루엣이 뭘 해도 둥근 덩어리가 된다 (윤곽을 수식으로 만드니까)
+       ② 다물 때 윗턱을 눕히면 두개골이 화면상 납작해진다 (투영을 손으로 흉내내니까)
+       ③ 이빨이 잇몸에 얹힌 스티커처럼 보인다 (깊이가 없으니까)
+     진짜 3D로 오면 셋 다 **원리적으로** 사라진다. 윗턱은 경첩축을 중심으로
+     실제로 회전하고, 원근·가림·명암은 GPU가 계산한다. 이빨은 뿌리를 잇몸
+     메시 **안쪽으로** 밀어 넣어, 깊이 버퍼가 알아서 박힌 것처럼 그려 준다.
+
+   ★ 외부 라이브러리 0 — WebGL은 브라우저 기본 기능이다. 행렬 연산·메시 생성·
+     셰이더가 전부 이 파일 안에 있다. APK의 WebView(minSdk 24)에서도 돈다.
+
+   좌표계: x 오른쪽, y 위, z 카메라 쪽(주둥이 끝이 +z).
+           경첩축 = (y=0, z=Z0) 을 지나는 x축. 윗턱 한 덩어리만 이 축으로 돈다.
+   ============================================================ */
+function Crocodile(host,ps){
+  /* ---------- 스테이지 (WebGL) ---------- */
+  const wrap=document.createElement("div");wrap.className="host";
+  wrap.innerHTML=`<div class="stage"><canvas></canvas></div><div class="hint" id="chint"></div>`;
+  host.appendChild(wrap);
+  const stage=wrap.querySelector(".stage"), cv=wrap.querySelector("canvas");
+  cv.style.background="radial-gradient(circle at 50% 36%,#fdf1de 0%,#f7dcc4 52%,#e2ad93 100%)";
+  const gl=cv.getContext("webgl",{antialias:true,alpha:true,premultipliedAlpha:false,depth:true});
+  if(!gl){
+    stage.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%;
+      padding:24px;text-align:center;color:#ffb4b4;font-weight:700;line-height:1.7">
+      이 기기에서 3D(WebGL)를 켤 수 없어요.<br>브라우저 하드웨어 가속을 켜 주세요 🐊</div>`;
+    return ()=>{};
+  }
+  function fit(){
+    const r=stage.getBoundingClientRect();
+    cv.width=Math.max(1,Math.round(r.width*devicePixelRatio));
+    cv.height=Math.max(1,Math.round(r.height*devicePixelRatio));
+    cv._w=r.width;cv._h=r.height;
+    gl.viewport(0,0,cv.width,cv.height);
+  }
+  const ro=new ResizeObserver(fit);ro.observe(stage);fit();
+  const W=()=>cv._w, H=()=>cv._h;
+
+  /* ---------- 게임 상태 (규칙은 2D판과 동일) ---------- */
+  const n=ps.length;
+  const NLo=13, NU=12;
+  const trap=Math.floor(rand(0,NLo));
+  const teeth=[];
+  for(let i=0;i<NLo;i++) teeth.push({k:i,pressed:false,pressAmt:0,sx:0,sy:0});
+  let turn=0, over=false, open=1, closing=false, announced=false;
+  let shake=0, raf=null, winner=null, T=0;
+
+  /* ================= 4x4 행렬 (열 우선 — GL 규약) ================= */
+  const m4id=()=>new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  function m4mul(a,b){
+    const o=new Float32Array(16);
+    for(let c=0;c<4;c++)for(let r=0;r<4;r++){
+      let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];
+      o[c*4+r]=s;}
+    return o;}
+  function m4persp(fovy,asp,zn,zf){
+    const t=1/Math.tan(fovy/2), o=new Float32Array(16);
+    o[0]=t/asp;o[5]=t;o[10]=(zf+zn)/(zn-zf);o[11]=-1;o[14]=2*zf*zn/(zn-zf);return o;}
+  function m4look(ex,ey,ez,cx,cy,cz){                   // up=(0,1,0) 고정
+    let zx=ex-cx,zy=ey-cy,zz=ez-cz;let l=Math.hypot(zx,zy,zz)||1;zx/=l;zy/=l;zz/=l;
+    let xx=zz,xy=0,xz=-zx;l=Math.hypot(xx,xy,xz)||1;xx/=l;xy/=l;xz/=l;
+    const yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+    return new Float32Array([xx,yx,zx,0, xy,yy,zy,0, xz,yz,zz,0,
+      -(xx*ex+xy*ey+xz*ez), -(yx*ex+yy*ey+yz*ez), -(zx*ex+zy*ey+zz*ez), 1]);}
+  const m4T=(x,y,z)=>{const o=m4id();o[12]=x;o[13]=y;o[14]=z;return o;};
+  const m4RX=(a)=>{const c=Math.cos(a),s=Math.sin(a),o=m4id();o[5]=c;o[6]=s;o[9]=-s;o[10]=c;return o;};
+  const m4RY=(a)=>{const c=Math.cos(a),s=Math.sin(a),o=m4id();o[0]=c;o[2]=-s;o[8]=s;o[10]=c;return o;};
+  const m4RZ=(a)=>{const c=Math.cos(a),si=Math.sin(a),o=m4id();o[0]=c;o[1]=si;o[4]=-si;o[5]=c;return o;};
+  const m4S =(x,y,z)=>{const o=m4id();o[0]=x;o[5]=y;o[10]=z;return o;};
+  const m3of=(m)=>new Float32Array([m[0],m[1],m[2], m[4],m[5],m[6], m[8],m[9],m[10]]);
+
+  /* ================= 셰이더 =================
+     Phong + 림라이트. 플라스틱 장난감이라 스펙큘러를 세게, 앰비언트를 넉넉히.
+     ★ 법선은 uNM(회전) * (법선 * uNS) 로 만든다. uNS = 1/스케일 — 이빨처럼
+       비균등 스케일을 쓰면 이 보정이 없을 때 명암이 뭉개진다. */
+  const VS=`
+    attribute vec3 aPos; attribute vec3 aNrm; attribute vec3 aCol;
+    uniform mat4 uProj,uView,uModel; uniform mat3 uNM; uniform vec3 uNS;
+    varying vec3 vN,vP,vC;
+    void main(){
+      vec4 wp=uModel*vec4(aPos,1.0);
+      vP=wp.xyz; vN=uNM*(aNrm*uNS); vC=aCol;
+      gl_Position=uProj*uView*wp;
+    }`;
+  const FS=`
+    precision mediump float;
+    varying vec3 vN,vP,vC;
+    uniform vec3 uEye; uniform float uSpec,uShin,uAmb;
+    void main(){
+      vec3 N=normalize(vN), V=normalize(uEye-vP);
+      vec3 L=normalize(vec3(-0.42,0.88,0.60));     // 주광 — 왼쪽 위 앞
+      vec3 L2=normalize(vec3(0.62,-0.34,0.30));    // 보조광 — 바닥 반사
+      float d=max(dot(N,L),0.0), d2=max(dot(N,L2),0.0);
+      float s=pow(max(dot(N,normalize(L+V)),0.0),uShin)*uSpec;
+      float rim=pow(1.0-max(dot(N,V),0.0),3.0)*0.24;
+      /* ★ v2.9.1 — 앤비언트를 uAmb 로 빼 재질별로 준다. 이빨은 색이 이미
+         흰색(1,1,1) 이라 색으로는 더 하얘질 수 없고, 그림자에 들어간 면이 회색으로
+         내려앉는다. 이빨만 0.52 로 올리면 그림자쪽까지 백자처럼 밝아진다. */
+      /* ★ 확산광을 1.0 가까이 채우면 초록의 G 채널이 먼저 포화돼, 하이라이트가
+         연둣빛 얼룩으로 번진다(주둥이 능선을 따라 띠처럼 보였다). 확산을 낮춰
+         여유를 남기고, 마지막에 부드럽게 눌러 흰색으로 튀지 않게 한다. */
+      vec3 col=vC*uAmb + vC*d*0.62 + vC*d2*0.18 + vec3(1.0)*s + vC*rim;
+      col=col/(1.0+col*0.28);
+      gl_FragColor=vec4(col,1.0);
+    }`;
+  function sh(t,src){const o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);
+    if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error("croc shader:",gl.getShaderInfoLog(o));
+    return o;}
+  const prog=gl.createProgram();
+  gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const A={pos:gl.getAttribLocation(prog,"aPos"),nrm:gl.getAttribLocation(prog,"aNrm"),
+           col:gl.getAttribLocation(prog,"aCol")};
+  const U={};["uProj","uView","uModel","uNM","uNS","uEye","uSpec","uShin","uAmb"]
+    .forEach(k=>U[k]=gl.getUniformLocation(prog,k));
+  gl.enableVertexAttribArray(A.pos);gl.enableVertexAttribArray(A.nrm);gl.enableVertexAttribArray(A.col);
+  gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
+
+  /* ================= 메시 =================
+     인덱스로 정점을 공유하고 면 법선을 누적해 **부드러운 법선**을 만든다.
+     플랫 셰이딩이면 면이 각져 보여 저폴리 티가 그대로 난다. */
+  function Mesh(pos,col,idx){
+    const nrm=new Float32Array(pos.length);
+    for(let i=0;i<idx.length;i+=3){
+      const a=idx[i]*3,b=idx[i+1]*3,c=idx[i+2]*3;
+      const ux=pos[b]-pos[a], uy=pos[b+1]-pos[a+1], uz=pos[b+2]-pos[a+2];
+      const vx=pos[c]-pos[a], vy=pos[c+1]-pos[a+1], vz=pos[c+2]-pos[a+2];
+      const nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+      for(const o of [a,b,c]){nrm[o]+=nx;nrm[o+1]+=ny;nrm[o+2]+=nz;}
+    }
+    for(let i=0;i<nrm.length;i+=3){
+      const l=Math.hypot(nrm[i],nrm[i+1],nrm[i+2])||1;
+      nrm[i]/=l;nrm[i+1]/=l;nrm[i+2]/=l;}
+    const mk=(d,t,T)=>{const b=gl.createBuffer();gl.bindBuffer(t,b);
+      gl.bufferData(t,new T(d),gl.STATIC_DRAW);return b;};
+    this.p=mk(pos,gl.ARRAY_BUFFER,Float32Array);
+    this.n=mk(nrm,gl.ARRAY_BUFFER,Float32Array);
+    this.c=mk(col,gl.ARRAY_BUFFER,Float32Array);
+    this.i=mk(idx,gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
+    this.cnt=idx.length;
+  }
+  Mesh.prototype.draw=function(){
+    gl.bindBuffer(gl.ARRAY_BUFFER,this.p);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,this.n);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,this.c);gl.vertexAttribPointer(A.col,3,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,this.i);
+    gl.drawElements(gl.TRIANGLES,this.cnt,gl.UNSIGNED_SHORT,0);
+  };
+  /* 같은 개수의 점을 가진 단면(링)들을 이어 통을 만든다 */
+  function tube(rings,colFn,capA,capB){
+    const K=rings[0].length, pos=[],col=[],idx=[];
+    rings.forEach((r,i)=>r.forEach((p,k)=>{
+      pos.push(p[0],p[1],p[2]);
+      const c=colFn(i,k,p);col.push(c[0],c[1],c[2]);}));
+    for(let i=0;i<rings.length-1;i++)for(let k=0;k<K;k++){
+      const k2=(k+1)%K, a=i*K+k, b=i*K+k2, c=(i+1)*K+k2, d=(i+1)*K+k;
+      idx.push(a,b,c, a,c,d);
+    }
+    const fan=(ri,rev)=>{
+      let cx=0,cy=0,cz=0;
+      rings[ri].forEach(p=>{cx+=p[0];cy+=p[1];cz+=p[2];});
+      cx/=K;cy/=K;cz/=K;
+      const ci=pos.length/3;pos.push(cx,cy,cz);
+      const c=colFn(ri,-1,[cx,cy,cz]);col.push(c[0],c[1],c[2]);
+      for(let k=0;k<K;k++){const a=ri*K+k, b=ri*K+(k+1)%K;
+        rev?idx.push(ci,b,a):idx.push(ci,a,b);}
+    };
+    if(capA)fan(0,true);
+    if(capB)fan(rings.length-1,false);
+    return new Mesh(pos,col,idx);
+  }
+
+  /* ================= 악어 치수 ================= */
+  const Z0=-1.10, Z1=1.62;                       // 경첩(뒤) ~ 주둥이 끝
+  const zAt=(t)=>Z0+(Z1-Z0)*t;
+  /* ★ (1-t²)^0.35 — 뒤는 두툼하고 끝은 **둥글게** 오므라든다.
+     선형으로 줄이면 끝이 뾰족한 원뿔이 되어 악어가 아니라 도마뱀이 된다. */
+  /* ★ 끝에서 0 으로 수렴시키면 맨 앞 이빨이 턱 밖으로 삐져나온다(주둥이가
+     한 점이 되니 이빨이 붙을 살이 없다). 0.13 만큼 두께를 남기고 끝을 캡으로
+     막으면 코끝이 둥글게 마무리되고 앞니도 살 안에 박힌다. */
+  const shp=(t)=>0.13+0.87*Math.pow(Math.max(0,1-t*t),0.35);
+  /* ★ v2.5.0 — 폭을 키워 입(치열 U)을 양옆으로 넓혔다. 1.02/0.95 는 U 가 좁아
+     아래쪽이 V 로 읽혔다. 높이는 그대로 둬야 입이 세로로만 커지지 않는다. */
+  const wUp=(t)=>1.14*shp(t)*(1-0.10*t);
+  const hUp=(t)=>0.74*shp(t)*(1-0.30*t);
+  const wLo=(t)=>1.06*shp(t)*(1-0.10*t);
+  const hLo=(t)=>0.50*shp(t)*(1-0.26*t);
+  const FLAT=0.075;                              // 입천장·입바닥의 얕은 배부름
+
+  const GREEN=[0.33,0.88,0.36], GREEN_D=[0.16,0.56,0.20], BELLY=[0.86,0.97,0.60];
+  const RED=[0.82,0.19,0.21], RED_D=[0.46,0.07,0.09];
+  /* 아랫니는 밝은 상아색, 윗니는 살짝 차갑고 어두운 상아색 — 두 줄을 색으로도 가른다 */
+  /* ★ v2.9.0 — 이빨을 더 하얗게. 윗니는 아랫니와 구분되게 아주 살짝만 어둡다 */
+  const IVORY=[1.00,1.00,1.00], IVORY_U=[0.97,0.98,1.00],
+        ROOT=[0.99,0.98,0.96], GUM=[0.89,0.37,0.41];
+
+  function jawMesh(up){
+    const RN=28, K=30, rings=[];
+    for(let i=0;i<=RN;i++){
+      const t=i/RN, w=(up?wUp:wLo)(t), hd=(up?hUp:hLo)(t), z=zAt(t), ring=[];
+      for(let k=0;k<K;k++){
+        const a=2*Math.PI*k/K, ca=Math.cos(a), sa=Math.sin(a);
+        const dome = up ? (sa>=0) : (sa<=0);
+        ring.push([w*ca, (dome?hd:FLAT)*sa, z]);
+      }
+      rings.push(ring);
+    }
+    return tube(rings,(i,k)=>{
+      if(k<0)return GREEN_D;
+      const sa=Math.sin(2*Math.PI*k/K), dome=up?(sa>=0):(sa<=0);
+      const m=Math.min(1,Math.abs(sa)*3.2);        // 입가에서 부드럽게 섞는다
+      const A=dome?GREEN:RED, B=dome?GREEN_D:RED_D;
+      return [B[0]+(A[0]-B[0])*m, B[1]+(A[1]-B[1])*m, B[2]+(A[2]-B[2])*m];
+    },true,true);
+  }
+
+  /* ---- 치열이 놓이는 곡선 (턱 가장자리 살짝 안쪽) ----
+     b∈[-1,1]: ±1 = 경첩, 0 = 주둥이 끝. x=±w(t)*0.88 이라 끝에서 자연히 만난다. */
+  function rimPt(up,b,kf){
+    /* ★ v2.9.1 — t 상한 0.88→0.955. 앞쪽 치열이 주둥이 끝(t=1) 쪽으로
+       더 나가 U 의 바닥이 턱 끝에 가까워진다. 턱 길이(Z1)는 그대로라 코끝에
+       초록 살이 여전히 살짝 남는다. 0.94 를 넘기면 앞니가 코끝을 뚫고 나온다. */
+    /* ★ s 지수 1.70→1.52: 이빨이 뒤(z)로 물러나는 속도를 늦춰 아치가 앞뒤로
+       덜 길쭉해지고, 대신 좌우로 벌어진 **여유로운 U** 가 된다. */
+    const s=Math.min(1,Math.abs(b)), t=0.955*(1-Math.pow(s,1.52));
+    /* ★ 0.88 이면 치열이 입술에서 너무 안쪽으로 들어가 붉은 띠가 넓게 남는다.
+       0.94 면 이빨 바깥면이 턱 가장자리와 거의 맞닿는다(이빨 반폭 0.075). */
+    /* ★ v2.6.0 — kf(폭 계수)를 위·아래 다르게 준다.
+       둘 다 같은 반경에 두면 위에서 내려다볼 때 두 줄이 화면상 겹쳐서,
+       특히 **입 안쪽(뒤쪽)에서 아랫니가 윗니에 가려 안 보인다**.
+       윗니를 바깥(1.02), 아랫니를 안쪽(0.86)에 두면 동심원 두 줄로 갈린다. */
+    const w=(up?wUp:wLo)(t)*(kf==null?0.95:kf);
+    /* ★ x 지수 0.42→0.32: 주둥이 끝을 벗어나자마자 옆으로 더 빨리 벌어진다 =
+       바닥이 평평하고 옆이 넓은 U. 0.42 면 앞쪽이 좁아 V 에 가깝게 읽혔다. */
+    return [(b<0?-1:1)*w*Math.pow(s,0.32), 0, zAt(t)];
+  }
+  function rimSamples(up,kf){
+    const P=[],cum=[0];let L=0;
+    for(let i=0;i<=240;i++){
+      const p=rimPt(up,-1+2*i/240,kf);P.push(p);
+      if(i){L+=Math.hypot(p[0]-P[i-1][0],p[2]-P[i-1][2]);cum.push(L);}
+    }
+    return {P,cum,L};
+  }
+  function rimAt(tb,f){
+    const g=f*tb.L;let i=1;
+    while(i<tb.cum.length-1&&tb.cum[i]<g)i++;
+    const u=(g-tb.cum[i-1])/Math.max(1e-6,tb.cum[i]-tb.cum[i-1]);
+    const a=tb.P[i-1],b=tb.P[i];
+    return {x:a[0]+(b[0]-a[0])*u, z:a[2]+(b[2]-a[2])*u, dx:b[0]-a[0], dz:b[2]-a[2]};
+  }
+
+  /* ---- 잇몸: 치열 곡선을 따라 두른 굵은 분홍 테. 이빨 뿌리가 여기 박힌다 ---- */
+  function gumMesh(up,kf){
+    const N=96, K=12, rg=0.100, rings=[];
+    for(let i=0;i<=N;i++){
+      const b=-1+2*i/N, p=rimPt(up,b,kf);
+      const q=rimPt(up,Math.min(1,b+0.012),kf), r=rimPt(up,Math.max(-1,b-0.012),kf);
+      let tx=q[0]-r[0], tz=q[2]-r[2];const m=Math.hypot(tx,tz)||1;tx/=m;tz/=m;
+      const nx=-tz, nz=tx, ring=[];
+      for(let k=0;k<K;k++){
+        const a=2*Math.PI*k/K, ca=Math.cos(a), sa=Math.sin(a);
+        ring.push([p[0]+nx*rg*ca, (up?1:-1)*rg*0.70*sa, p[2]+nz*rg*ca]);
+      }
+      rings.push(ring);
+    }
+    return tube(rings,()=>GUM,true,true);
+  }
+
+  /* ---- 이빨: **뿌리가 잇몸 아래로 길게 내려가는** 블록 ----
+     ★ 밑동에서 잘린 블록을 얹으면 경계선이 또렷해 스티커처럼 보인다.
+       y<0 구간(뿌리)을 만들어 잇몸 메시 안으로 밀어 넣으면, 깊이 버퍼가
+       잇몸에 가려 주므로 '잇몸에서 자라난' 것처럼 보인다. */
+  function toothMesh(top){
+    const K=12;
+    const prof=[[-0.70,0.80],[-0.20,1.00],[0.26,0.99],[0.66,0.90],
+                [0.90,0.66],[1.02,0.26]];        // [y, 폭 배율]
+    const rings=prof.map(([y,w])=>{
+      const ring=[];
+      for(let k=0;k<K;k++){
+        const a=2*Math.PI*k/K, ca=Math.cos(a), sa=Math.sin(a);
+        const sq=(v)=>(v<0?-1:1)*Math.pow(Math.abs(v),0.55);   // 둥근 사각 단면
+        ring.push([0.52*w*sq(ca), y, 0.44*w*sq(sa)]);
+      }
+      return ring;
+    });
+    return tube(rings,(i)=>i<=0?ROOT:top,true,true);
+  }
+  /* ---- 몸통: 머리 뒤로 이어지는 통. 앞은 턱 뒷면을 덮을 만큼 크고
+       뒤로 갈수록 볼록했다가 꼬리로 가늘어진다. 배는 연둣빛으로 밝게. ---- */
+  /* ★ 폭·높이를 수식 하나로 만들면 중간부터 그냥 가늘어져 **고깔**이 된다.
+     어깨에서 부풀었다가 허리에서 잘록해지고 꼬리로 길게 빠지는 프로필을
+     제어점으로 찍어 보간한다. yo 는 뒤로 갈수록 살짝 가라앉는 양. */
+  const BP=[ /* t, 폭, 높이, y내림 */
+    [0.00,1.00,0.72,0.10],[0.10,1.30,0.88,0.12],[0.26,1.44,0.94,0.16],
+    [0.44,1.34,0.86,0.22],[0.62,1.08,0.68,0.28],[0.78,0.76,0.48,0.34],
+    [0.90,0.50,0.32,0.38],[1.00,0.26,0.18,0.42]];
+  function bprof(t){
+    let i=1;while(i<BP.length-1&&BP[i][0]<t)i++;
+    const a=BP[i-1],b=BP[i],u=(t-a[0])/Math.max(1e-6,b[0]-a[0]);
+    return [a[1]+(b[1]-a[1])*u, a[2]+(b[2]-a[2])*u, a[3]+(b[3]-a[3])*u];
+  }
+  const BODY_Z=(t)=>Z0-0.06-5.40*t;
+  function bodyMesh(){
+    const RN=36, K=28, rings=[];
+    for(let i=0;i<=RN;i++){
+      const t=i/RN, [w,hT,yo]=bprof(t), z=BODY_Z(t), hB=hT*0.78, ring=[];
+      for(let kk=0;kk<K;kk++){
+        const a=2*Math.PI*kk/K, ca=Math.cos(a), sa=Math.sin(a);
+        ring.push([w*ca, (sa>=0?hT:hB)*sa-yo, z]);
+      }
+      rings.push(ring);
+    }
+    return tube(rings,(i,kk)=>{
+      if(kk<0)return GREEN_D;
+      const sa=Math.sin(2*Math.PI*kk/K);
+      if(sa<-0.30){const m=Math.min(1,(-sa-0.30)*2.2);
+        return [GREEN[0]+(BELLY[0]-GREEN[0])*m, GREEN[1]+(BELLY[1]-GREEN[1])*m,
+                GREEN[2]+(BELLY[2]-GREEN[2])*m];}
+      return sa>0.55?GREEN:[GREEN[0]*0.88,GREEN[1]*0.88,GREEN[2]*0.88];
+    },true,true);
+  }
+  /* 등비늘(스쿠트) — 등줄기를 따라 늘어선 작은 돌기. 악어다움을 크게 올린다 */
+  function scuteMesh(){
+    const K=10, prof=[[0,1.0],[0.45,0.92],[0.80,0.62],[1.0,0.20]];
+    const rings=prof.map(([y,r])=>{
+      const ring=[];
+      for(let k=0;k<K;k++){const a=2*Math.PI*k/K;
+        ring.push([r*0.62*Math.cos(a), y*0.9, r*0.80*Math.sin(a)]);}
+      return ring;
+    });
+    return tube(rings,()=>[GREEN[0]*0.78,GREEN[1]*0.78,GREEN[2]*0.78],true,true);
+  }
+  /* ---- 앞다리 ---- 로컬 -y 방향으로 뻗는다. 위는 굵고 아래(팔목)로 가늘어진다 */
+  /* ★ 팔을 길게 뽑는다 — 예전엔 어깨 바로 밑에 발바닥이 붙어 "팔 없이 손만"
+     달린 것처럼 보였다. 위팔에서 손목까지 가늘어지는 구간이 있어야
+     팔 → 손 순서로 읽힌다. */
+  function limbMesh(){
+    const K=12, prof=[[0.12,0.46],[-0.34,0.40],[-0.78,0.33],[-1.20,0.27],[-1.52,0.24]];
+    const rings=prof.map(([y,r])=>{
+      const ring=[];
+      for(let k=0;k<K;k++){const a=2*Math.PI*k/K;
+        ring.push([r*Math.cos(a), y, r*0.84*Math.sin(a)]);}
+      return ring;
+    });
+    return tube(rings,()=>GREEN,true,true);
+  }
+  /* ---- 발바닥 ---- ★ 구를 하나 얹으면 '강아지 앞발'이 된다.
+     악어 발은 **납작하고 넓은 판**에 가깝다. y로 눌러 놓은 타원 단면을 세 겹 쌓아
+     위는 좁고 아래는 넓게 퍼지는 물갈퀴 모양으로 만든다. */
+  function pawMesh(){
+    const K=14, prof=[[0.22,0.52,0.44],[0.02,0.76,0.60],[-0.14,0.86,0.70],[-0.24,0.66,0.56]];
+    const rings=prof.map(([y,rx,rz])=>{
+      const ring=[];
+      for(let k=0;k<K;k++){const a=2*Math.PI*k/K;
+        ring.push([rx*Math.cos(a), y*0.55, rz*Math.sin(a)]);}
+      return ring;
+    });
+    return tube(rings,()=>GREEN,true,true);
+  }
+  /* ---- 발가락 ---- 밑동이 굵고 끝이 가늘어지는 원뿔. 끝에 발톱이 붙는다 */
+  function toeMesh(){
+    const K=9, prof=[[0.0,0.36],[-0.34,0.30],[-0.68,0.22],[-0.92,0.13]];
+    const rings=prof.map(([y,r])=>{
+      const ring=[];
+      for(let k=0;k<K;k++){const a=2*Math.PI*k/K;
+        ring.push([r*Math.cos(a), y, r*0.86*Math.sin(a)]);}
+      return ring;
+    });
+    return tube(rings,()=>GREEN,true,true);
+  }
+  /* ---- 꼬리 ---- 몸통 끝에서 위로 솟았다가 **끝에서 갈고리처럼 말린다**(뒤집힌 J).
+     ★ 처음엔 y–z 평면(위·뒤)에서 말았는데 화면에서 막대로만 보였다. 카메라가
+       위에서 -z 를 내려다보므로 y 도 z 도 **둘 다 화면 세로**로 투영돼, 그 평면의
+       곡선은 세로선으로 눌려버린다. 그래서 말리는 평면을 **x–y(화면 좌우·위아래)**
+       로 옮겼다. x 는 화면 가로에만 대응하므로 갈고리가 그대로 보인다.
+     ψ: 0(위) → 2.95rad(166°, 옆으로 넘어가 아래로). u^1.7 이라 앞쪽은 곧게 솟고
+        끝에서 몰아 말린다. z 로는 완만히 뒤로 눕는다(dz). */
+  const TAIL={t0:0.82, LEN:3.60, N:38, PSI:3.05, DZ:-0.40, SIDE:1};
+  function tailFrames(){
+    const {t0,LEN,N,PSI,DZ,SIDE}=TAIL;
+    const [w0,,yo0]=bprof(t0);
+    let px=0, py=-yo0, pz=BODY_Z(t0);
+    const step=LEN/N, out=[];
+    for(let i=0;i<=N;i++){
+      const u=i/N, psi=PSI*Math.pow(u,1.7);
+      let dx=Math.sin(psi)*SIDE, dy=Math.cos(psi), dz=DZ;
+      const dl=Math.hypot(dx,dy,dz); dx/=dl;dy/=dl;dz/=dl;
+      if(i){ px+=dx*step; py+=dy*step; pz+=dz*step; }
+      /* 진행 방향(T)에 수직인 두 축(U,V) — 단면을 여기에 얹는다 */
+      let ux=dy*0-dz*0, uy=dz*1-dx*0, uz=dx*0-dy*1;   // T × (0,1,0)
+      let ul=Math.hypot(ux,uy,uz); if(ul<1e-4){ux=1;uy=0;uz=0;ul=1;}
+      ux/=ul;uy/=ul;uz/=ul;
+      const vx=dy*uz-dz*uy, vy=dz*ux-dx*uz, vz=dx*uy-dy*ux;
+      const r=(w0*1.10)*(1-0.74*Math.pow(u,1.18));
+      out.push({u,px,py,pz,ux,uy,uz,vx,vy,vz,r});
+    }
+    return out;
+  }
+  function tailMesh(){
+    const K=14, F=tailFrames(), rings=F.map(f=>{
+      const ring=[];
+      for(let k=0;k<K;k++){
+        const a=2*Math.PI*k/K, ca=Math.cos(a)*f.r, sa=Math.sin(a)*f.r*0.80;
+        ring.push([f.px+f.ux*ca+f.vx*sa, f.py+f.uy*ca+f.vy*sa, f.pz+f.uz*ca+f.vz*sa]);
+      }
+      return ring;
+    });
+    return tube(rings,(i,k)=>{
+      if(k<0)return GREEN_D;
+      const sa=Math.sin(2*Math.PI*k/K);
+      return sa<-0.35?BELLY:(sa>0.5?GREEN:[GREEN[0]*0.88,GREEN[1]*0.88,GREEN[2]*0.88]);
+    },true,true);
+  }
+  function sphereMesh(seg,col){
+    const rings=[];
+    for(let i=0;i<=seg;i++){
+      const ph=Math.PI*i/seg, r=Math.sin(ph), y=Math.cos(ph), ring=[];
+      for(let k=0;k<seg*2;k++){const th=2*Math.PI*k/(seg*2);
+        ring.push([r*Math.cos(th), y, r*Math.sin(th)]);}
+      rings.push(ring);
+    }
+    return tube(rings,()=>col,false,false);
+  }
+
+  const M={
+    body:bodyMesh(), limb:limbMesh(), scute:scuteMesh(),
+    paw:pawMesh(), toe:toeMesh(), tail:tailMesh(),
+    up:jawMesh(true), lo:jawMesh(false),
+    gumU:gumMesh(true,1.06), gumL:gumMesh(false,0.96),
+    tooth:toothMesh(IVORY), toothU:toothMesh(IVORY_U),
+    claw:sphereMesh(8,[0.86,0.84,0.74]),
+    eye:sphereMesh(14,[0.99,0.99,0.96]),
+    pupil:sphereMesh(10,[0.05,0.06,0.03]),
+    lid:sphereMesh(12,[0.30,0.80,0.33]),
+    nose:sphereMesh(10,[0.09,0.32,0.12])
+  };
+  /* ★ 치열을 **입술 라인 쪽으로 더 바깥**으로 뺐다(윗 1.02→1.06, 아랫 0.86→0.96).
+     두 줄 간격(0.10)은 유지해 위·아래 구분은 그대로 남긴다. */
+  const upTb=rimSamples(true,1.06), loTb=rimSamples(false,0.96);
+  const upF=[],loF=[];
+  for(let i=0;i<NU;i++)  upF.push(0.135+0.730*((i+0.5)/NU));   // ★ 안쪽 끝은 비워 둔다
+  for(let i=0;i<NLo;i++) loF.push(0.055+0.890*((i+0.5)/NLo));
+
+  /* ================= 그리기 ================= */
+  /* ★ 카메라 거리는 **화면 비율에서 역산**한다. 고정값을 쓰면 세로로 긴 폰에서
+     가로 화각이 좁아져 카메라가 입 속으로 들어가 버린다(실제로 그랬다).
+     세로 화각 FOVY 로 가로 화각을 구한 뒤, 모델 반폭·반높이가 둘 다 들어오는
+     거리 중 큰 쪽을 쓴다. EL 은 내려다보는 각 — 이게 있어야 U자 치열이 보인다. */
+  /* ★ AT.y 를 올리면 시선이 위를 보므로 **모델이 화면 아래로 내려온다** —
+     이빨을 아래로 내리고 머리 뒤 몸통이 위로 길게 보일 자리를 동시에 만든다. */
+  const FOVY=0.62, EL=0.50, RW=1.52, RH=1.30;
+  const AT=[0,0.92,-0.34];
+  let EYE=[0,2.2,4.4];
+  function camera(asp){
+    const th=Math.tan(FOVY/2), tw=Math.tan(Math.atan(th*asp));
+    const d=Math.max(RW/tw, RH/th)+0.90;
+    EYE=[AT[0], AT[1]+d*Math.sin(EL), AT[2]+d*Math.cos(EL)];
+  }
+  let proj=m4id(), view=m4id();
+
+  function put(mesh,model,sx,sy,sz){
+    gl.uniformMatrix4fv(U.uModel,false,model);
+    gl.uniformMatrix3fv(U.uNM,false,m3of(model));
+    gl.uniform3f(U.uNS,1/(sx||1),1/(sy||1),1/(sz||1));
+    mesh.draw();
+  }
+  /* 화면 좌표로 투영 — 이빨 터치 판정용 */
+  function project(model,x,y,z){
+    const p=m4mul(proj,m4mul(view,model));
+    const cx=p[0]*x+p[4]*y+p[8]*z+p[12];
+    const cy=p[1]*x+p[5]*y+p[9]*z+p[13];
+    const cw=p[3]*x+p[7]*y+p[11]*z+p[15] || 1e-6;
+    return [(cx/cw*0.5+0.5)*W(), (1-(cy/cw*0.5+0.5))*H()];
+  }
+
+  const OPEN_A=0.62;                              // 최대 개구 각(≈36°)
+  function draw(){
+    const w=W(),h=H();
+    proj=m4persp(FOVY, w/h, 0.5, 40);
+    camera(w/h);
+    let jx=0,jy=0;
+    if(shake>0){jx=rand(-shake,shake)*0.006;jy=rand(-shake,shake)*0.006;
+      shake*=0.88;if(shake<0.4)shake=0;}
+    view=m4look(EYE[0]+jx,EYE[1]+jy,EYE[2],AT[0],AT[1],AT[2]);
+
+    gl.clearColor(0,0,0,0);
+    gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.uniformMatrix4fv(U.uProj,false,proj);
+    gl.uniformMatrix4fv(U.uView,false,view);
+    gl.uniform3f(U.uEye,EYE[0],EYE[1],EYE[2]);
+
+    const base=m4T(0,Math.sin(T*0.033)*0.012,0);
+    /* ★ 윗턱은 경첩축에서 **실제로 회전**한다. 2D였다면 여기서 두개골 투영을
+       손으로 흉내내야 했고, 그게 v1.x 내내 발목을 잡았다. */
+    const jawU=m4mul(base, m4mul(m4T(0,0,Z0), m4mul(m4RX(-OPEN_A*open), m4T(0,0,-Z0))));
+
+    /* ★ uSpec 0.50/uShin 22 는 넓은 곡면에서 하이라이트가 크게 번져 초록이
+       하얗게 포화된다 — 주둥이 위에 '연둣빛 얼룩'처럼 보였던 게 이것이다.
+       세기를 낮추고 광택 지수를 올려 점처럼 작게 만든다. */
+    const S_BODY=()=>{gl.uniform1f(U.uSpec,0.26);gl.uniform1f(U.uShin,40);gl.uniform1f(U.uAmb,0.30);};
+    const S_TOOTH=()=>{gl.uniform1f(U.uSpec,0.90);gl.uniform1f(U.uShin,54);gl.uniform1f(U.uAmb,0.52);};
+
+    /* ---- 몸통 + 앞다리 (머리 뒤로 보인다) ---- */
+    S_BODY();
+    put(M.body, base,1,1,1);
+    for(let i=0;i<13;i++){                              // 등줄기 비늘
+      const t=0.10+0.74*(i/12), [bw,bh,byo]=bprof(t), z=BODY_Z(t);
+      const sc=0.16+0.10*bh;
+      for(const c of [0,-1,1]){
+        const x=c*bw*0.44, y=(c?bh*0.86:bh)-byo;
+        put(M.scute, m4mul(base,m4mul(m4T(x,y,z),m4S(sc*(c?0.8:1),sc*(c?0.7:1),sc*(c?0.8:1)))),
+            sc,sc,sc);
+      }
+    }
+    for(const sg of [-1,1]){
+      /* 어깨에서 바깥·앞으로 살짝 벌린 짧은 팔 */
+      /* ★ 어깨를 앞(+z)·바깥(x)으로 빼야 머리에 안 가린다. Z0-0.80 이면
+         턱 뒤에 숨어 초록 덩어리로만 보였다. */
+      const arm=m4mul(base, m4mul(m4T(sg*0.98,-0.30,Z0-0.14),
+        m4mul(m4RZ(sg*0.44), m4mul(m4RX(0.30), m4S(0.70,0.70,0.70)))));
+      put(M.limb, arm, 0.70,0.70,0.70);
+      /* 발바닥 — 팔 끝에 납작하게. RX(-0.55) 로 손바닥이 카메라(앞·아래)를 보게 눕힌다 */
+      const paw=m4mul(arm, m4mul(m4T(0,-1.60,0.06), m4mul(m4RY(-sg*0.34),
+        m4mul(m4RX(-0.55), m4S(0.52,0.52,0.52)))));
+      put(M.paw, paw, 0.50,0.50,0.50);
+      /* ★ 발가락 4개 — **발바닥 평면 안에** 부챗살로 눕힌다.
+         예전엔 발바닥 아래(-y)로 세워서 카메라 반대쪽을 향해 안 보였다.
+         RX(-90°) 가 발가락의 로컬 -y 축을 +z(발바닥 앞쪽)로 돌려 주고,
+         거기에 RY(a) 를 곱해 방사 방향으로 벌린다. */
+      for(let f=0;f<4;f++){
+        const a=(f-1.5)*0.42;
+        const toe=m4mul(paw, m4mul(m4T(Math.sin(a)*0.50,0.02,Math.cos(a)*0.50),
+          m4mul(m4RY(a), m4mul(m4RX(-Math.PI/2), m4S(0.30,0.66,0.30)))));
+        put(M.toe, toe, 0.30,0.66,0.30);
+        const cl=m4mul(toe, m4mul(m4T(0,-0.98,0), m4S(0.26,0.40,0.26)));
+        put(M.claw, cl, 0.26,0.40,0.26);
+      }
+    }
+
+    /* ---- 꼬리 — 위로 솟았다가 앞으로 말린다 ---- */
+    put(M.tail, base,1,1,1);
+    {
+      /* 등비늘 — 단면의 V축(등쪽)으로 반지름만큼 띄워 얹는다 */
+      const F=tailFrames();
+      for(let i=2;i<F.length-2;i+=2){
+        const f=F[i], sc=f.r*0.46;
+        put(M.scute, m4mul(base, m4mul(
+          m4T(f.px-f.vx*f.r*0.72, f.py-f.vy*f.r*0.72, f.pz-f.vz*f.r*0.72),
+          m4S(sc,sc,sc))), sc,sc,sc);
+      }
+    }
+
+    /* ---- 아래턱 ---- */
+    put(M.lo, base,1,1,1);
+    put(M.gumL, base,1,1,1);
+    S_TOOTH();
+    for(let i=0;i<NLo;i++){
+      const t=teeth[i], r=rimAt(loTb,loF[i]);
+      const yaw=Math.atan2(r.dx,r.dz);
+      const s=0.160, len=0.34*(1-t.pressAmt*0.90);
+      put(M.tooth, m4mul(base, m4mul(m4T(r.x,-0.03,r.z),
+          m4mul(m4RY(yaw), m4mul(m4RX(-0.10), m4S(s,len,s))))), s,len,s);
+      const p=project(base, r.x, len*0.55, r.z);
+      t.sx=p[0];t.sy=p[1];
+    }
+
+    /* ---- 윗턱 한 덩어리 (머리·눈·콧구멍·윗니가 같이 돈다) ---- */
+    S_BODY();
+    put(M.up, jawU,1,1,1);
+    put(M.gumU, jawU,1,1,1);
+    S_TOOTH();
+    for(let i=0;i<NU;i++){
+      const r=rimAt(upTb,upF[i]), yaw=Math.atan2(r.dx,r.dz);
+      const s=0.106, len=0.190;
+      put(M.toothU, m4mul(jawU, m4mul(m4T(r.x,0.03,r.z),
+          m4mul(m4RY(yaw), m4mul(m4RX(Math.PI+0.10), m4S(s,len,s))))), s,len,s);
+    }
+    S_BODY();
+
+    /* 눈 — 머리 위로 솟은 두 개의 구. 윗턱과 같이 돈다 */
+    for(const sg of [-1,1]){
+      const ez=-0.42, te=(ez-Z0)/(Z1-Z0);
+      const ex=sg*wUp(te)*0.56, ey=hUp(te)*0.82, er=0.235;
+      put(M.lid, m4mul(jawU,m4mul(m4T(ex,ey-er*0.30,ez),m4S(er*1.18,er*1.00,er*1.18))),
+          er*1.18,er*1.00,er*1.18);
+      put(M.eye, m4mul(jawU,m4mul(m4T(ex,ey+er*0.26,ez),m4S(er,er,er))), er,er,er);
+      const pr=er*0.54;
+      put(M.pupil, m4mul(jawU,m4mul(m4T(ex+sg*0.03,ey+er*0.30,ez+er*0.60),m4S(pr,pr,pr))),
+          pr,pr,pr);
+      /* ★ 눈꺼풀(깜빡임)은 뺐다 — 눈 위에 초록 구가 나타났다 사라지길 반복해
+         "뭐가 켜졌다 꺼졌다 한다"로 보였다. 구를 아래로 굴려 덮는 방식이라
+         3D에서는 눈꺼풀이 아니라 별개의 물체로 읽힌다. */
+    }
+    /* 콧구멍 — 주둥이 끝 위쪽에 살짝 파묻힌 어두운 구 */
+    for(const sg of [-1,1]){
+      const t=0.90, nr=0.068;
+      put(M.nose, m4mul(jawU,m4mul(m4T(sg*wUp(t)*0.30, hUp(t)*0.88, zAt(t)),
+          m4S(nr,nr*0.70,nr))), nr,nr*0.70,nr);
+    }
+  }
+
+  /* ================= 게임 로직 (2D판과 동일) ================= */
+  function updateHint(){
+    if(over){$("#chint").innerHTML=`<b style="color:#ff6b6b;">콱!</b> 악어가 입을 다물었어요 🐊`;return;}
+    $("#chint").innerHTML=`<b style="color:${ps[turn%n].color};font-size:16px;">${ps[turn%n].name}</b> 님 차례 — <b>아래 이빨</b> 하나를 누르세요! 😬`;
+  }
+  function chomp(){if(soundOn&&ac()){boom();beep(1200,.05,"square",.2);setTimeout(()=>beep(170,.22,"sawtooth",.25),40);}}
+  function press(i){
+    const t=teeth[i];if(t.pressed||over)return;t.pressed=true;
+    if(i===trap){over=true;closing=true;winner=ps[turn%n];chomp();shake=17;
+      if(navigator.vibrate)navigator.vibrate([300,60,400]);updateHint();}
+    else{beep(320+Math.random()*140,.07,"square",.12);
+      if(navigator.vibrate)navigator.vibrate(12);turn++;updateHint();}
+  }
+  cv.addEventListener("pointerdown",e=>{
+    if(over)return;const r=cv.getBoundingClientRect();
+    const px=e.clientX-r.left, py=e.clientY-r.top;
+    let hit=-1,bd=1e9;
+    teeth.forEach((t,i)=>{if(t.pressed)return;const d=Math.hypot(t.sx-px,t.sy-py);if(d<bd){bd=d;hit=i;}});
+    if(hit>=0&&bd<W()*0.17)press(hit);
+  });
+  updateHint();
+  (function loop(){
+    T++;
+    for(const t of teeth) if(t.pressed&&t.pressAmt<1) t.pressAmt=Math.min(1,t.pressAmt+0.2);
+    if(closing){open+=(0-open)*0.32;
+      if(open<0.12&&!announced){announced=true;shake=18;
+        if(winner)logAdd("croc",winner.name);
+        setTimeout(()=>showWinner("","#fff","악어가 콱! 오늘 커피는 이 분이 쏩니다 ☕",true),450);}}
+    draw();raf=requestAnimationFrame(loop);
+  })();
+  return ()=>{over=true;cancelAnimationFrame(raf);ro.disconnect();};
+}
+
+/* ---------- small utils ---------- */
+function clip(s,n){s=s||"";return s.length>n?s.slice(0,n):s;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    this.beginPath();this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this;};
+}
+
+/* ---------- boot ---------- */
+{const v=$("#verTag");if(v)v.textContent="v"+APP_VERSION;}
+loadPlayers();renderHome();
+
+/* ---------- 로딩화면: 게이지가 1%→100% 다 차야 앱으로 들어간다 (v1.5.0) ----------
+   HTML 한 장짜리 앱이라 실제 로딩은 순식간이다. 이 화면은 '기다리게' 하려는 게
+   아니라 앱을 여는 맛을 내려는 것 — 그래서 배경 이미지가 다 받아지면 그때부터 잰다.
+   ★ 숫자를 건너뛰지 않는다: 1씩만 올리는 setTimeout 체인이라 rAF가 밀려도
+     100개의 숫자가 전부 화면에 찍힌다(requestAnimationFrame + 보간이었다면
+     프레임이 밀릴 때 97→100 처럼 훌쩍 뛴다).
+   ★ 탭 스킵은 없앴다 — '다 보여달라'가 요구사항. 대신 탭은 오디오만 깨운다. */
+{
+  const sp=$("#splash");
+  if(sp){
+    const fill=$("#spFill"), pctEl=$("#spPct"), tipEl=$("#spTip");
+    /* 구간별 문구 — [이 퍼센트부터, 문구] */
+    const TIPS=[[0,"게임 데이터 준비 중…"],[18,"참가자 명단 불러오는 중…"],
+                [40,"주사위 굴리는 중…"],[62,"악어 이빨 닦는 중…"],
+                [82,"커피 내리는 중…"],[97,"준비 완료!"]];
+    let pct=0, done=false, tipAt=-1;
+    const paint=()=>{
+      if(fill)fill.style.width=pct+"%";
+      if(pctEl)pctEl.textContent=pct+"%";
+      if(tipEl){
+        let k=0;for(let i=0;i<TIPS.length;i++) if(pct>=TIPS[i][0]) k=i;
+        if(k!==tipAt){tipAt=k;tipEl.textContent=TIPS[k][1];}
+      }
+    };
+    const hide=()=>{ if(done)return; done=true;
+      ac();                                    // 오디오 컨텍스트 미리 깨우기
+      sp.classList.add("gone");
+      setTimeout(()=>sp.remove(),650);
+    };
+    /* 등속이면 기계적이라, 사람이 아는 그 리듬으로 — 처음엔 뜸 들이고 중반엔
+       쭉쭉, 90% 넘어가면 다시 느려지고, 중간중간 살짝 걸린다. 총 3.7초쯤. */
+    const delayFor=p=>{
+      let d = p<8 ? 52 : p<70 ? 22 : p<90 ? 36 : 52;
+      if(p===37||p===63||p===88) d+=240;
+      return d;
+    };
+    const step=()=>{
+      pct++; paint();
+      if(pct>=100){ setTimeout(hide,520); return; }   // 100% 를 잠깐 보여주고 넘어간다
+      setTimeout(step, delayFor(pct));
+    };
+    /* onload 와 타임아웃 폴백이 둘 다 터질 수 있다 — 한 번만 시작하게 잠근다.
+       (두 번 돌면 setTimeout 체인이 2개가 되어 숫자가 2씩 뛴다) */
+    let started=false;
+    const start=()=>{ if(started)return; started=true; paint(); setTimeout(step,260); };
+    const bg=sp.querySelector(".sp-bg");
+    if(bg&&!bg.complete){bg.onload=start;bg.onerror=start;setTimeout(start,2500);}
+    else start();
+    /* 터치는 화면을 닫지 않는다. 다만 이 제스처로 오디오 잠금만 풀어 둔다. */
+    sp.addEventListener("pointerdown",()=>{try{ac();}catch(e){}},{passive:true});
+  }
+}
+window.addEventListener("touchmove",e=>{if(e.target.closest(".grid,.plist"))return;e.preventDefault();},{passive:false});
+</script>
+</body>
+</html>

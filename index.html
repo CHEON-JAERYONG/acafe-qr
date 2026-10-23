@@ -1,0 +1,2192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#F6F1EA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="A카페 QR">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>A카페 QR</title>
+<style>
+:root{
+  --bg:#F6F1EA; --card:#FFFFFF; --ink:#2A1E16; --ink2:#6F6055; --ink3:#A39586; --line:#ECE2D7;
+  --brand:#B4572A; --brand2:#D9844B; --brandSoft:#F7E7DA; --amber:#E0861E;
+  --ok:#2E8B57; --okSoft:#E3F3EA; --bad:#C0392B; --badSoft:#FBE6E3; --empty:#CDBFB2;
+  --r:18px; --shadow:0 1px 2px rgba(60,35,15,.06),0 6px 20px rgba(60,35,15,.06);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,system-ui,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none;user-select:none;-webkit-user-select:none;word-break:keep-all;overflow-wrap:anywhere}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;outline:none}
+input{font:inherit;color:inherit;user-select:text;-webkit-user-select:text}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- 홈 ---------- */
+.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 8px) 16px calc(env(safe-area-inset-bottom) + 28px)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;height:56px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.3px;min-width:0}
+.brand .logo{width:34px;height:34px;border-radius:10px;background:var(--brand);display:grid;place-items:center;flex:none}
+.brand .bt{min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+.brand .tt{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-r{display:flex;align-items:center;gap:2px;flex:none}
+.sync{display:flex;align-items:center;gap:5px;margin-top:1px;font-size:12px;font-weight:600;color:var(--ink2);letter-spacing:0;white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--ink3);flex:none}
+.sync[data-s=ok] i{background:var(--ok);box-shadow:0 0 0 2.5px var(--okSoft)}
+.sync[data-s=busy] i{background:var(--amber);animation:blink 1s infinite}
+.sync[data-s=off] i,.sync[data-s=err] i{background:var(--bad)}
+@keyframes blink{50%{opacity:.25}}
+.icon-btn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--ink2);flex:none}
+.icon-btn:active{background:rgba(0,0,0,.05)}
+
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.hero{margin-top:6px;padding:20px 18px 22px;text-align:center}
+.hero .month{font-size:14px;font-weight:700;color:var(--ink2)}
+.ring{position:relative;width:212px;height:212px;margin:10px auto 4px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .bgc{stroke:var(--brandSoft)}
+.ring .fg{stroke:var(--brand);transition:stroke-dashoffset .6s cubic-bezier(.3,.8,.3,1),stroke .3s}
+.ring[data-lv=low] .fg{stroke:var(--amber)}
+.ring[data-lv=zero] .bgc{stroke:#EFE8E1}
+.ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .val{display:flex;align-items:baseline;justify-content:center;line-height:1}
+.ring .val b{font-size:68px;font-weight:800;letter-spacing:-2px}
+.ring .val span{font-size:26px;font-weight:700;color:var(--ink3);margin-left:2px}
+.ring .cap{margin-top:8px;font-size:14px;font-weight:600;color:var(--ink2)}
+.ring[data-lv=zero] .val b{color:var(--ink3)}
+.hsum{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:6px;font-size:14px;font-weight:600;color:var(--ink2)}
+.hsum b{color:var(--ink);font-weight:800}
+.hsum .tot b{color:var(--brand)}
+.hsum i{width:1px;height:12px;background:var(--line)}
+
+.use{margin-top:14px;width:100%;height:66px;border-radius:18px;background:var(--brand);color:#fff;font-size:20px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 20px rgba(180,87,42,.28);transition:transform .1s}
+.use:active{transform:scale(.98);background:#9F4B23}
+.use.off{background:var(--empty);box-shadow:none;color:#fff}
+.use.off:active{background:#BFB0A2}
+.soldout{margin-top:12px;padding:16px;border-radius:16px;background:var(--badSoft);color:#8E2A1F;text-align:center;font-size:15px;line-height:1.55}
+.soldout b{display:block;font-size:17px;margin-top:2px}
+.soldout small{display:block;margin-top:6px;color:#A65A50;font-size:13px}
+.noqr{margin-top:12px;display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border-radius:16px;background:#FFF4E3;color:#7A4A0B;text-align:left;font-size:14px;line-height:1.45}
+.noqr b{display:block;font-size:15px}
+.noqr .go{margin-left:auto;flex:none;font-weight:800;color:var(--brand)}
+
+.sec{margin-top:14px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}
+.sec-h h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.2px}
+.sec-h .meta{font-size:13px;color:var(--ink2);font-weight:600}
+.link{font-size:14px;font-weight:700;color:var(--brand);padding:6px 0 6px 8px}
+
+/* 사람 동그라미 · HOT/ICE 표시 */
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--ink3);color:#fff;font-size:13px;font-weight:800;letter-spacing:-.5px}
+.av.sm{width:32px;height:32px;font-size:12px}
+.temp{display:inline-block;font-size:10.5px;font-weight:800;font-style:normal;letter-spacing:.3px;padding:2px 6px;border-radius:6px;vertical-align:2px;margin-left:2px}
+.temp.hot{background:#FDE7E1;color:#C2412D}
+.temp.ice{background:#E2EEFB;color:#2F6DB5}
+
+.people{display:flex;flex-direction:column;gap:12px}
+.person{display:grid;grid-template-columns:auto minmax(48px,auto) 1fr auto;align-items:center;gap:10px;font-size:15px}
+.person .nm{display:flex;align-items:center;gap:5px;min-width:0;font-weight:700}
+.person .nm span{max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.person .bar{height:8px;border-radius:99px;background:#F3ECE5;overflow:hidden}
+.person .bar i{display:block;height:100%;border-radius:99px;background:var(--brand)}
+.person .ct{min-width:64px;text-align:right;line-height:1.25}
+.person .ct b{display:block;font-weight:800}
+.person .ct b span{font-size:12px;font-weight:700;color:var(--ink3)}
+.person .ct small{display:block;font-size:12px;font-weight:700;color:var(--ink2)}
+.person.zero .nm,.person.zero .ct b{color:var(--ink3)}
+.person.zero .av{opacity:.4}
+.person.full .ct b{color:var(--bad)}
+.none{color:var(--ink3);font-size:14px;text-align:center;padding:10px 0}
+
+.logs{list-style:none;margin:0;padding:0}
+.log{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line);min-height:60px}
+.log:first-child{border-top:0}
+.log .lm{flex:1;min-width:0}
+.log .l1{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px}
+.log .l1 .mt{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log .l2{margin-top:2px;font-size:12.5px;font-weight:600;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log .lr{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.log .lp{font-weight:800;font-size:15px}
+.log.cx .l1 .mt,.log.cx .lp{color:var(--ink3);text-decoration:line-through}
+.log.cx .av{opacity:.35}
+.tag{font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;background:#F1EAE3;color:var(--ink2);flex:none;font-style:normal}
+.tag.wait{background:#FFF2DD;color:#9A5B07}
+.tag.cx{background:#EFEFEF;color:#8A8A8A}
+.tag.me{background:var(--brandSoft);color:var(--brand)}
+.tag.over{background:var(--badSoft);color:var(--bad)}
+.tag.adm{display:inline-flex;align-items:center;gap:2px;background:#FFF3D6;color:#9A6A00}
+.crown{width:12px;height:12px;flex:none;color:#D9A400;vertical-align:-1px}
+.log .l3{margin-top:3px;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--bad)}
+.log .l3 .crown{color:var(--bad)}
+.whob .tag.adm{margin-top:-2px;font-size:10.5px;padding:1px 5px}
+.stats{background:#FAF6F2;border-radius:14px;padding:4px 14px;margin:10px 0 4px}
+.stats div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.stats div:first-child{border-top:0}
+.stats span{color:var(--ink2)}
+.stats b{text-align:right}
+.mini{flex:none;font-size:12.5px;font-weight:700;color:var(--bad);border:1px solid #EBC3BE;border-radius:9px;padding:5px 9px}
+.foot{margin:18px 4px 0;text-align:center;font-size:13px;color:var(--ink2)}
+
+/* ---------- 바텀시트 ---------- */
+.dim{position:fixed;inset:0;background:rgba(30,18,10,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.dim.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--card);border-radius:24px 24px 0 0;
+  padding:10px 18px calc(env(safe-area-inset-bottom) + 18px);transform:translateY(105%);transition:transform .25s cubic-bezier(.3,.8,.3,1);
+  max-width:560px;margin:0 auto;max-height:88vh;overflow:auto}
+.sheet.show{transform:none}
+.grab{width:40px;height:5px;border-radius:9px;background:#E3D9CF;margin:0 auto 14px}
+.sheet h3{margin:0 0 4px;font-size:20px;font-weight:800;letter-spacing:-.3px}
+.sheet p.desc{margin:0 0 14px;color:var(--ink2);font-size:14px;white-space:pre-line}
+.field{width:100%;height:56px;border-radius:14px;border:2px solid var(--line);background:#FCFAF8;padding:0 16px;font-size:18px;font-weight:700;outline:none}
+.field:focus{border-color:var(--brand);background:#fff}
+.field.sm{height:48px;font-size:16px;font-weight:600}   /* 16px 미만이면 아이폰이 글자 칸을 누를 때 화면을 확대한다 */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px}
+.chip{height:38px;padding:0 15px;border-radius:99px;background:#F4EEE8;font-weight:700;font-size:15px}
+.chip.on{background:var(--brand);color:#fff}
+.btn{width:100%;height:56px;border-radius:15px;background:var(--brand);color:#fff;font-size:17px;font-weight:800;margin-top:16px}
+.btn:disabled{background:var(--empty)}
+.btn.ghost{background:#F2ECE6;color:var(--ink)}
+.btn.danger{background:var(--bad)}
+.row2{display:flex;gap:10px}
+.row2 .btn{flex:1}
+label.lb{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin:16px 0 6px}
+.lb.first{margin-top:4px}
+
+/* 처음 설정: 팀원 고르기 */
+.who4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.whob{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 2px 10px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);border:2px solid transparent;min-width:0}
+.whob b{font-size:14.5px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.whob .av{opacity:.55;transition:opacity .15s}
+.whob.on{border-color:var(--c);box-shadow:0 4px 14px rgba(60,35,15,.12)}
+.whob.on .av{opacity:1}
+.whob.on b{color:var(--c)}
+
+/* QR 사용: 메뉴 고르기 */
+.menus{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.menub{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-height:60px;padding:9px 12px;border-radius:14px;background:#F7F2ED;border:2px solid transparent;text-align:left}
+.menub .mn{font-size:14.5px;font-weight:800;line-height:1.3}
+.menub .mp{font-size:13px;font-weight:700;color:var(--ink2)}
+.menub.on{background:var(--brandSoft);border-color:var(--brand)}
+.menub.on .mp{color:var(--brand)}
+.hint{font-size:12.5px;color:var(--ink2);margin-top:6px;line-height:1.5;word-break:break-all}
+
+/* 비밀번호 키패드 */
+.dots{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;min-height:24px;margin:20px 0 8px}
+.dots i{width:16px;height:16px;border-radius:50%;background:var(--ink)}
+.dots.many{gap:8px}
+.dots.many i{width:13px;height:13px}
+.dots .ph{font-size:14px;font-weight:600;color:var(--ink3)}
+.pinlen{margin:-2px 0 4px;text-align:center;font-size:13px;font-weight:700;color:var(--ink3)}
+.pinlen.ok{color:var(--ok)}
+.dots.bad{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pinmsg{min-height:22px;margin-bottom:10px;text-align:center;font-size:14px;font-weight:700;color:var(--bad)}
+.pinmsg.busy{color:var(--ink2)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{height:58px;border-radius:16px;background:#F5EFE9;font-size:24px;font-weight:700}
+.key:active{background:#E9DFD5}
+.key.fn{font-size:15px;color:var(--ink2)}
+.key.ok{background:var(--brand);color:#fff;font-size:17px;font-weight:800}
+.key.ok:disabled{background:var(--empty)}
+
+/* QR 이미지 등록 */
+.qsbox{display:flex;align-items:center;justify-content:center;width:220px;height:220px;margin:4px auto 0;border-radius:16px;background:#FAF6F2;overflow:hidden}
+.qsbox svg{width:100%;height:100%;display:block}
+.qsbox .spin{width:30px;height:30px;border-width:3px}
+.qsbox .err{padding:18px;text-align:center;color:var(--bad);font-weight:700;font-size:14px;line-height:1.5}
+.qscode{margin-top:8px;text-align:center;font-size:15px;letter-spacing:1px;color:#222;min-height:22px;word-break:break-all}
+
+/* ---------- 가운데 팝업 ---------- */
+.pop{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(30,18,10,.5);opacity:0;pointer-events:none;transition:opacity .18s}
+.pop.show{opacity:1;pointer-events:auto}
+.pop .box{width:100%;max-width:340px;background:var(--card);border-radius:24px;padding:28px 22px 20px;text-align:center;transform:scale(.94);transition:transform .18s;box-shadow:0 20px 50px rgba(30,18,10,.3)}
+.pop.show .box{transform:none}
+.pop .em{font-size:46px;line-height:1}
+.pop h4{margin:14px 0 8px;font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.4;white-space:pre-line}
+.pop p{margin:0;color:var(--ink2);font-size:14.5px;line-height:1.55;white-space:pre-line}
+.pop .btn{margin-top:20px}
+.upick{margin:4px 0 12px;padding:16px 12px;border-radius:18px;background:var(--brandSoft)}
+.upick b{display:block;font-size:19px;font-weight:800;letter-spacing:-.3px}
+.upick span{display:block;margin-top:4px;font-size:24px;font-weight:800;color:var(--brand);letter-spacing:-.5px}
+.pop .row2 .btn{margin-top:18px}
+
+/* ---------- QR 화면 ---------- */
+.qrv{position:fixed;inset:0;z-index:30;background:#fff;display:flex;flex-direction:column;align-items:center;
+  padding:calc(env(safe-area-inset-top) + 10px) 20px calc(env(safe-area-inset-bottom) + 18px);
+  transform:translateY(100%);transition:transform .22s cubic-bezier(.3,.8,.3,1)}
+.qrv.show{transform:none}
+.qrv .qh{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;height:48px}
+.qrv .qh b{font-size:17px;font-weight:800}
+.qrv .body{flex:1;width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.qrbox{width:min(80vw,46vh,380px);aspect-ratio:1/1;background:#fff}
+.qrbox svg{width:100%;height:100%;display:block}
+.code{margin-top:6px;font-size:17px;letter-spacing:1.5px;color:#222;font-weight:500;text-align:center;max-width:90vw;word-break:break-all}
+.who{margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 20px;border-radius:18px;background:var(--brandSoft);color:var(--brand);font-weight:800;font-size:16px;text-align:center}
+.who small{font-size:13px;font-weight:700;color:#A0674A}
+.qst{margin-top:12px;min-height:44px;font-size:14.5px;font-weight:600;text-align:center;color:var(--ink2);display:flex;align-items:center;justify-content:center;gap:8px;line-height:1.45}
+.qst.ok{color:var(--ok)}
+.qst.warn{color:#9A5B07}
+.spin{width:16px;height:16px;border-radius:50%;border:2.5px solid #E6DCD2;border-top-color:var(--brand);animation:sp .8s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.qfull{text-align:center;padding:24px 10px}
+.qfull .em{font-size:54px}
+.qfull h4{margin:10px 0 6px;font-size:21px}
+.qfull p{margin:0;color:var(--ink2)}
+.qrv .acts{width:100%;max-width:480px}
+.qrv .acts .btn+.btn{margin-top:10px}
+.bhint{margin-top:4px;font-size:12.5px;font-weight:600;color:var(--ink3);text-align:center}
+
+/* ---------- 기록 화면 ---------- */
+.page{position:fixed;inset:0;z-index:15;background:var(--bg);overflow:auto;transform:translateX(100%);transition:transform .22s cubic-bezier(.3,.8,.3,1)}
+.page.show{transform:none}
+#logPage{z-index:16}
+#admPage{z-index:17}
+body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 들어오는 동안 누른 손가락이 아래 화면 버튼으로 새지 않게 */
+.page .top{position:sticky;top:0;background:var(--bg);z-index:2;margin:0 -16px;padding:0 8px}
+.page .top .ttl{font-size:18px;font-weight:800}
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:2px 0 12px;padding:4px;border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+.mnav b{font-size:17px;font-weight:800}
+.mnav button{width:44px;height:44px;border-radius:12px;font-size:26px;font-weight:600;line-height:1;color:var(--brand)}
+.mnav button:active{background:var(--brandSoft)}
+.mnav button:disabled{color:#E0D7CD;background:none}
+.sum3{display:grid;grid-template-columns:repeat(3,1fr);padding:16px 4px}
+.sum3>div{text-align:center;padding:0 6px;border-left:1px solid var(--line);min-width:0}
+.sum3>div:first-child{border-left:0}
+.sum3 small{display:block;margin-bottom:3px;font-size:12px;font-weight:700;color:var(--ink2)}
+.sum3 b{font-size:22px;font-weight:800;letter-spacing:-.5px;white-space:nowrap}
+.sum3 b span{margin-left:1px;font-size:13px;font-weight:700;color:var(--ink3)}
+.sum3 .tot b{color:var(--brand)}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto 70px;grid-template-areas:"n c t" "b b b";align-items:center;gap:5px 10px;padding:7px 0;font-size:14.5px}
+.mrow .mn{grid-area:n;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .mc{grid-area:c}
+.mrow .mt{grid-area:t}
+.mrow .bar{grid-area:b;height:6px;border-radius:99px;background:#F3ECE5;overflow:hidden}
+.mrow .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand2),var(--brand))}
+.mrow .mc{font-weight:800;text-align:right}
+.mrow .mt{font-size:13px;font-weight:700;color:var(--ink2);text-align:right}
+.fchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 2px;padding:2px 0 6px}
+.fchips .chip{flex:1 0 auto;display:flex;align-items:center;justify-content:center;height:36px;padding:0 10px;background:var(--card);box-shadow:var(--shadow);font-size:13.5px}
+.fchips .chip.on{background:var(--ink);color:#fff}
+.dcard{margin-top:10px;padding:4px 16px 2px}
+.dh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:11px 0 8px;border-bottom:1px solid var(--line)}
+.dh b{font-size:14.5px;font-weight:800}
+.dh span{font-size:12.5px;font-weight:700;color:var(--ink2)}
+.dcard .log:first-child{border-top:0}
+
+/* ---------- 월별 내역 ---------- */
+.mhero{text-align:center;padding:22px 18px 20px;background:linear-gradient(150deg,#C2653B,#9C4721);color:#fff}
+.mhero small{font-size:13.5px;font-weight:700;opacity:.85}
+.mhero b{display:block;margin:2px 0 4px;font-size:40px;font-weight:800;letter-spacing:-1px}
+.mhero b span{margin-left:2px;font-size:20px;opacity:.85}
+.mhero div{font-size:13.5px;font-weight:600;opacity:.9}
+.mcard{display:block;width:100%;margin-top:10px;text-align:left;cursor:pointer}
+.mcard:active{transform:scale(.99)}
+.mc-h{display:flex;align-items:center;gap:8px}
+.mc-h b{font-size:16.5px;font-weight:800}
+.mc-h .won{margin-left:auto;font-size:19px;font-weight:800;color:var(--brand)}
+.mc-s{margin-top:4px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.mc-p{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.mc-p div{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700}
+.mc-p .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.mc-p small{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ink3)}
+.mc-p em{min-width:66px;text-align:right;font-style:normal;font-weight:800}
+.mc-more{margin-top:10px;text-align:right;font-size:13px;font-weight:700;color:var(--brand)}
+
+/* ---------- 처음 설정 (팀 → 비밀번호 → 이름 → 팀 QR) ---------- */
+.setup{position:fixed;inset:0;z-index:14;background:var(--bg);overflow:auto;display:none}
+.setup.show{display:block}
+.steps{display:flex;gap:6px;margin:12px 0 0}
+.steps i{flex:1;height:4px;border-radius:9px;background:#E6DCD2;transition:background .2s}
+.steps i.on{background:var(--brand)}
+.shero{padding:26px 0 0}
+.shero .logo{width:54px;height:54px;border-radius:17px;background:var(--brand);display:grid;place-items:center;box-shadow:0 8px 20px rgba(180,87,42,.25)}
+.sh{margin:18px 0 6px;font-size:26px;font-weight:800;letter-spacing:-.6px;line-height:1.3}
+.sp{margin:0 0 20px;color:var(--ink2);font-size:15px}
+.stop{display:flex;align-items:center;gap:6px;height:56px;margin:6px 0 0 -8px}
+.teams{display:flex;flex-direction:column;gap:12px}
+.team{display:flex;align-items:center;gap:14px;width:100%;padding:18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);text-align:left}
+.team:active{transform:scale(.99)}
+.ti{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;color:#fff;font-size:20px;font-weight:800;flex:none}
+.team b{display:block;font-size:19px;font-weight:800}
+.team small{display:block;margin-top:2px;font-size:13px;font-weight:600;color:var(--ink2)}
+.chev{margin-left:auto;color:var(--ink3);flex:none}
+.admlink{display:block;margin:28px auto 0;padding:10px 14px;font-size:14px;font-weight:600;color:var(--ink2)}
+.admlink b{color:var(--brand)}
+.tchip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:99px;background:var(--card);box-shadow:var(--shadow);font-size:13.5px;font-weight:800}
+.tchip i{width:8px;height:8px;border-radius:50%}
+.sqcard{display:flex;flex-direction:column;align-items:center;padding:22px}
+.qrmini{width:200px;height:200px}
+.qrmini svg{width:100%;height:100%;display:block}
+.ill{width:116px;height:116px;border-radius:28px;background:var(--brandSoft);display:grid;place-items:center;color:var(--brand)}
+.link2{display:block;margin:12px auto 0;padding:10px 12px;font-size:14px;font-weight:700;color:var(--ink2)}
+
+/* ---------- 커피 게임 ---------- */
+.trow{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}
+.gchip{display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 10px 0 7px;border-radius:99px;background:#241a4a;color:#fff;font-size:12.5px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;flex:none;box-shadow:0 2px 8px rgba(36,26,74,.28)}
+.gchip:active{transform:scale(.95)}
+.gamev{position:fixed;inset:0;z-index:40;background:#0f1226;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .22s cubic-bezier(.3,.8,.3,1)}
+.gamev.show{transform:none}
+.gbar{flex:none;display:flex;align-items:center;height:calc(env(safe-area-inset-top) + 46px);padding:env(safe-area-inset-top) 8px 0}
+.gbar button{display:flex;align-items:center;gap:2px;height:38px;padding:0 12px 0 4px;border-radius:12px;color:#d8d4ff;font-weight:800;font-size:14.5px}
+.gbar button:active{background:rgba(255,255,255,.08)}
+.gamev iframe{flex:1;width:100%;border:0;background:#0f1226}
+
+/* ---------- 관리자 메뉴 ---------- */
+.ahero{display:flex;align-items:center;gap:14px}
+.ahero b{display:block;font-size:19px;font-weight:800}
+.ahero small{display:block;margin-top:2px;font-size:13px;font-weight:600;color:var(--ink2)}
+.alist{padding:4px 16px}
+.arow{display:flex;align-items:center;gap:12px;width:100%;padding:15px 0;border-top:1px solid var(--line);text-align:left}
+.arow:first-child{border-top:0}
+.arow .ai{width:40px;height:40px;border-radius:12px;background:var(--brandSoft);color:var(--brand);display:grid;place-items:center;flex:none}
+.arow .at{flex:1;min-width:0}
+.arow b{display:block;font-size:15.5px;font-weight:800}
+.arow small{display:block;margin-top:1px;font-size:12.5px;font-weight:600;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow.danger b{color:var(--bad)}
+.arow.danger .ai{background:var(--badSoft);color:var(--bad)}
+#cxPage,#rsPage{z-index:18}
+.ahead{padding:18px}
+.ahead b{display:block;font-size:17px;font-weight:800;letter-spacing:-.3px}
+.ahead p{margin:6px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.55}
+.seg{display:flex;gap:6px;margin:14px 0 8px}
+.seg .chip{flex:1;height:38px;background:var(--card);box-shadow:var(--shadow)}
+.seg .chip.on{background:var(--ink);color:#fff}
+.rrow{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid var(--line)}
+.rrow:first-child{border-top:0}
+.rrow .rm{flex:1;min-width:0}
+.rrow .rm b{display:flex;align-items:center;gap:5px;font-size:15.5px;font-weight:800}
+.rrow .rm small{display:block;margin-top:2px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.rbtn{flex:none;height:36px;padding:0 14px;border-radius:11px;background:var(--brandSoft);color:var(--brand);font-size:13.5px;font-weight:800}
+.rbtn:disabled{background:#F2ECE6;color:var(--ink3)}
+.tag.rs{background:#E6F0FB;color:#2F6DB5}
+.log.rsl .av{background:#7FA7D6!important}
+.log.rsl .l1 .mt{color:#2F6DB5}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 28px);transform:translate(-50%,20px);z-index:50;
+  background:rgba(32,22,15,.92);color:#fff;font-size:14.5px;font-weight:600;padding:12px 18px;border-radius:14px;
+  opacity:0;pointer-events:none;transition:.2s;max-width:calc(100vw - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="home">
+  <header class="top">
+    <div class="brand">
+      <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5v2M12 2.5v2"/></svg></span>
+      <span class="bt"><span class="trow"><span class="tt">A카페 QR</span><button class="gchip" id="btnGame" aria-label="커피 내기 게임">🎲 커피게임</button></span>
+        <button class="sync" id="sync" data-s="busy"><i></i><span id="syncText">연결 중…</span><span id="syncWho"></span></button></span>
+    </div>
+    <div class="top-r">
+      <button class="icon-btn" id="btnMonths" aria-label="월별 내역"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-2.3-1.6L14.3 21 12 19.4 9.7 21l-2.4-1.6L5 21z"/><path d="M9 8h6M9 12h6M9 16h3.5"/></svg></button>
+      <button class="icon-btn" id="btnSet" aria-label="설정"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+  </header>
+
+  <section class="card hero">
+    <div class="month" id="monthLabel">이번 달</div>
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 200 200"><circle class="bgc" cx="100" cy="100" r="86" fill="none" stroke-width="16"/>
+        <circle class="fg" id="ringFg" cx="100" cy="100" r="86" fill="none" stroke-width="16" stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="0"/></svg>
+      <div class="mid">
+        <div class="val num"><b id="remain">10</b><span id="maxv">/10</span></div>
+        <div class="cap">이번 달 남은 횟수</div>
+      </div>
+    </div>
+    <div class="hsum num"><span><b id="hUsed">0</b>회 사용</span><i></i><span class="tot">내 요금 <b id="hTotal">0원</b></span></div>
+    <button class="use" id="btnUse">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-1"/></svg>
+      QR 사용하기
+    </button>
+    <div class="soldout" id="soldout" hidden>
+      이번 달 <span id="soldMax">10</span>회를 모두 사용했어요.
+      <b>이번달은 더이상 이용하실 수 없습니다.</b>
+      <small id="soldNext"></small>
+    </div>
+    <button class="noqr" id="noQr" hidden>
+      <span><b>팀 QR이 아직 없어요</b>결제 QR 이미지를 한 번 등록하면 팀원 모두 쓸 수 있어요.</span><span class="go">등록 ›</span>
+    </button>
+  </section>
+
+  <section class="card sec">
+    <div class="sec-h"><h2>이번 달 우리 팀</h2><span class="meta num" id="usedMeta"></span></div>
+    <div class="people" id="people"></div>
+  </section>
+
+  <section class="card sec">
+    <div class="sec-h"><h2>최근 사용 기록</h2><button class="link" id="btnLog">전체 기록 ›</button></div>
+    <ul class="logs" id="recent"></ul>
+  </section>
+
+  <p class="foot" id="resetInfo"></p>
+</div>
+
+<!-- 처음 설정 -->
+<div class="setup" id="setup">
+  <div class="wrap">
+    <div class="steps" id="steps"><i></i><i></i><i></i></div>
+
+    <section id="stInvite" hidden>
+      <div class="shero"><span class="logo"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5v2M12 2.5v2"/></svg></span></div>
+      <h1 class="sh">초대 코드를 넣어 주세요</h1>
+      <p class="sp">팀원 안드로이드 폰의 설정 → [아이폰 팀원 초대]로 받은 코드를 붙여 넣어 주세요. 처음 한 번만 넣으면 돼요.</p>
+      <input class="field sm" id="invIn" placeholder="초대 코드 붙여 넣기" autocomplete="off" spellcheck="false" autocapitalize="off">
+      <button class="btn" id="btnInv">확인</button>
+    </section>
+
+    <section id="stTeam">
+      <div class="shero"><span class="logo"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5v2M12 2.5v2"/></svg></span></div>
+      <h1 class="sh">해당 팀을 선택해 주세요</h1>
+      <p class="sp">처음 한 번만 정하면, 이 폰은 계속 그 팀 · 그 이름으로 QR을 써요.</p>
+      <div class="teams" id="teamList"></div>
+      <button class="admlink" id="btnAdmSetup">팀장님이세요? <b>관리자 메뉴 ›</b></button>
+    </section>
+
+    <section id="stName" hidden>
+      <div class="stop"><button class="icon-btn" data-step="team" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="tchip" id="snTeam"></span></div>
+      <h1 class="sh">사용자를 선택해 주세요</h1>
+      <p class="sp">본인 이름을 선택해 주세요. 사용 기록은 이 이름으로 남습니다.</p>
+      <div class="who4" id="memberPick"></div>
+      <div id="otherBox" hidden><input class="field" id="nameIn" maxlength="20" placeholder="이름을 써 주세요" autocomplete="off" spellcheck="false" enterkeyhint="done"></div>
+      <button class="btn" id="btnName" disabled>다음</button>
+      <button class="link2" id="btnOther">명단에 없어요 · 직접 입력</button>
+    </section>
+
+    <section id="stQr" hidden>
+      <div class="stop"><button class="icon-btn" data-step="name" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="tchip" id="sqTeam"></span></div>
+      <h1 class="sh" id="sqTitle"></h1>
+      <p class="sp" id="sqDesc"></p>
+      <div class="card sqcard" id="sqBox"></div>
+      <button class="btn" id="btnSq"></button>
+      <button class="link2" id="btnSqLater" hidden>나중에 할게요 · 팀원이 등록하면 자동으로 받아요</button>
+    </section>
+  </div>
+</div>
+
+<!-- 전체 기록 -->
+<div class="page" id="logPage">
+  <div class="wrap">
+    <header class="top">
+      <button class="icon-btn" data-close="log" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <b class="ttl">사용 기록</b>
+      <button class="icon-btn" id="btnExport" aria-label="기록 내보내기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>
+    </header>
+    <div class="mnav">
+      <button id="mPrev" aria-label="이전 달">‹</button>
+      <b id="mLabel"></b>
+      <button id="mNext" aria-label="다음 달">›</button>
+    </div>
+    <section class="card sum3 num">
+      <div><small>팀 사용</small><b id="sUsed">0<span>회</span></b></div>
+      <div><small id="sRemainCap">내 남은 횟수</small><b id="sRemain">10<span>/10</span></b></div>
+      <div class="tot"><small>팀 총 요금</small><b id="sTotal">0<span>원</span></b></div>
+    </section>
+    <section class="card sec">
+      <div class="sec-h"><h2>사람별</h2><span class="meta" id="lPeopleMeta"></span></div>
+      <div class="people" id="lPeople"></div>
+    </section>
+    <section class="card sec">
+      <div class="sec-h"><h2>메뉴별</h2><span class="meta" id="lMenuMeta"></span></div>
+      <div id="lMenu"></div>
+    </section>
+    <section class="sec">
+      <div class="sec-h" style="padding:0 2px"><h2>날짜별 기록</h2><span class="meta" id="lMeta"></span></div>
+      <div class="fchips" id="lFilter"></div>
+      <div id="lList"></div>
+    </section>
+  </div>
+</div>
+
+<!-- 월별 내역 -->
+<div class="page" id="monPage">
+  <div class="wrap">
+    <header class="top">
+      <button class="icon-btn" data-close="months" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <b class="ttl">월별 내역</b>
+      <button class="icon-btn" id="btnExportM" aria-label="월별 내역 내보내기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>
+    </header>
+    <section class="card mhero num">
+      <small id="mhLabel"></small>
+      <b id="mhTotal">0<span>원</span></b>
+      <div id="mhSub"></div>
+    </section>
+    <div class="sec-h" style="margin:20px 2px 0"><h2>달마다 쓴 금액</h2><span class="meta num" id="mAllMeta"></span></div>
+    <div id="monList"></div>
+    <p class="foot">달을 누르면 그 달의 전체 기록이 열려요.<br>지난달보다 오래된 기록은 이 폰에 저장된 것만 보여요.</p>
+  </div>
+</div>
+
+<!-- 관리자 메뉴 (팀장) -->
+<div class="page" id="admPage">
+  <div class="wrap">
+    <header class="top">
+      <button class="icon-btn" data-close="adm" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <b class="ttl">관리자 메뉴</b>
+      <span style="width:40px"></span>
+    </header>
+    <section class="card ahero"><span class="ti" id="admTi"></span><span><b id="admTeam"></b><small>팀장 전용 · 바꾸면 팀원 모두의 앱에 공유돼요</small></span></section>
+    <section class="card sec alist">
+      <button class="arow" data-adm="p"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+        <span class="at"><b>팀 비밀번호 바꾸기</b><small id="admP"></small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="arow" data-adm="a"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <span class="at"><b>관리자 비밀번호 바꾸기</b><small id="admA"></small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="arow" data-adm="q"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-1"/></svg></span>
+        <span class="at"><b>팀 QR 코드 바꾸기</b><small id="admQ"></small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </section>
+    <section class="card sec alist" id="admOps">
+      <button class="arow" data-adm="cancel"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span>
+        <span class="at"><b>QR 코드 사용취소</b><small>팀원들의 사용 기록을 보고 취소해요</small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="arow" data-adm="count"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></span>
+        <span class="at"><b>초기화</b><small>팀원의 이번 달 횟수를 언제든 다시 채워요</small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </section>
+    <section class="card sec alist" id="admMine">
+      <button class="arow danger" data-adm="reset"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></span>
+        <span class="at"><b>이 휴대폰 처음 상태로</b><small id="admMe"></small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </section>
+    <p class="foot">팀 비밀번호는 처음 팀에 들어올 때만 물어봐요.<br>이미 쓰고 있는 팀원은 다시 넣지 않아도 돼요.<br>새 비밀번호는 숫자 4~16자리로 정할 수 있어요.</p>
+  </div>
+</div>
+
+<!-- 관리자: QR 코드 사용취소 -->
+<div class="page" id="cxPage">
+  <div class="wrap">
+    <header class="top">
+      <button class="icon-btn" data-close="cx" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <b class="ttl">QR 코드 사용취소</b>
+      <span style="width:40px"></span>
+    </header>
+    <section class="card ahead"><b>취소할 기록을 선택해 주세요</b>
+      <p>취소하면 그 사람의 횟수가 1회 돌아오고, 기록 옆에 "관리자 ○○○ 취소"가 남습니다. 취소는 관리자만 할 수 있어요.</p></section>
+    <div class="seg" id="cxSeg"></div>
+    <div class="fchips" id="cxWho"></div>
+    <div id="cxList"></div>
+  </div>
+</div>
+
+<!-- 관리자: 초기화 -->
+<div class="page" id="rsPage">
+  <div class="wrap">
+    <header class="top">
+      <button class="icon-btn" data-close="rs" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <b class="ttl">초기화</b>
+      <span style="width:40px"></span>
+    </header>
+    <section class="card ahead"><b>사용자 누구를 초기화하시겠습니까?</b>
+      <p id="rsDesc"></p></section>
+    <section class="card sec" style="padding:4px 16px"><div id="rsList"></div></section>
+    <p class="foot">매월 1일 0시 자동 초기화는 그대로 진행돼요.</p>
+  </div>
+</div>
+
+<!-- 커피 내기 게임 -->
+<div class="gamev" id="gamev">
+  <div class="gbar"><button data-close="game"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>A카페 QR로 돌아가기</button></div>
+  <iframe id="gameFrame" title="커피 내기 게임" allow="autoplay"></iframe>
+</div>
+
+<div class="dim" id="dim"></div>
+
+<!-- QR 사용: 메뉴 고르기 -->
+<div class="sheet" id="useSheet">
+  <div class="grab"></div>
+  <h3>QR 사용하기</h3>
+  <p class="desc" id="useDesc"></p>
+  <label class="lb first">메뉴</label>
+  <div class="menus" id="menuPick"></div>
+  <button class="btn" id="btnGo" disabled>QR 열기</button>
+</div>
+
+<!-- 확인 -->
+<div class="sheet" id="askSheet">
+  <div class="grab"></div>
+  <h3 id="askTitle"></h3>
+  <p class="desc" id="askDesc"></p>
+  <div class="row2"><button class="btn ghost" id="askNo">아니요</button><button class="btn" id="askYes">네</button></div>
+</div>
+
+<!-- 비밀번호 -->
+<div class="sheet" id="pinSheet">
+  <div class="grab"></div>
+  <h3 id="pinTitle"></h3>
+  <p class="desc" id="pinDesc"></p>
+  <div class="dots" id="pinDots"></div>
+  <div class="pinlen" id="pinLen" hidden></div>
+  <div class="pinmsg" id="pinMsg"></div>
+  <div class="keys" id="pinKeys">
+    <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+    <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+    <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+    <button class="key fn" data-k="del">지우기</button><button class="key" data-k="0">0</button><button class="key ok" data-k="ok" id="pinOk" disabled>확인</button>
+  </div>
+</div>
+
+<!-- 팀 QR 이미지 등록 -->
+<div class="sheet" id="qrSheet">
+  <div class="grab"></div>
+  <h3 id="qsTitle">QR 코드 등록</h3>
+  <p class="desc" id="qsDesc"></p>
+  <div class="qsbox" id="qsBox"></div>
+  <div class="qscode" id="qsCode"></div>
+  <div class="row2"><button class="btn ghost" id="qsPick">다른 이미지</button><button class="btn" id="qsSave" disabled>이 QR로 저장</button></div>
+</div>
+<input type="file" id="qrFile" accept="image/*" hidden>
+
+<!-- 관리자 메뉴: 팀 고르기 (처음 화면에서) -->
+<div class="sheet" id="teamSheet">
+  <div class="grab"></div>
+  <h3>관리자 메뉴</h3>
+  <p class="desc">어느 팀의 관리자 메뉴를 열까요?</p>
+  <div class="teams" id="admTeams"></div>
+</div>
+
+<!-- 설정 -->
+<div class="sheet" id="setSheet">
+  <div class="grab"></div>
+  <h3>설정</h3>
+  <div class="stats" id="meInfo"></div>
+  <div class="row2"><button class="btn ghost" id="btnAdmin" style="margin-top:10px">팀장 관리자 메뉴</button><button class="btn ghost" id="btnInvite" style="margin-top:10px">아이폰 팀원 초대</button></div>
+  <label class="lb">공유 상태</label>
+  <div class="stats" id="stats"></div>
+  <p class="hint">기록은 팀원 폰에 각각 저장되고, 무료 공개 중계 서버(가입·비용 없음)를 거쳐 서로 주고받아요.
+    중계 서버에는 암호화된 내용만 올라가서 이름과 시간은 우리 앱만 읽을 수 있어요.</p>
+  <label class="lb" for="urlIn">중계 서버 주소 (보통은 바꿀 필요 없어요)</label>
+  <input class="field sm" id="urlIn" placeholder="https://ntfy.sh" autocomplete="off" spellcheck="false">
+  <div class="row2"><button class="btn ghost" id="btnSave">주소 저장</button><button class="btn" id="btnSyncNow">지금 동기화</button></div>
+  <div class="hint" style="margin-top:14px" id="aboutInfo"></div>
+</div>
+
+<!-- QR -->
+<div class="qrv" id="qrv">
+  <div class="qh"><b id="qrTitle">팀 QR</b>
+    <button class="icon-btn" data-close="qr" aria-label="닫기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="body">
+    <div id="qrShow">
+      <div class="qrbox" id="qrBox"></div>
+      <div class="code" id="qrCode"></div>
+      <div class="bhint" id="qrBright" hidden>화면 밝기를 최대로 올리면 더 잘 찍혀요</div>
+    </div>
+    <div class="qfull" id="qrFull" hidden>
+      <div class="em">☕</div>
+      <h4>이번달은 더이상 이용하실 수 없습니다.</h4>
+      <p>다른 폰에서 이번 달 마지막 횟수를 먼저 사용했어요.<br>방금 누른 기록은 자동으로 취소했어요.</p>
+    </div>
+    <div class="who" id="qrWho"></div>
+    <div class="qst" id="qrSt"></div>
+  </div>
+  <div class="acts">
+    <button class="btn" id="qrClose" data-close="qr">닫기</button>
+  </div>
+</div>
+
+<!-- 가운데 팝업 -->
+<div class="pop" id="pop">
+  <div class="box" role="dialog" aria-modal="true">
+    <div class="em" id="popEm">☕</div>
+    <h4 id="popTitle"></h4>
+    <p id="popDesc"></p>
+    <button class="btn" id="popOk">확인</button>
+  </div>
+</div>
+
+<!-- 사용 확인: [사용]을 눌러야 횟수가 차감되고 QR이 열린다 -->
+<div class="pop" id="usePop">
+  <div class="box" role="dialog" aria-modal="true">
+    <div class="em">☕</div>
+    <h4>선택하신 메뉴로 사용하시겠습니까?</h4>
+    <div class="upick"><b id="upMenu"></b><span class="num" id="upPrice"></span></div>
+    <p id="upDesc"></p>
+    <div class="row2"><button class="btn ghost" id="upNo">닫기</button><button class="btn" id="upYes">사용</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script src="qrcode.js"></script>
+<script>
+(function () {
+'use strict';
+
+var VERSION = '1.2.0';
+var CFG = window.CAFE_CONFIG || {};
+var PER = CFG.perPerson || 10;                        // 한 사람이 한 달에 쓸 수 있는 횟수
+var TEAM_PIN = String(CFG.teamPin || '1441');         // 팀 비밀번호 처음 값
+var ADMIN_PIN = String(CFG.adminPin || '9999');       // 팀장 관리자 비밀번호 처음 값
+var TEAM_COLORS = ['#B4572A', '#2F7D6D', '#4F63B8', '#8E5BA8'];
+var TEAMS = (CFG.teams || []).map(function (t, i) {
+  return { id: String(t.id), name: String(t.name), color: TEAM_COLORS[i % TEAM_COLORS.length],
+    members: (t.members || []).map(function (n) { return String(n).replace(/\s+/g, ' ').trim().slice(0, 20); }).filter(Boolean),
+    admins: (t.admins || []).map(function (n) { return String(n).trim(); }) };
+});
+TEAMS.forEach(function (t) { t.own = t.members.length > 0; });   // 명단이 설정에 있다(안드로이드 앱) → 이 명단을 팀 채널에 실어 보낸다
+var MENU = (CFG.menu || []).map(function (m) { return { label: m.name + (m.temp ? ' ' + m.temp : ''), price: Math.round(+m.price || 0) }; });
+var COLORS = ['#B4572A', '#2F7D6D', '#4F63B8', '#B37A22', '#8E5BA8', '#3D7FA3', '#5E8C3A', '#B84A6E'];
+var KEEPALIVE_MS = 10 * 3600e3;       // 중계 서버는 12시간만 보관 → 10시간마다 내 기록을 다시 올려 둔다
+var FULL_POLL_MS = 5 * 60e3;
+var SNAP_LIMIT = 3900;                // ntfy 메시지 한도 4096바이트 — 넘치면 여러 개로 나눠 올린다
+var MAX_CHUNKS = 6;
+var PIN_MIN = 4, PIN_MAX = 16;        // 팀장님이 새로 정하는 비밀번호 자리 수
+var QR_MAX = 600;                     // 팀 QR 내용 최대 길이
+var KST = 9 * 3600e3;
+var DOW = '일월화수목금토';
+var RING_C = 2 * Math.PI * 86;
+var CFG_KEYS = ['p', 'a', 'q'];       // 팀 설정: p 팀 비밀번호, a 관리자 비밀번호, q 팀 QR
+
+/* ---------------- 저장 ---------------- */
+var wiping = false;                   // 이 폰 초기화 중에는 아무것도 다시 써 넣지 않는다
+function lsGet(k, d) { try { var v = localStorage.getItem('cafeqr.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+function lsSet(k, v) { if (wiping) return; try { localStorage.setItem('cafeqr.' + k, JSON.stringify(v)); } catch (e) {} }
+function rnd(n) { var s = ''; while (s.length < n) s += Math.random().toString(36).slice(2); return s.slice(0, n); }
+function teamOf(id) { for (var i = 0; i < TEAMS.length; i++) if (TEAMS[i].id === id) return TEAMS[i]; return null; }
+
+/* 아이폰(웹) 버전은 인터넷에 올라가 있어서 채널 이름·암호화 키를 코드에 넣지 않는다.
+   팀원 안드로이드 폰이 보내 준 초대 코드(채널.키)를 처음 한 번 넣으면 이 폰에 저장한다. */
+function b64url(s) { return String(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function unb64url(s) { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return s; }
+function parseInvite(txt) {
+  var m = /([a-z0-9-]{8,64})\.([A-Za-z0-9_-]{43})(?![A-Za-z0-9_-])/.exec(String(txt || ''));
+  if (!m) return null;
+  try { if (atob(unb64url(m[2])).length !== 32) return null; } catch (e) { return null; }
+  return { t: m[1], k: unb64url(m[2]) };
+}
+(function () {
+  var inv = parseInvite(decodeURIComponent(location.hash || ''));
+  if (inv) lsSet('invite', inv);   // 주소 뒤의 #join= 은 지우지 않는다 → 아이폰 '홈 화면에 추가'가 이 주소째로 저장해서 홈 화면 앱도 코드를 받는다
+  if (!CFG.key || !CFG.topic) { var saved = lsGet('invite', null); if (saved && saved.t && saved.k) { CFG.topic = saved.t; CFG.key = saved.k; } }
+})();
+function inviteCode() { return CFG.topic + '.' + b64url(CFG.key); }
+
+/* 팀원 명단: 아이폰(웹) 버전은 설정에 명단이 없다 → 팀 채널로 받은 명단을 저장해 두고 쓴다 */
+var ROSTER = lsGet('roster', {});
+function applyRoster(team, mb) {
+  var t = teamOf(team);
+  if (!t || t.own || !Array.isArray(mb) || !Array.isArray(mb[0])) return false;
+  function clean(a) { return (Array.isArray(a) ? a : []).map(function (n) { return String(n).replace(/\s+/g, ' ').trim().slice(0, 20); }).filter(Boolean).slice(0, 40); }
+  var m = clean(mb[0]), a = clean(mb[1]);
+  if (!m.length || (JSON.stringify(m) === JSON.stringify(t.members) && JSON.stringify(a) === JSON.stringify(t.admins))) return false;
+  t.members = m; t.admins = a;
+  ROSTER[team] = { m: m, a: a };
+  lsSet('roster', ROSTER);
+  return true;
+}
+TEAMS.forEach(function (t) { var r = ROSTER[t.id]; if (r) applyRoster(t.id, [r.m, r.a]); });
+
+var DEV = lsGet('dev', '');
+if (!DEV) { DEV = 'd' + rnd(9); lsSet('dev', DEV); }
+var ME = lsGet('me', null);           // 이 폰의 주인 {team, name, at} — 처음 설정에서 한 번 정하면 고정
+if (ME && (!teamOf(ME.team) || !ME.name)) ME = null;
+var EV = lsGet('events', {});         // 이 폰이 아는 우리 팀 사용 기록  id → {id, n:이름, at:시각, d:남긴 폰, x:취소, m:메뉴, p:가격}
+var RELAY = lsGet('relay', {});       // 중계 서버에 올라가 있는 것으로 확인된 기록  id → 취소 여부(0/1)
+var TCFG = lsGet('tcfg', {});         // 우리 팀 설정 — 항목마다 {h 또는 c, at}, 나중에 바꾼 쪽이 이긴다
+var RCFG = {};                        // 중계 서버에 지금 올라가 있는 팀 설정
+var mineAt = lsGet('mineAt', 0);      // 중계 서버에서 확인된 내 마지막 업로드 시각
+var skew = lsGet('skew', 0);          // 서버 시계 - 폰 시계 (폰 시계가 틀려도 달이 바뀌는 시점이 맞도록)
+var lastSync = lsGet('lastSync', 0);
+
+function persist() { lsSet('events', EV); lsSet('relay', RELAY); lsSet('mineAt', mineAt); lsSet('tcfg', TCFG); }
+function nowMs() { return Date.now() + skew; }
+function secNow() { return Math.round(nowMs() / 1000) * 1000; }
+function setSkew(serverMs) { if (serverMs > 0) { skew = serverMs - Date.now(); if (Math.abs(skew) < 3000) skew = 0; lsSet('skew', skew); } }
+function relayBase() { return String(lsGet('relayUrl', '') || CFG.relay || 'https://ntfy.sh').trim().replace(/\/+$/, ''); }
+/** 팀마다 채널이 따로 — 다른 팀 기록·설정은 아예 받지 않는다 */
+function topicOf(team) { return relayBase() + '/' + CFG.topic + '-' + team; }
+function topicUrl() { return topicOf(ME.team); }
+function myTeam() { return teamOf(ME.team); }
+function values(o) { return Object.keys(o).map(function (k) { return o[k]; }); }
+function cleanName(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, 20); }
+function cleanMenu(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, 30); }
+function fmtNum(v) { return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function won(v) { return fmtNum(v) + '원'; }
+/** 우리 팀 명단 (처음 설정 중이면 고른 팀) */
+function members() { var t = ME ? teamOf(ME.team) : join ? teamOf(join.team) : null; return t ? t.members : []; }
+/** 팀 명단 순서대로 색을 정한다 (명단에 없는 이름은 이름으로 정한 색) */
+function userColor(n) {
+  var i = members().indexOf(n);
+  if (i >= 0) return COLORS[i % COLORS.length];
+  n = String(n || ''); var h = 0; for (var k = 0; k < n.length; k++) h = (h * 31 + n.charCodeAt(k)) >>> 0; return COLORS[h % COLORS.length];
+}
+function initials(n) { n = String(n || ''); return n.length > 2 ? n.slice(-2) : n; }
+/** 관리자(👑): 사용 기록을 취소할 수 있는 사람 */
+function isAdminName(n, team) { var t = teamOf(team || (ME ? ME.team : join ? join.team : '')); return !!t && t.admins.indexOf(n) >= 0; }
+function amAdmin() { return !!ME && isAdminName(ME.name); }
+var CROWN = '<svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5z"/></svg>';
+function admTag() { return '<em class="tag adm">' + CROWN + '관리자</em>'; }
+function qrText() { return (TCFG.q && TCFG.q.c) || ''; }
+function shortQr(s) { s = String(s || ''); return s.length > 44 ? s.slice(0, 42) + '…' : s; }
+
+/* ---------------- 시간 (한국 시간 기준) ---------------- */
+function kd(ms) { var d = new Date(ms + KST); return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, d: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes(), w: d.getUTCDay() }; }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function monthKey(ms) { var k = kd(ms); return k.y + '-' + pad(k.mo); }
+function curMonth() { return monthKey(nowMs()); }
+function monthLabel(key) { var p = key.split('-'); return p[0] + '년 ' + Number(p[1]) + '월'; }
+function shiftMonth(key, n) { var p = key.split('-'), y = +p[0], m = +p[1] - 1 + n; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; return y + '-' + pad(m + 1); }
+function nextMonthNo() { return Number(shiftMonth(curMonth(), 1).split('-')[1]); }
+function fmtTime(ms) { var k = kd(ms); return pad(k.h) + ':' + pad(k.mi); }
+function fmtDay(ms) { var k = kd(ms); return k.mo + '월 ' + k.d + '일 (' + DOW[k.w] + ')'; }
+function fmtShort(ms) { var k = kd(ms); return k.mo + '/' + k.d + ' (' + DOW[k.w] + ')'; }
+function dayKey(ms) { var k = kd(ms); return k.y + pad(k.mo) + pad(k.d); }
+
+/* ---------------- 화면 도우미 ---------------- */
+function $(id) { return document.getElementById(id); }
+/** 내용이 바뀔 때만 다시 그린다 — 동기화로 다시 그리는 순간 누른 손가락이 허공을 누르지 않게 */
+function setHtml(id, html) { var el = $(id); if (el._h !== html) { el.innerHTML = html; el._h = html; } }
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+var toastT;
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('show'); }, 2800); }
+function native(fn) { try { if (window.Native && window.Native[fn]) return window.Native[fn].apply(window.Native, [].slice.call(arguments, 1)); } catch (e) {} }
+function teamChip(t) { return '<i style="background:' + t.color + '"></i>' + esc(t.name); }
+
+/* ---------------- QR 그리기 · 이미지에서 읽기 ---------------- */
+var svgCache = {};
+/** QR 내용 → 선명한 SVG (qrcode.js, 숫자·영대문자는 작은 QR로) */
+function qrSvg(text) {
+  if (!text || !window.qrcode) return '';
+  if (svgCache[text]) return svgCache[text];
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  var mode = /^[0-9]+$/.test(text) ? 'Numeric' : /^[0-9A-Z $%*+\-.\/:]+$/.test(text) ? 'Alphanumeric' : 'Byte';
+  var q = null;
+  try { q = qrcode(0, 'M'); q.addData(text, mode); q.make(); }
+  catch (e) { try { q = qrcode(0, 'L'); q.addData(text, 'Byte'); q.make(); } catch (e2) { return ''; } }
+  var n = q.getModuleCount(), Z = 4, W = n + Z * 2, d = '';
+  for (var r = 0; r < n; r++) {
+    for (var c = 0; c < n;) {
+      if (!q.isDark(r, c)) { c++; continue; }
+      var s = c; while (c < n && q.isDark(r, c)) c++;
+      d += 'M' + (s + Z) + ' ' + (r + Z) + 'h' + (c - s) + 'v1h-' + (c - s) + 'z';
+    }
+  }
+  return (svgCache[text] = '<svg viewBox="0 0 ' + W + ' ' + W + '" shape-rendering="crispEdges" aria-label="결제 QR"><rect width="' + W + '" height="' + W + '" fill="#fff"/><path fill="#000" d="' + d + '"/></svg>');
+}
+var jsqrP = null;
+/** QR 읽기 도구(jsqr.js)는 크기가 커서 처음 등록할 때만 불러온다 */
+function loadJsQR() {
+  return jsqrP || (jsqrP = new Promise(function (ok, no) {
+    if (window.jsQR) { ok(); return; }
+    var s = document.createElement('script');
+    s.src = 'jsqr.js'; s.onload = function () { ok(); }; s.onerror = function () { jsqrP = null; no(); };
+    document.head.appendChild(s);
+  }));
+}
+function loadImg(file) {
+  return new Promise(function (ok, no) {
+    var u = URL.createObjectURL(file), im = new Image();
+    im.onload = function () { ok(im); setTimeout(function () { URL.revokeObjectURL(u); }, 0); };
+    im.onerror = function () { URL.revokeObjectURL(u); no(); };
+    im.src = u;
+  });
+}
+/** 캡처·사진에서 QR 내용 찾기 — 크기를 바꿔 가며 몇 번 시도한다 */
+async function readQr(file) {
+  await loadJsQR();
+  var im = await loadImg(file), W = im.naturalWidth, H = im.naturalHeight, tried = {};
+  var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  var sizes = [1000, 1600, 640, 2400];
+  for (var i = 0; i < sizes.length; i++) {
+    var sc = Math.min(1, sizes[i] / Math.max(W, H)), w = Math.round(W * sc), h = Math.round(H * sc);
+    if (tried[w] || w < 50) continue;
+    tried[w] = 1;
+    cv.width = w; cv.height = h;
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h);
+    cx.drawImage(im, 0, 0, w, h);
+    var r = window.jsQR(cx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' });
+    if (r && r.data) return r.data;
+    await new Promise(function (ok) { setTimeout(ok, 0); });
+  }
+  return '';
+}
+
+/* ---------------- 암호화 (AES-256-GCM) ----------------
+   중계 서버는 아무나 쓰는 공개 서버라서, 올리는 내용은 전부 암호화한다.
+   키가 다르거나 누가 장난으로 올린 메시지는 복호화가 안 되므로 그냥 무시된다. */
+function b64e(u8) { var s = ''; for (var i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+function b64d(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+var keyP = null;
+function cryptoKey() { return keyP || (keyP = crypto.subtle.importKey('raw', b64d(CFG.key), 'AES-GCM', false, ['encrypt', 'decrypt'])); }
+function pipe(u8, stream) { return new Response(new Blob([u8]).stream().pipeThrough(stream)).arrayBuffer().then(function (b) { return new Uint8Array(b); }); }
+async function seal(obj) {
+  var bytes = new TextEncoder().encode(JSON.stringify(obj));
+  var ver = '0';
+  if (window.CompressionStream) { bytes = await pipe(bytes, new CompressionStream('deflate')); ver = '1'; }
+  var iv = crypto.getRandomValues(new Uint8Array(12));
+  var ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, await cryptoKey(), bytes));
+  var out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12);
+  return 'A' + ver + ':' + b64e(out);
+}
+async function unseal(msg) {
+  try {
+    var m = /^A([01]):([A-Za-z0-9+/=]+)$/.exec(String(msg || ''));
+    if (!m) return null;
+    var raw = b64d(m[2]);
+    var pt = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: raw.subarray(0, 12) }, await cryptoKey(), raw.subarray(12)));
+    if (m[1] === '1') pt = await pipe(pt, new DecompressionStream('deflate'));
+    return JSON.parse(new TextDecoder().decode(pt));
+  } catch (e) { return null; }
+}
+
+/* ---------------- 팀 설정 (비밀번호 · QR) ----------------
+   비밀번호는 그대로 올리지 않고 팀·종류를 섞은 SHA-256 값만 올린다.
+   한 번도 안 바꾼 비밀번호는 처음 값(1441). */
+async function pinHash(team, kind, pin) {
+  var b = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('cafeqr|' + team + '|' + kind + '|' + pin)));
+  return b64e(b.subarray(0, 16)).replace(/=+$/, '');
+}
+async function checkPin(team, cfg, kind, pin) {
+  var f = cfg[kind];
+  if (!f || !f.h) return pin === (kind === 'a' ? ADMIN_PIN : TEAM_PIN);
+  return f.h === await pinHash(team, kind, pin);
+}
+function cfgVal(f) { return f ? String(f.c != null ? f.c : f.h) : ''; }
+function packCfg(c) {
+  var o = {};
+  CFG_KEYS.forEach(function (k) { var f = c[k]; if (f && f.at) o[k] = [cfgVal(f), Math.round(f.at / 1000).toString(36)]; });
+  return o;
+}
+function unpackCfg(o) {
+  var c = {};
+  if (!o || typeof o !== 'object') return c;
+  CFG_KEYS.forEach(function (k) {
+    var a = o[k];
+    if (!Array.isArray(a) || typeof a[0] !== 'string' || !a[0]) return;
+    var at = parseInt(a[1], 36) * 1000;
+    if (!(at > 0)) return;
+    var v = a[0].slice(0, QR_MAX);
+    c[k] = k === 'q' ? { c: v, at: at } : { h: v, at: at };
+  });
+  return c;
+}
+/** 설정 합치기: 항목마다 나중에 바꾼 쪽이 이긴다 (같은 시각이면 값 순서로 — 어느 폰에서나 같은 결과) */
+function mergeCfg(dst, src) {
+  var ch = false;
+  CFG_KEYS.forEach(function (k) {
+    var s = src[k], d = dst[k];
+    if (!s) return;
+    if (!d || s.at > d.at || (s.at === d.at && cfgVal(s) > cfgVal(d))) { dst[k] = s; ch = true; }
+  });
+  return ch;
+}
+/** 이 폰의 설정 중 중계 서버에 아직 없는 게 있나 */
+function cfgNewer(mine, relay) {
+  return CFG_KEYS.some(function (k) { return mine[k] && (!relay[k] || mine[k].at > relay[k].at || (mine[k].at === relay[k].at && cfgVal(mine[k]) > cfgVal(relay[k]))); });
+}
+function copyCfg(c) { var o = {}; CFG_KEYS.forEach(function (k) { if (c[k]) o[k] = c[k]; }); return o; }
+
+/* ---------------- 스냅숏: 이번 달 + 지난달 기록 + 팀 설정 ---------------- */
+function snapEvents() { return values(EV).filter(inWindow); }
+/** 기록 하나 = [id, 이름 번호, 시각(36진수 초), 폰 번호, 취소, 메뉴 번호, 가격, 취소한 관리자 이름 번호, 취소 시각]
+    관리자 '초기화' = [id, 이름 번호, 시각, 폰 번호, 0, -2, 0, 초기화한 관리자 이름 번호] — 그 뒤부터 다시 10회 */
+function pack(list, team, cfg) {
+  var names = [], devs = [], menus = [];
+  function idx(arr, v) { var i = arr.indexOf(v); if (i < 0) { arr.push(v); i = arr.length - 1; } return i; }
+  var o = {
+    v: 2, tm: team, d: DEV, t: nowMs(), n: names, ds: devs, ms: menus,
+    e: list.map(function (e) {
+      var a = [e.id, idx(names, e.n), Math.round(e.at / 1000).toString(36), idx(devs, e.d), e.x ? 1 : 0];
+      if (e.r) { a.push(-2, 0, idx(names, e.rb || '')); return a; }
+      if (e.m || e.xb) a.push(e.m ? idx(menus, e.m) : -1, e.p || 0);
+      if (e.x && e.xb) a.push(idx(names, e.xb), Math.round((e.xt || 0) / 1000).toString(36));
+      return a;
+    })
+  };
+  var c = packCfg(cfg || {});
+  if (Object.keys(c).length) o.c = c;
+  var t = teamOf(team);
+  if (t && t.members.length) o.mb = [t.members, t.admins];   // 팀원 명단 (아이폰 웹 버전이 받아 쓴다)
+  return o;
+}
+function unpack(s, team) {
+  if (!s || s.v !== 2 || s.tm !== team || !Array.isArray(s.e) || !Array.isArray(s.n)) return null;
+  var ds = s.ds || [], ms = s.ms || [];
+  var events = s.e.map(function (a) {
+    var e = { id: String(a[0] || ''), n: cleanName(s.n[a[1]]), at: parseInt(a[2], 36) * 1000, d: String(ds[a[3]] || ''), x: a[4] ? 1 : 0 };
+    if (a[5] === -2) { e.r = 1; e.x = 0; e.rb = cleanName(s.n[a[7]]); return e; }
+    var m = a.length > 5 && a[5] >= 0 ? cleanMenu(ms[a[5]]) : '';
+    if (m) { e.m = m; e.p = Math.max(0, Math.round(+a[6] || 0)); }
+    var xb = e.x && a.length > 7 ? cleanName(s.n[a[7]]) : '';
+    if (xb) { e.xb = xb; e.xt = parseInt(a[8], 36) * 1000 || 0; }
+    return e;
+  }).filter(function (e) { return e.id && e.n && e.at > 0; });
+  return { events: events, cfg: unpackCfg(s.c), d: String(s.d || ''), mb: s.mb || null };
+}
+/** 4KB 안에 들어가게: 넘치면 반으로 나눠 여러 메시지로 */
+async function sealChunks(list, team, cfg) {
+  var msg = await seal(pack(list, team, cfg));
+  if (msg.length <= SNAP_LIMIT || list.length < 2) return [{ msg: msg, list: list }];
+  var h = Math.ceil(list.length / 2);
+  return (await sealChunks(list.slice(0, h), team, cfg)).concat(await sealChunks(list.slice(h), team, cfg));
+}
+/** 이번 달을 먼저, 지난달은 따로 묶는다 (너무 많으면 지난달부터 뺀다) */
+async function buildSnap() {
+  var list = snapEvents().sort(function (a, b) { return a.at - b.at; });
+  var cur = curMonth();
+  var now = list.filter(function (e) { return monthKey(e.at) === cur; });
+  var prev = list.filter(function (e) { return monthKey(e.at) !== cur; });
+  var chunks = now.length || !prev.length ? await sealChunks(now, ME.team, TCFG) : [];
+  if (prev.length) chunks = chunks.concat(await sealChunks(prev, ME.team, TCFG));
+  return chunks.slice(0, MAX_CHUNKS);
+}
+
+/** 받은 기록 합치기. 기록은 지워지지 않고 늘어나기만 하며, '취소'는 한 번 되면 되돌아가지 않는다. */
+/** 같은 기록의 취소 정보 합치기 (누가 취소했는지는 먼저 적힌 쪽 그대로) */
+function absorb(cur, e) {
+  var ch = false;
+  if (e.x && !cur.x) { cur.x = 1; ch = true; }
+  if (e.x && e.xb && !cur.xb) { cur.xb = e.xb; cur.xt = e.xt; ch = true; }
+  return ch;
+}
+function merge(list, mark) {
+  var changed = false;
+  list.forEach(function (e) {
+    var cur = EV[e.id];
+    if (!cur) { EV[e.id] = e; changed = true; }
+    else if (absorb(cur, e)) changed = true;
+    if (mark) mark[e.id] = Math.max(mark[e.id] || 0, e.x ? 1 : 0);
+  });
+  return changed;
+}
+
+/* ---------------- 통신 ---------------- */
+function req(method, url, body) {
+  var ctl = window.AbortController ? new AbortController() : null;
+  var tm = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
+  return fetch(url, { method: method, body: body, cache: 'no-store', signal: ctl && ctl.signal }).then(function (r) {
+    clearTimeout(tm);
+    if (!r.ok) throw { server: true, status: r.status, msg: r.status === 429 ? '요청이 너무 많아요. 잠시 후 다시 시도해요.' : '중계 서버 오류 (' + r.status + ')' };
+    return r.text();
+  }, function (e) { clearTimeout(tm); throw { network: true, msg: '인터넷 연결을 확인해 주세요.' }; });
+}
+function pollAll(url) {
+  return req('GET', url + '/json?poll=1&since=all').then(function (txt) {
+    return txt.split('\n').map(function (l) { try { return JSON.parse(l); } catch (e) { return null; } })
+      .filter(function (m) { return m && m.event === 'message' && m.message; });
+  });
+}
+/** 아직 들어가지 않은 팀의 설정·기록 가져오기 (처음 설정 · 관리자 메뉴) */
+async function fetchTeam(team) {
+  if (!window.crypto || !crypto.subtle) throw { msg: '이 폰의 웹뷰가 너무 오래돼서 암호화를 못 해요. Android System WebView를 업데이트해 주세요.' };
+  var msgs = await pollAll(topicOf(team));
+  var cfg = {}, ev = {};
+  for (var i = 0; i < msgs.length; i++) {
+    var u = unpack(await unseal(msgs[i].message), team);
+    if (!u) continue;
+    mergeCfg(cfg, u.cfg);
+    if (u.mb) applyRoster(team, u.mb);
+    u.events.forEach(function (e) { var c = ev[e.id]; if (!c) ev[e.id] = e; else absorb(c, e); });
+  }
+  return { cfg: cfg, rcfg: copyCfg(cfg), events: values(ev) };
+}
+
+/* ---------------- 동기화 ---------------- */
+var syncState = '', syncErr = null;
+function pendingCount() {
+  return values(EV).filter(function (e) { return e.d === DEV && isPending(e); }).length;
+}
+function inWindow(e) { var m = monthKey(e.at), cur = curMonth(); return m === cur || m === shiftMonth(cur, -1); }
+/** 이 기록(또는 취소)이 아직 중계 서버에 안 올라갔나 */
+function isPending(e) {
+  var r = RELAY[e.id];
+  if (r === undefined) return inWindow(e);
+  return !!e.x && !r;
+}
+function setSync(s, err) {
+  syncState = s; syncErr = err || null;
+  var el = $('sync');
+  el.setAttribute('data-s', s);
+  var n = pendingCount();
+  $('syncText').textContent = {
+    ok: '실시간 공유',
+    busy: '불러오는 중…',
+    off: '오프라인' + (n ? ' · 대기 ' + n + '건' : ''),
+    err: '연결 오류'
+  }[s];
+}
+
+function needPublish() {
+  var list = snapEvents();
+  for (var i = 0; i < list.length; i++) {
+    var r = RELAY[list[i].id];
+    if (r === undefined || (list[i].x && !r)) return true;
+  }
+  if (cfgNewer(TCFG, RCFG)) return true;              // 바꾼 비밀번호·QR이 아직 안 올라갔거나, 12시간이 지나 서버에서 사라졌다
+  if (!list.length && !Object.keys(packCfg(TCFG)).length) return false;
+  return nowMs() - mineAt > KEEPALIVE_MS;
+}
+
+async function publish() {
+  var chunks = await buildSnap();
+  for (var i = 0; i < chunks.length; i++) {
+    var txt = await req('POST', topicUrl() + '?tags=' + DEV, chunks[i].msg);
+    try { var j = JSON.parse(txt); if (j.time) setSkew(j.time * 1000); } catch (e) {}
+    chunks[i].list.forEach(function (e) { RELAY[e.id] = e.x ? 1 : 0; });
+  }
+  mergeCfg(RCFG, TCFG);
+  mineAt = nowMs();
+  persist();
+  native('saveSnap', topicUrl(), chunks.map(function (c) { return c.msg; }).join('\n'), DEV);
+}
+
+var syncing = null;
+function sync() {
+  if (!ME) return Promise.resolve();
+  if (syncing) return syncing;
+  if (syncState !== 'ok') setSync('busy');
+  lastLiveSync = Date.now();
+  var team = ME.team;
+  syncing = (async function () {
+    if (!window.crypto || !crypto.subtle) throw { msg: '이 폰의 웹뷰가 너무 오래돼서 암호화를 못 해요. Android System WebView를 업데이트해 주세요.' };
+    var msgs = await pollAll(topicUrl());
+    if (!ME || ME.team !== team) return;
+    var mark = {}, mine = 0, changed = false, rc = {};
+    for (var i = 0; i < msgs.length; i++) {
+      var u = unpack(await unseal(msgs[i].message), team);
+      if (!u) continue;
+      if (merge(u.events, mark)) changed = true;
+      if (u.mb && applyRoster(team, u.mb)) changed = true;
+      mergeCfg(rc, u.cfg);
+      if (u.d === DEV) mine = Math.max(mine, msgs[i].time * 1000);
+    }
+    RELAY = mark;              // 중계 서버에 지금 남아 있는 것 (12시간 지난 건 사라진다)
+    RCFG = rc;
+    mineAt = mine;
+    var cfgCh = mergeCfg(TCFG, rc);
+    persist();
+    if (changed) afterMerge();
+    if (needPublish()) await publish();
+    else if (changed || cfgCh) saveNativeSnap();
+  })().then(function () {
+    lastSync = Date.now(); lsSet('lastSync', lastSync);
+    setSync('ok');
+  }, function (e) {
+    setSync(e && e.network ? 'off' : 'err', e);
+  }).then(function () { syncing = null; render(); });
+  return syncing;
+}
+
+/* 앱이 꺼져 있어도 안드로이드가 몇 시간마다 내 기록을 다시 올려 두도록 최신 묶음을 넘겨 둔다 */
+var nsT = null;
+function saveNativeSnap() {
+  if (!window.Native || !ME) return;
+  clearTimeout(nsT);
+  nsT = setTimeout(function () {
+    if (!ME) return;
+    buildSnap().then(function (c) { native('saveSnap', topicUrl(), c.map(function (x) { return x.msg; }).join('\n'), DEV); });
+  }, 1500);
+}
+
+/* 실시간: 다른 폰이 올리는 순간 바로 받는다 (SSE) */
+var es = null, liveOk = false, lastLiveSync = 0;
+function openLive() {
+  if (es || !ME || !window.EventSource) return;
+  var team = ME.team;
+  try { es = new EventSource(topicUrl() + '/sse'); } catch (e) { es = null; return; }
+  es.addEventListener('open', function (ev) {
+    liveOk = true;
+    if (ev && ev.data) { try { var j = JSON.parse(ev.data); if (j.time) setSkew(j.time * 1000); } catch (e) {} }
+    if (Date.now() - lastLiveSync > 10000) { lastLiveSync = Date.now(); sync(); } // 끊긴 사이 놓친 것 채우기
+  });
+  es.onmessage = function (ev) {
+    var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (!m || m.event !== 'message') return;
+    liveOk = true;
+    unseal(m.message).then(function (s) {
+      if (!ME || ME.team !== team) return;
+      var u = unpack(s, team);
+      if (!u) return;
+      var changed = merge(u.events, RELAY);
+      if (u.mb && applyRoster(team, u.mb)) changed = true;
+      mergeCfg(RCFG, u.cfg);
+      if (mergeCfg(TCFG, u.cfg)) changed = true;
+      if (u.d === DEV) mineAt = Math.max(mineAt, m.time * 1000);
+      persist();
+      if (changed) { afterMerge(); saveNativeSnap(); }
+      if (syncState !== 'ok') setSync('ok');
+      render();
+    });
+  };
+  es.onerror = function () { liveOk = false; if (es && es.readyState === 2) es = null; };
+}
+function closeLive() { if (es) { es.close(); es = null; } liveOk = false; }
+
+/* ---------------- 이번 달 현황 계산 ---------------- */
+function monthEvents(month) {
+  return values(EV).filter(function (e) { return monthKey(e.at) === month; })
+    .sort(function (a, b) { return b.at - a.at || (a.id < b.id ? 1 : -1); });
+}
+/** 한 사람이 한 달에 먼저 쓴 순서대로 10번째까지만 정상, 그 뒤(두 폰에서 동시에 눌렀거나 오프라인 기록)는 '초과'.
+    관리자가 '초기화'하면 그 뒤부터 다시 센다. */
+function overSet(month) {
+  var act = monthEvents(month).filter(function (e) { return !e.x; }).reverse(), cnt = {}, s = {};
+  act.forEach(function (e) {
+    if (e.r) { cnt[e.n] = 0; return; }
+    cnt[e.n] = (cnt[e.n] || 0) + 1;
+    if (cnt[e.n] > PER) s[e.id] = 1;
+  });
+  return s;
+}
+function view(month) {
+  month = month || curMonth();
+  var logs = monthEvents(month), people = {}, menus = {}, used = 0, total = 0;
+  // c: 이 달에 쓴 횟수(금액 계산용) · lim: 마지막 '초기화' 뒤에 쓴 횟수(남은 횟수 계산용) · rs: 초기화한 시각
+  members().concat(ME.name).forEach(function (n) { people[n] = { c: 0, t: 0, lim: 0, rs: 0 }; });   // 팀원 모두 0회부터
+  function who(n) { return people[n] || (people[n] = { c: 0, t: 0, lim: 0, rs: 0 }); }
+  logs.forEach(function (e) { if (e.r && e.at > who(e.n).rs) who(e.n).rs = e.at; });
+  logs.forEach(function (e) {
+    if (e.x || e.r) return;
+    var p = e.p || 0, w = who(e.n);
+    used++; total += p;
+    w.c++; w.t += p;
+    if (e.at > w.rs) w.lim++;
+    if (e.m) { var mm = menus[e.m] || (menus[e.m] = { c: 0, t: 0 }); mm.c++; mm.t += p; }
+  });
+  var mine = people[ME.name];
+  return { month: month, isCur: month === curMonth(), used: used, total: total, mine: mine, remaining: Math.max(0, PER - mine.lim),
+    people: people, menus: menus, logs: logs, over: overSet(month) };
+}
+/** 취소는 관리자 메뉴의 [QR 코드 사용취소]에서만 — 이번 달·지난달 기록 (그보다 오래된 건 팀에 공유되지 않는다) */
+function canCancel(e) { return !e.x && !e.r && inWindow(e); }
+/** 관리자 메뉴로 한 일에 남길 이름: 이 폰 주인이 관리자면 그 이름, 아니면(팀장님이 남의 폰에서 비밀번호로 연 경우) 팀 관리자 이름 */
+function adminName() { var t = myTeam(); return amAdmin() ? ME.name : (t.admins[0] || '팀장'); }
+
+/** 다른 폰 기록을 받은 뒤: 방금 [사용]한 기록이 11번째가 됐으면(내 다른 폰에서 동시에 누름) 자동으로 취소하고 안내 */
+function afterMerge() {
+  var rec = qrSess && qrSess.rec;
+  if (!rec || rec.x || qrFull) return;
+  if (overSet(monthKey(rec.at))[rec.id]) {
+    rec.x = 1;
+    qrFull = true;
+    persist();
+    native('setBright', false);
+    sync();
+  }
+}
+
+/* ---------------- 그리기 ---------------- */
+function avHtml(n, sm) { return '<span class="av' + (sm ? ' sm' : '') + '" style="background:' + userColor(n) + '">' + esc(initials(n)) + '</span>'; }
+/** '아메리카노 ICE' → 아메리카노 + 파란 ICE 표시 */
+function menuHtml(label) {
+  var m = /^(.*) (HOT|ICE)$/.exec(label || '');
+  return m ? esc(m[1]) + ' <em class="temp ' + m[2].toLowerCase() + '">' + m[2] + '</em>' : esc(label || '');
+}
+/** 사람 순서: 팀 명단 순서대로, 명단에 없는 이름은 뒤에 */
+function byUse(map) {
+  var mem = members();
+  function ord(n) { var i = mem.indexOf(n); return i < 0 ? 999 : i; }
+  return Object.keys(map).sort(function (a, b) { return ord(a) - ord(b) || a.localeCompare(b); });
+}
+function peopleHtml(people) {
+  var names = byUse(people);
+  if (!names.length) return '<div class="none">아직 사용 기록이 없어요</div>';
+  return names.map(function (n) {
+    var p = people[n];
+    return '<div class="person' + (p.c ? '' : ' zero') + (p.lim >= PER ? ' full' : '') + '">' + avHtml(n, true) +
+      '<span class="nm"><span>' + esc(n) + '</span>' + (isAdminName(n) ? admTag() : '') + (p.rs ? '<em class="tag rs">초기화</em>' : '') + (ME && n === ME.name ? '<em class="tag me">나</em>' : '') + '</span>' +
+      '<span class="bar"><i style="width:' + Math.min(100, Math.round(p.lim / PER * 100)) + '%;background:' + userColor(n) + '"></i></span>' +
+      '<span class="ct num"><b>' + p.lim + '<span>/' + PER + '회</span></b><small>' + won(p.t) + '</small></span></div>';
+  }).join('');
+}
+function menuStatsHtml(menus) {
+  var names = Object.keys(menus).sort(function (a, b) { return menus[b].c - menus[a].c || menus[b].t - menus[a].t; });
+  if (!names.length) return '<div class="none">아직 사용 기록이 없어요</div>';
+  var top = Math.max(1, menus[names[0]].c);
+  return names.map(function (k) {
+    var m = menus[k];
+    return '<div class="mrow"><span class="mn">' + menuHtml(k) + '</span><span class="bar"><i style="width:' + Math.max(6, Math.round(m.c / top * 100)) + '%"></i></span>' +
+      '<span class="mc num">' + m.c + '잔</span><span class="mt num">' + won(m.t) + '</span></div>';
+  }).join('');
+}
+function logHtml(e, withDay, over, withCancel) {
+  var when = (withDay ? fmtShort(e.at) + ' ' : '') + fmtTime(e.at);
+  if (e.r) {
+    return '<li class="log rsl">' + '<span class="av sm">↺</span>' +
+      '<div class="lm"><div class="l1"><span class="mt">횟수 초기화 · ' + PER + '회로</span><em class="tag rs">초기화</em></div>' +
+      '<div class="l2 num">' + esc(e.n) + ' · ' + when + '</div>' +
+      '<div class="l3 num" style="color:#2F6DB5">' + CROWN + '관리자 ' + esc(e.rb || '') + '</div></div><div class="lr"></div></li>';
+  }
+  var tags = '';
+  if (e.x) tags += '<em class="tag cx">취소됨</em>';
+  else {
+    if (over[e.id]) tags += '<em class="tag over">한도 초과</em>';
+    if (e.d === DEV && isPending(e)) tags += '<em class="tag wait">전송 대기</em>';
+    else if (e.n === ME.name) tags += '<em class="tag me">나</em>';
+  }
+  var btn = withCancel && canCancel(e) ? '<button class="mini" data-cancel="' + esc(e.id) + '">취소</button>' : '';
+  var who = esc(e.n) + (isAdminName(e.n) ? ' ' + CROWN : '');
+  var l3 = e.x && e.xb ? '<div class="l3 num">' + CROWN + '관리자 ' + esc(e.xb) + ' 취소' + (e.xt ? ' · ' + fmtShort(e.xt) + ' ' + fmtTime(e.xt) : '') + '</div>' : '';
+  return '<li class="log' + (e.x ? ' cx' : '') + '">' + avHtml(e.n, true) +
+    '<div class="lm"><div class="l1"><span class="mt">' + (e.m ? menuHtml(e.m) : who) + '</span>' + tags + '</div>' +
+    '<div class="l2 num">' + (e.m ? who + ' · ' : '') + when + '</div>' + l3 + '</div>' +
+    '<div class="lr"><span class="lp num">' + (e.m ? won(e.p) : '') + '</span>' + btn + '</div></li>';
+}
+
+function render() {
+  if (!ME) return;
+  var v = view(), nx = nextMonthNo();
+  $('monthLabel').textContent = monthLabel(v.month) + ' · ' + ME.name + ' 님';
+  $('remain').textContent = v.remaining;
+  $('maxv').textContent = '/' + PER;
+  $('ring').setAttribute('data-lv', v.remaining <= 0 ? 'zero' : v.remaining <= 3 ? 'low' : 'ok');
+  var fg = $('ringFg');
+  fg.setAttribute('stroke-dasharray', RING_C.toFixed(2));
+  fg.setAttribute('stroke-dashoffset', (RING_C * (1 - v.remaining / PER)).toFixed(2));
+
+  var empty = v.remaining <= 0;
+  $('btnUse').classList.toggle('off', empty);
+  $('soldout').hidden = !empty;
+  $('noQr').hidden = empty || !!qrText();
+  $('soldMax').textContent = PER;
+  $('soldNext').textContent = nx + '월 1일 0시에 다시 ' + PER + '회로 채워져요.';
+
+  $('hUsed').textContent = v.mine.c;
+  $('hTotal').textContent = won(v.mine.t);
+  $('usedMeta').textContent = '팀 ' + v.used + '회 · ' + won(v.total);
+  setHtml('people', peopleHtml(v.people));
+  var recent = v.logs.slice(0, 5);
+  setHtml('recent', recent.length ? recent.map(function (e) { return logHtml(e, true, v.over); }).join('') : '<li class="none">아직 사용 기록이 없어요</li>');
+
+  var k = kd(nowMs());
+  var left = new Date(Date.UTC(k.y, k.mo, 0)).getUTCDate() - k.d + 1;
+  $('resetInfo').textContent = '매월 1일 0시에 한 사람당 ' + PER + '회로 초기화돼요 · ' + nx + '월 1일까지 ' + left + '일';
+
+  if (syncState === 'off') setSync('off', syncErr);
+  if (monOpen) renderMonths();
+  if (cxOpen) renderCx();
+  if (rsOpen) renderRs();
+  if (pageOpen) renderLog();
+  if (adm) renderAdmin();
+  if (qrSess) renderQrStatus();
+}
+
+/* ---------------- 메뉴 고르기 → QR ---------------- */
+var pick = { m: -1 };
+function showLimit() {
+  var nx = nextMonthNo();
+  popup('☕', '이번달은 더이상\n이용하실 수 없습니다.', '이번 달 ' + PER + '회를 모두 사용했어요.\n' + nx + '월 1일 0시에 다시 ' + PER + '회로 채워져요.');
+}
+function openUseSheet() {
+  var v = view();
+  if (v.remaining <= 0) { showLimit(); return; }
+  if (!qrText()) { askRegisterQr(); return; }
+  pick.m = -1;                                  // 메뉴는 매번 고른다
+  $('useDesc').textContent = ME.name + ' 님 · 이번 달 ' + v.remaining + '회 남았어요. 메뉴를 고르고 [선택 완료]를 눌러 주세요.';
+  $('menuPick').innerHTML = MENU.map(function (m, i) {
+    return '<button class="menub" data-menu="' + i + '"><span class="mn">' + menuHtml(m.label) + '</span><span class="mp num">' + won(m.price) + '</span></button>';
+  }).join('');
+  syncPick();
+  openSheet('useSheet');
+}
+function syncPick() {
+  [].forEach.call(document.querySelectorAll('#menuPick .menub'), function (b) { b.classList.toggle('on', +b.getAttribute('data-menu') === pick.m); });
+  var mu = MENU[pick.m];
+  $('btnGo').disabled = !mu;
+  $('btnGo').textContent = mu ? '선택 완료' : '메뉴를 골라 주세요';
+}
+
+/* ---------------- 사용 확인 → QR 화면 ----------------
+   메뉴를 고르고 [선택 완료] → 확인창에서 메뉴·가격을 다시 보여 준다.
+   [사용]을 눌러야 그때 기록이 남고(횟수 1회 차감) 결제 QR이 열린다. [닫기]면 아무 일도 없다.
+   QR이 열렸다는 건 이미 1회를 쓴 것이라, QR 화면을 닫아도 되돌아가지 않는다 (취소는 관리자만). */
+var qrSess = null, qrFull = false;    // {mu: 고른 메뉴, rec: 남긴 기록}
+var upMu = null;                      // 확인창에 띄운 메뉴
+function startUse() {
+  var mu = MENU[pick.m];
+  if (!mu) return;
+  closeSheets();
+  if (document.activeElement) document.activeElement.blur();
+  var v = view();
+  if (v.remaining <= 0) { render(); showLimit(); return; }
+  upMu = mu;
+  $('upMenu').innerHTML = menuHtml(mu.label);
+  $('upPrice').textContent = won(mu.price);
+  $('upDesc').textContent = '[사용]을 누르시면 이번 달 횟수가 1회 차감되고 결제 QR이 열립니다.\n남은 횟수 ' + v.remaining + '회 → ' + (v.remaining - 1) + '회';
+  $('usePop').classList.add('show');
+  sync();                         // 다른 폰에서 쓴 횟수를 미리 받아 둔다
+}
+function upShown() { return $('usePop').classList.contains('show'); }
+function upClose() { upMu = null; $('usePop').classList.remove('show'); }
+/** 확인창의 [사용]: 기록을 남기고 횟수를 1회 줄인 뒤 QR을 연다 */
+function confirmUse() {
+  var mu = upMu;
+  upClose();
+  if (!mu) return;                // 두 번 눌러도 한 번만
+  if (view().remaining <= 0) { render(); showLimit(); return; }
+  var e = { id: rnd(10), n: ME.name, at: secNow(), d: DEV, x: 0, m: mu.label, p: mu.price };
+  EV[e.id] = e;                   // 먼저 폰에 저장 → 인터넷이 끊겨도 기록이 사라지지 않는다
+  persist();
+  openQr({ mu: mu, rec: e });
+  render();
+  sync();                         // 최신 기록을 받아 합치고, 내 기록을 팀에 올린다
+}
+function openQr(sess) {
+  qrSess = sess; qrFull = false;
+  var txt = qrText(), e = sess.rec;
+  $('qrTitle').textContent = myTeam().name + ' QR';
+  $('qrBox').innerHTML = qrSvg(txt);
+  $('qrCode').textContent = shortQr(txt);
+  $('qrBright').hidden = !!window.Native;          // 안드로이드 앱은 밝기를 알아서 최대로 올린다
+  $('qrWho').innerHTML = '<span>' + esc(ME.name) + ' · ' + menuHtml(sess.mu.label) + ' <span class="num">' + won(sess.mu.price) + '</span></span>' +
+    '<small class="num">' + fmtDay(e.at) + ' ' + fmtTime(e.at) + ' 사용</small>';
+  $('qrv').classList.add('show');
+  native('setBright', true);
+  keepAwake(true);
+  renderQrStatus();
+}
+function closeQr() {
+  if (!qrSess) return;
+  qrSess = null; qrFull = false;
+  $('qrv').classList.remove('show');
+  native('setBright', false);
+  keepAwake(false);
+}
+function leaveQr() { closeQr(); }
+function renderQrStatus() {
+  if (!qrSess) return;
+  var e = qrSess.rec, el = $('qrSt'), v = view();
+  $('qrShow').hidden = qrFull;
+  $('qrFull').hidden = !qrFull;
+  $('qrWho').hidden = qrFull;
+  el.className = 'qst';
+  if (qrFull) { el.innerHTML = ''; return; }
+  if (!isPending(e)) {
+    el.className = 'qst ok';
+    el.innerHTML = '<span>✓ 사용 기록이 팀에 공유됐어요 · 이번 달 남은 횟수 <b class="num">' + v.remaining + '/' + PER + '</b></span>';
+  } else if (syncState === 'off' || syncState === 'err') {
+    el.className = 'qst warn';
+    el.innerHTML = '<span>인터넷 연결이 없어 이 폰에 먼저 저장했어요.<br>연결되면 자동으로 공유돼요.</span>';
+  } else {
+    el.innerHTML = '<i class="spin"></i>팀에 공유하는 중…';
+  }
+}
+/** 아이폰(웹): QR 보는 동안 화면이 꺼지지 않게 */
+var wakeL = null;
+function keepAwake(on) {
+  if (window.Native || !navigator.wakeLock) return;
+  if (on) navigator.wakeLock.request('screen').then(function (l) { wakeL = l; }, function () {});
+  else if (wakeL) { wakeL.release().catch(function () {}); wakeL = null; }
+}
+
+/* ---------------- 확인창 · 팝업 ---------------- */
+var askCb = null, askNoCb = null;
+/** o = {title, desc, yes, no, danger, onYes, onNo} */
+function ask(o) {
+  $('askTitle').textContent = o.title; $('askDesc').textContent = o.desc || '';
+  $('askYes').textContent = o.yes || '네'; $('askNo').textContent = o.no || '아니요';
+  $('askYes').className = 'btn' + (o.danger ? ' danger' : '');
+  askCb = o.onYes || null; askNoCb = o.onNo || null;
+  openSheet('askSheet');
+}
+/** '아니요'·바깥 누름·뒤로가기 */
+function askDismiss() { var cb = askNoCb; askCb = askNoCb = null; closeSheets(); if (cb) cb(); }
+var popCb = null;
+function popup(em, title, desc, cb) {
+  $('popEm').textContent = em; $('popTitle').textContent = title; $('popDesc').textContent = desc || '';
+  popCb = cb || null;
+  $('pop').classList.add('show');
+}
+function popClose() { $('pop').classList.remove('show'); var cb = popCb; popCb = null; if (cb) cb(); }
+function popShown() { return $('pop').classList.contains('show'); }
+
+/* ---------------- 사용 취소 (관리자만) ---------------- */
+function cancelUse(id) {
+  var e = EV[id];
+  if (!cxOpen || !e || !canCancel(e)) return;
+  var by = adminName();
+  ask({ title: '이 사용 기록을 취소할까요?', desc: e.n + ' 님 · ' + (e.m ? e.m + ' · ' : '') + fmtDay(e.at) + ' ' + fmtTime(e.at) +
+      '\n취소하면 ' + e.n + ' 님 횟수를 1회 돌려놓고, 기록 옆에 "관리자 ' + by + ' 취소"가 남아요.',
+    yes: '네, 취소할게요', danger: true,
+    onYes: function () {
+      e.x = 1; e.xb = by; e.xt = secNow();
+      persist();
+      render();
+      toast(e.n + ' 님 기록을 취소했어요. 횟수를 1회 돌려놓았어요.');
+      sync();
+    } });
+}
+
+/* ---------------- 비밀번호 키패드 ----------------
+   o = {title, desc, len: 새 비밀번호면 true(4~16자리), verify(pin) → true | 안내 문구 | false, onOk(pin), onCancel}
+   넣은 만큼만 동그라미가 늘어난다 (자리 수가 정해져 있지 않다) */
+var pin = null;
+function askPin(o) {
+  pin = { v: '', busy: false, o: o };
+  $('pinTitle').textContent = o.title; $('pinDesc').textContent = o.desc || '';
+  pinMsg('');
+  drawPin();
+  openSheet('pinSheet', true);
+}
+function drawPin() {
+  var n = pin.v.length, h = '';
+  for (var i = 0; i < n; i++) h += '<i class="on"></i>';
+  $('pinDots').innerHTML = n ? h : '<span class="ph">숫자를 눌러 주세요</span>';
+  $('pinDots').classList.toggle('many', n > 8);
+  $('pinLen').hidden = !pin.o.len;
+  $('pinLen').textContent = n + '자리 · ' + PIN_MIN + '~' + PIN_MAX + '자리까지 돼요';
+  $('pinLen').classList.toggle('ok', n >= PIN_MIN);
+  $('pinOk').disabled = !n || pin.busy || (pin.o.len && n < PIN_MIN);
+}
+function pinMsg(t, busy) { var m = $('pinMsg'); m.textContent = t; m.className = 'pinmsg' + (busy ? ' busy' : ''); }
+function pinKey(k) {
+  if (!pin || pin.busy) return;
+  if (k === 'ok') { pinSubmit(); return; }
+  pinMsg('');
+  if (k === 'del') pin.v = pin.v.slice(0, -1);
+  else if (pin.v.length < PIN_MAX) pin.v += k;
+  else pinMsg(PIN_MAX + '자리까지만 넣을 수 있어요.');
+  drawPin();
+}
+async function pinSubmit() {
+  var p = pin;
+  if (!p || !p.v || p.busy) return;
+  if (p.o.len && p.v.length < PIN_MIN) { pinMsg(PIN_MIN + '자리 이상 넣어 주세요.'); return; }
+  var v = p.v, r = true;
+  if (p.o.verify) {
+    p.busy = true; drawPin(); pinMsg('확인 중…', true);
+    try { r = await p.o.verify(v); } catch (e) { r = (e && e.msg) || '확인하지 못했어요. 다시 시도해 주세요.'; }
+    p.busy = false;
+  }
+  if (pin !== p) return;          // 그사이 닫혔다
+  if (r === true) { pin = null; closeSheets(); p.o.onOk(v); return; }
+  p.v = '';
+  drawPin();
+  pinMsg(typeof r === 'string' ? r : '비밀번호가 맞지 않아요.');
+  var d = $('pinDots'); d.classList.remove('bad'); void d.offsetWidth; d.classList.add('bad');
+}
+function pinCancel() { var p = pin; pin = null; closeSheets(); if (p && p.o.onCancel) p.o.onCancel(); }
+
+/* ---------------- 팀 QR 이미지 등록 ----------------
+   o = {title, desc, onSave(QR 내용)} — 이미지를 고르면 QR 내용만 읽어서 저장한다(이미지는 저장 안 함) */
+var qrPick = null, qsFound = '';
+function pickQr(o) {
+  qrPick = o;
+  var f = $('qrFile');
+  f.value = '';
+  f.click();
+}
+function qsState(desc, box, code, ok) {
+  $('qsDesc').textContent = desc;
+  $('qsBox').innerHTML = box;
+  $('qsCode').textContent = code || '';
+  $('qsSave').disabled = !ok;
+}
+function onQrFile() {
+  var file = $('qrFile').files && $('qrFile').files[0], o = qrPick;
+  if (!file || !o) return;
+  qsFound = '';
+  $('qsTitle').textContent = o.title;
+  qsState('이미지에서 QR 코드를 찾는 중이에요…', '<i class="spin"></i>');
+  openSheet('qrSheet', true);
+  readQr(file).then(function (txt) {
+    if (qrPick !== o) return;
+    if (!txt) { qsState('', '<div class="err">QR 코드를 찾지 못했어요.<br>QR이 크고 선명하게 나온<br>캡처나 사진을 골라 주세요.</div>'); return; }
+    if (txt.length > QR_MAX) { qsState('', '<div class="err">QR 내용이 너무 길어서<br>저장할 수 없어요.</div>'); return; }
+    qsFound = txt;
+    qsState(o.desc, qrSvg(txt), shortQr(txt), true);
+  }, function () {
+    if (qrPick !== o) return;
+    qsState('', '<div class="err">이미지를 열지 못했어요.<br>다른 이미지(화면 캡처 등)를<br>골라 주세요.</div>');
+  });
+}
+/** 팀 QR이 없는데 'QR 사용하기'를 눌렀을 때 — 팀원 누구나 처음 한 번 등록할 수 있다 */
+function askRegisterQr() {
+  ask({ title: '팀 QR이 아직 없어요', desc: '카페 결제 QR이 나온 화면 캡처나 사진을 한 번 등록하면\n' + myTeam().name + ' 팀원 모두의 앱에 같이 저장돼요.',
+    yes: 'QR 이미지 고르기', no: '나중에', onYes: registerMyQr });
+}
+function registerMyQr() {
+  pickQr({ title: myTeam().name + ' QR 코드', desc: '이 QR이 맞는지 확인해 주세요. 저장하면 팀원 모두의 앱에 같이 저장돼요.',
+    onSave: function (txt) {
+      TCFG.q = { c: txt, at: secNow() };
+      persist(); render();
+      toast('팀 QR을 등록했어요. 팀원들에게도 공유돼요.');
+      sync();
+    } });
+}
+
+/* ---------------- 처음 설정: 팀 → 비밀번호 → 이름 → 팀 QR ---------------- */
+var join = null;                  // 설정 중인 팀 {team, cfg, rcfg, events, name}
+var setupStep = '';
+function showSetup() {
+  $('teamList').innerHTML = TEAMS.map(function (t, i) {
+    return '<button class="team" data-team="' + esc(t.id) + '"><span class="ti" style="background:' + t.color + '">' + (i + 1) + '</span>' +
+      '<span><b>' + esc(t.name) + '</b><small>' + (t.members.length ? t.members.length + '명 · ' : '') + '팀 비밀번호를 넣고 들어가요</small></span>' +
+      '<svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>';
+  }).join('');
+  $('setup').classList.add('show');
+  step(CFG.key && CFG.topic ? 'team' : 'invite');
+}
+function submitInvite() {
+  var inv = parseInvite($('invIn').value);
+  if (!inv) { toast('초대 코드가 맞지 않아요. 받은 코드를 그대로 붙여 넣어 주세요.'); return; }
+  lsSet('invite', inv);
+  CFG.topic = inv.t; CFG.key = inv.k; keyP = null;
+  $('invIn').blur();
+  step('team');
+}
+/** 설정 → 아이폰 팀원 초대: 웹 버전 주소 + 초대 코드를 카톡 등으로 보낸다 */
+function sendInvite() {
+  var code = inviteCode(), url = String(CFG.webUrl || '').replace(/#.*$/, '');
+  doExport('A카페 QR 아이폰 초대', [
+    '☕ A카페 QR — 아이폰용 초대',
+    '',
+    '1) 아래 주소를 아이폰 Safari(사파리)로 열어 주세요.',
+    url + '#join=' + code,
+    '2) 아래 공유 버튼(□↑) → [홈 화면에 추가]',
+    '3) 홈 화면에 생긴 "A카페 QR"을 열고, 초대 코드를 물어보면 이 코드를 붙여 넣어 주세요.',
+    code,
+    '',
+    '그다음 팀 선택 → 팀 비밀번호 → 내 이름 순서로 들어가면 돼요.'
+  ].join('\n'));
+}
+function step(s) {
+  setupStep = s;
+  $('stInvite').hidden = s !== 'invite';
+  $('steps').hidden = s === 'invite';
+  $('stTeam').hidden = s !== 'team';
+  $('stName').hidden = s !== 'name';
+  $('stQr').hidden = s !== 'qr';
+  var n = { team: 1, name: 2, qr: 3 }[s];
+  [].forEach.call($('steps').children, function (b, i) { b.classList.toggle('on', i < n); });
+  if (s === 'team' || s === 'invite') join = null;
+  else { var t = teamOf(join.team); $('snTeam').innerHTML = $('sqTeam').innerHTML = teamChip(t); }
+  $('setup').scrollTop = 0;
+}
+function chooseTeam(id) {
+  var t = teamOf(id);
+  join = { team: id };
+  askPin({ title: t.name + ' 비밀번호', desc: '팀 비밀번호를 넣어 주세요. 모르면 팀장님께 물어보세요.',
+    verify: async function (p) {
+      var d = await fetchTeam(id);           // 팀장님이 바꾼 비밀번호를 확인하려면 인터넷이 필요하다
+      if (!join || join.team !== id) return false;
+      join.cfg = d.cfg; join.rcfg = d.rcfg; join.events = d.events;
+      return checkPin(id, d.cfg, 'p', p);
+    },
+    onOk: gotoName,
+    onCancel: function () { join = null; } });
+}
+var namePick = '', nameOther = false;
+function gotoName() {
+  var mem = teamOf(join.team).members;
+  $('memberPick').innerHTML = mem.map(function (n) {
+    return '<button class="whob" data-name="' + esc(n) + '" style="--c:' + userColor(n) + '">' + avHtml(n) + '<b>' + esc(n) + '</b>' + (isAdminName(n, join.team) ? admTag() : '') + '</button>';
+  }).join('');
+  // 다시 들어왔거나, 예전(1.1) 버전에서 이 폰으로 마지막에 쓴 이름이 명단에 있으면 미리 골라 둔다
+  var last = join.name || cleanName(lsGet('name', ''));
+  nameOther = !mem.length || (!!join.name && mem.indexOf(join.name) < 0);
+  namePick = mem.indexOf(last) >= 0 ? last : '';
+  $('nameIn').value = nameOther ? join.name || '' : '';
+  syncName();
+  step('name');
+}
+function chosenName() { return nameOther ? cleanName($('nameIn').value) : namePick; }
+function syncName() {
+  var hasList = teamOf(join.team).members.length > 0;
+  $('memberPick').hidden = nameOther;
+  $('otherBox').hidden = !nameOther;
+  $('btnOther').hidden = !hasList;
+  $('btnOther').textContent = nameOther ? '‹ 명단에서 고르기' : '명단에 없어요 · 직접 입력';
+  [].forEach.call(document.querySelectorAll('#memberPick .whob'), function (b) { b.classList.toggle('on', !nameOther && b.getAttribute('data-name') === namePick); });
+  $('btnName').disabled = !chosenName();
+}
+function confirmName() {
+  var n = chosenName();
+  if (!n || !join) return;
+  $('nameIn').blur();
+  var t = teamOf(join.team);
+  ask({ title: t.name + ' ' + n + ' 님이 맞으신가요?', desc: '한 번 정하시면 이 휴대폰은 계속 이 이름으로 기록됩니다.\n변경이 필요하시면 팀 관리자에게 요청해 주세요.',
+    yes: '네, 맞습니다', no: '다시 선택', onYes: function () {
+      if (!isAdminName(n, join.team)) { join.name = n; gotoQr(); return; }
+      // 관리자는 기록을 취소할 수 있으니, 관리자 이름으로 들어갈 때는 관리자 비밀번호를 한 번 더 확인한다
+      askPin({ title: '관리자 확인', desc: n + ' 님은 ' + t.name + ' 관리자예요. 관리자 비밀번호를 넣어 주세요.',
+        verify: function (p) { return checkPin(join.team, join.cfg, 'a', p); },
+        onOk: function () { join.name = n; gotoQr(); } });
+    } });
+}
+function gotoQr() {
+  var q = join.cfg.q, t = teamOf(join.team);
+  if (q) {
+    $('sqTitle').textContent = '팀 QR이 준비돼 있어요';
+    $('sqDesc').textContent = '팀에서 등록해 둔 결제 QR이에요. 바로 쓸 수 있어요.';
+    $('sqBox').innerHTML = '<div class="qrmini">' + qrSvg(q.c) + '</div><div class="code">' + esc(shortQr(q.c)) + '</div>';
+    $('btnSq').textContent = '시작하기';
+    $('btnSqLater').hidden = true;
+  } else {
+    $('sqTitle').textContent = t.name + ' QR 코드를 등록해 주세요';
+    $('sqDesc').textContent = '카페 결제 QR이 나온 화면 캡처나 사진을 골라 주세요. 한 번만 등록하면 팀원 모두의 앱에 같이 저장돼요.';
+    $('sqBox').innerHTML = '<div class="ill"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-1"/></svg></div>';
+    $('btnSq').textContent = 'QR 이미지 고르기';
+    $('btnSqLater').hidden = false;
+  }
+  step('qr');
+}
+function setupQrBtn() {
+  if (!join) return;
+  if (join.cfg.q) { finishSetup(''); return; }
+  pickQr({ title: teamOf(join.team).name + ' QR 코드', desc: '이 QR이 맞는지 확인해 주세요. 저장하면 팀원 모두의 앱에 같이 저장돼요.',
+    onSave: function (txt) { finishSetup(txt); } });
+}
+function finishSetup(newQr) {
+  var j = join;
+  if (!j || !j.name) return;
+  // 예전(1.1) 버전에서 이 폰에 쌓인 기록 중 '내 이름' 기록만 우리 팀으로 옮긴다
+  var mine = values(EV).filter(function (e) { return e.n === j.name; });
+  EV = {};
+  mine.forEach(function (e) { EV[e.id] = e; });
+  merge(j.events, null);
+  RELAY = {}; mineAt = 0;
+  TCFG = j.cfg; RCFG = j.rcfg;
+  if (newQr) TCFG.q = { c: newQr, at: secNow() };
+  ME = { team: j.team, name: j.name, at: nowMs() };
+  lsSet('me', ME);
+  lsSet('name', j.name);
+  persist();
+  join = null;
+  $('setup').classList.remove('show');
+  startApp();
+  toast(myTeam().name + ' ' + ME.name + ' 님, 환영해요!');
+}
+
+/* ---------------- 관리자 메뉴 (팀장) ---------------- */
+var adm = null;                   // {team, mine: 이 폰이 그 팀인가, cfg}
+function adminEntry(teamId) {
+  var t = teamOf(teamId), mine = !!ME && ME.team === teamId, got = null;
+  askPin({ title: t.name + ' 관리자 비밀번호', desc: '팀장님만 쓰는 메뉴예요.',
+    verify: async function (p) {
+      if (mine) { await sync(); return checkPin(teamId, TCFG, 'a', p); }
+      got = await fetchTeam(teamId);
+      return checkPin(teamId, got.cfg, 'a', p);
+    },
+    onOk: function () {
+      adm = { team: teamId, mine: mine, cfg: mine ? null : got.cfg };
+      $('admPage').classList.add('show'); $('admPage').scrollTop = 0;
+      renderAdmin(); paged();
+    } });
+}
+function closeAdmin() { closeCx(); closeRs(); adm = null; $('admPage').classList.remove('show'); paged(); }
+
+/* [QR 코드 사용취소] — 이번 달·지난달 팀 기록을 보고 관리자가 취소한다 */
+var cxOpen = false, cxMonth = '', cxWho = '';
+function openCx() { cxOpen = true; cxMonth = curMonth(); cxWho = ''; $('cxPage').classList.add('show'); $('cxPage').scrollTop = 0; renderCx(); paged(); }
+function closeCx() { cxOpen = false; $('cxPage').classList.remove('show'); paged(); }
+function renderCx() {
+  var cur = curMonth(), prev = shiftMonth(cur, -1), v = view(cxMonth);
+  setHtml('cxSeg', [cur, prev].map(function (m) { return '<button class="chip' + (m === cxMonth ? ' on' : '') + '" data-cxm="' + m + '">' + (m === cur ? '이번 달' : '지난달') + ' · ' + Number(m.split('-')[1]) + '월</button>'; }).join(''));
+  var who = byUse(v.people).filter(function (n) { return v.people[n].c || n === cxWho; });
+  setHtml('cxWho', '<button class="chip' + (cxWho ? '' : ' on') + '" data-cxw="">전체</button>' + who.map(function (n) {
+    return '<button class="chip' + (n === cxWho ? ' on' : '') + '" data-cxw="' + esc(n) + '">' + esc(n) + '</button>';
+  }).join(''));
+  var logs = v.logs.filter(function (e) { return !cxWho || e.n === cxWho; });
+  if (!logs.length) { setHtml('cxList', '<div class="card dcard"><div class="none" style="padding:18px 0">이 달에는 사용 기록이 없어요</div></div>'); return; }
+  var days = [], d = null;
+  logs.forEach(function (e) { var k = dayKey(e.at); if (!d || d.k !== k) { d = { k: k, at: e.at, list: [] }; days.push(d); } d.list.push(e); });
+  setHtml('cxList', days.map(function (d) {
+    return '<div class="card dcard"><div class="dh"><b>' + fmtDay(d.at) + '</b></div><ul class="logs">' +
+      d.list.map(function (e) { return logHtml(e, false, v.over, true); }).join('') + '</ul></div>';
+  }).join(''));
+}
+
+/* [초기화] — 매월 1일을 기다리지 않고 그 사람의 이번 달 횟수를 다시 10회로. 그 사람 폰에도 바로 반영된다 */
+var rsOpen = false;
+function openRs() { rsOpen = true; $('rsPage').classList.add('show'); $('rsPage').scrollTop = 0; renderRs(); paged(); }
+function closeRs() { rsOpen = false; $('rsPage').classList.remove('show'); paged(); }
+function renderRs() {
+  var v = view();
+  $('rsDesc').textContent = '초기화하면 그 사람의 이번 달 남은 횟수가 바로 ' + PER + '회로 다시 채워지고, 그 사람 휴대폰에도 바로 반영돼요. 지금까지 쓴 기록과 금액은 그대로 남아요.';
+  setHtml('rsList', byUse(v.people).map(function (n) {
+    var p = v.people[n], left = Math.max(0, PER - p.lim);
+    return '<div class="rrow">' + avHtml(n, true) + '<div class="rm"><b>' + esc(n) + (isAdminName(n) ? admTag() : '') + '</b>' +
+      '<small class="num">남은 횟수 ' + left + '/' + PER + ' · 이번 달 ' + p.c + '회 사용' + (p.rs ? ' · ' + fmtShort(p.rs) + ' 초기화함' : '') + '</small></div>' +
+      '<button class="rbtn" data-rs="' + esc(n) + '"' + (p.lim ? '' : ' disabled') + '>' + (p.lim ? '초기화' : PER + '회 그대로') + '</button></div>';
+  }).join(''));
+}
+function resetCount(n) {
+  var p = view().people[n];
+  if (!rsOpen || !p || !p.lim) return;
+  var by = adminName();
+  ask({ title: n + ' 님을 초기화하시겠습니까?', desc: '이번 달 ' + p.lim + '회 사용한 상태에서 남은 횟수를 ' + PER + '회로 다시 채웁니다.\n쓴 기록과 금액은 그대로 남고, 기록에 "관리자 ' + by + ' 초기화"가 표시돼요.',
+    yes: '네, 초기화합니다', no: '아니요',
+    onYes: function () {
+      var e = { id: rnd(10), n: n, at: secNow(), d: DEV, x: 0, r: 1, rb: by };
+      EV[e.id] = e;
+      persist();
+      render();
+      toast(n + ' 님의 이번 달 횟수를 ' + PER + '회로 초기화했어요.');
+      sync();
+    } });
+}
+function admCfg() { return adm.mine ? TCFG : adm.cfg; }
+function changedAt(f, dflt) { return f ? fmtDay(f.at) + ' ' + fmtTime(f.at) + '에 바꿨어요' : dflt; }
+function renderAdmin() {
+  if (!adm) return;
+  var t = teamOf(adm.team), c = admCfg();
+  $('admTi').style.background = t.color;
+  $('admTi').textContent = TEAMS.indexOf(t) + 1;
+  $('admTeam').textContent = t.name;
+  $('admP').textContent = changedAt(c.p, '처음 비밀번호 그대로예요');
+  $('admA').textContent = changedAt(c.a, '처음 비밀번호 그대로예요');
+  $('admQ').textContent = c.q ? '등록됨 · ' + shortQr(c.q.c) : '아직 등록 안 됐어요';
+  $('admMine').hidden = !adm.mine;
+  $('admOps').hidden = !adm.mine;          // 사용취소·초기화는 그 팀 폰에서 (팀 기록을 갖고 있어야 한다)
+  if (adm.mine) $('admMe').textContent = ME.name + ' 님 폰 · 팀·이름을 다시 정해요';
+}
+/** 바꾼 설정 올리기 → 공유됐으면 true */
+async function admSave(k, f) {
+  var a = adm;
+  if (!a) throw { msg: '관리자 메뉴를 다시 열어 주세요.' };
+  if (a.mine) {
+    TCFG[k] = f;
+    persist(); render();
+    await sync();
+    return !cfgNewer(TCFG, RCFG);
+  }
+  var cfg = copyCfg(a.cfg);
+  cfg[k] = f;
+  await req('POST', topicOf(a.team) + '?tags=' + DEV, await seal(pack([], a.team, cfg)));   // 그 팀 폰이 아니면 설정만 올린다
+  a.cfg = cfg;
+  renderAdmin();
+  return true;
+}
+function admDone(p, okMsg) {
+  p.then(function (shared) { toast(shared ? okMsg : '바꿨어요. 인터넷이 연결되면 팀에 공유돼요.'); renderAdmin(); },
+    function (e) { toast((e && e.msg) || '바꾸지 못했어요. 다시 시도해 주세요.'); });
+}
+function admChangePin(k) {
+  var label = k === 'p' ? '팀 비밀번호' : '관리자 비밀번호', team = adm.team;
+  askPin({ title: '새 ' + label, desc: '숫자 ' + PIN_MIN + '~' + PIN_MAX + '자리로 정해 주세요. 다 넣었으면 [확인]을 눌러요.', len: true,
+    onOk: function (p1) {
+      askPin({ title: '한 번 더 눌러 주세요', desc: '방금 넣은 새 ' + label + '(' + p1.length + '자리)를 한 번 더 눌러 주세요.', len: true,
+        verify: function (p2) { return Promise.resolve(p2 === p1 || '처음 넣은 것과 달라요. 다시 눌러 주세요.'); },
+        onOk: function () {
+          admDone(pinHash(team, k, p1).then(function (h) { return admSave(k, { h: h, at: secNow() }); }),
+            k === 'p' ? '팀 비밀번호를 바꿨어요. 새로 들어오는 팀원부터 새 비밀번호를 써요.' : '관리자 비밀번호를 바꿨어요.');
+        } });
+    } });
+}
+function admChangeQr() {
+  var t = teamOf(adm.team);
+  pickQr({ title: t.name + ' QR 코드', desc: '이 QR로 바꾸면 팀원 모두의 앱에서 QR이 바뀌어요.',
+    onSave: function (txt) { admDone(admSave('q', { c: txt, at: secNow() }), '팀 QR을 바꿨어요. 팀원들에게도 공유돼요.'); } });
+}
+function resetPhone() {
+  var n = pendingCount();
+  ask({ title: '이 폰을 초기화할까요?', danger: true, yes: '초기화',
+    desc: '이 폰의 팀·이름 설정과 저장된 기록을 지우고 처음 화면으로 돌아가요.\n팀 기록은 다른 팀원 폰과 중계 서버에 그대로 남아 있어요.' + (n ? '\n아직 못 보낸 기록 ' + n + '건은 사라져요.' : ''),
+    onYes: function () {
+      closeLive();
+      wiping = true;
+      ['me', 'events', 'relay', 'mineAt', 'tcfg', 'lastSync', 'name'].forEach(function (k) { try { localStorage.removeItem('cafeqr.' + k); } catch (e) {} });
+      native('saveSnap', '', '', DEV);
+      location.reload();
+    } });
+}
+
+/* ---------------- 커피 내기 게임 ----------------
+   coffee-game 앱(게임 6종)을 그대로 넣었다. 닫으면 iframe 을 비워 소리·애니메이션을 멈춘다. */
+var gameOpen = false;
+function openGame() {
+  gameOpen = true;
+  $('gameFrame').src = 'game.html';
+  $('gamev').classList.add('show');
+  paged();
+}
+function closeGame() {
+  if (!gameOpen) return;
+  gameOpen = false;
+  $('gamev').classList.remove('show');
+  setTimeout(function () { if (!gameOpen) $('gameFrame').src = 'about:blank'; }, 250);
+  paged();
+}
+
+/* ---------------- 전체 기록 ---------------- */
+var pageOpen = false, pageMonth = '', pageWho = '';
+function paged() { document.body.classList.toggle('paged', pageOpen || monOpen || !!adm || gameOpen); }
+function openLog(month) {
+  pageOpen = true; pageMonth = month || curMonth(); pageWho = '';
+  $('logPage').classList.add('show'); $('logPage').scrollTop = 0; renderLog(); paged();
+}
+function closeLog() { pageOpen = false; $('logPage').classList.remove('show'); paged(); }
+function oldestMonth() {
+  var m = curMonth();
+  values(EV).forEach(function (e) { var k = monthKey(e.at); if (k < m) m = k; });
+  return m;
+}
+function renderLog() {
+  var v = view(pageMonth);
+  $('mLabel').textContent = monthLabel(pageMonth);
+  $('mNext').disabled = pageMonth >= curMonth();
+  $('mPrev').disabled = pageMonth <= oldestMonth();
+  $('sUsed').innerHTML = v.used + '<span>회</span>';
+  if (v.isCur) { $('sRemainCap').textContent = '내 남은 횟수'; $('sRemain').innerHTML = v.remaining + '<span>/' + PER + '</span>'; }
+  else { $('sRemainCap').textContent = '내 사용'; $('sRemain').innerHTML = v.mine.c + '<span>/' + PER + '</span>'; }
+  $('sTotal').innerHTML = fmtNum(v.total) + '<span>원</span>';
+  setHtml('lPeople', peopleHtml(v.people));
+  $('lPeopleMeta').textContent = '한 사람당 한 달 ' + PER + '회';
+  setHtml('lMenu', menuStatsHtml(v.menus));
+  $('lMenuMeta').textContent = v.used ? '총 ' + v.used + '잔' : '';
+
+  // 사람 거르기: 전체 + 이 달에 기록이 있는 사람
+  var who = byUse(v.people).filter(function (n) { return v.people[n].c || n === pageWho; });
+  if (pageWho && who.indexOf(pageWho) < 0) pageWho = '';
+  setHtml('lFilter', who.length > 1 || pageWho ? '<button class="chip' + (pageWho ? '' : ' on') + '" data-who="">전체</button>' + who.map(function (n) {
+    return '<button class="chip' + (n === pageWho ? ' on' : '') + '" data-who="' + esc(n) + '">' + esc(n) + '</button>';
+  }).join('') : '');
+
+  var logs = v.logs.filter(function (e) { return !pageWho || e.n === pageWho; });
+  $('lMeta').textContent = logs.length ? logs.length + '건' : '';
+  if (!logs.length) { setHtml('lList', '<div class="card dcard"><div class="none" style="padding:18px 0">이 달에는 사용 기록이 없어요</div></div>'); return; }
+  // 날짜마다 카드 하나, 머리에 그날 합계
+  var days = [], cur = null;
+  logs.forEach(function (e) {
+    var dk = dayKey(e.at);
+    if (!cur || cur.k !== dk) { cur = { k: dk, at: e.at, list: [], c: 0, t: 0 }; days.push(cur); }
+    cur.list.push(e);
+    if (!e.x && !e.r) { cur.c++; cur.t += e.p || 0; }
+  });
+  setHtml('lList', days.map(function (d) {
+    return '<div class="card dcard"><div class="dh"><b>' + fmtDay(d.at) + '</b><span class="num">' + d.c + '회 · ' + won(d.t) + '</span></div>' +
+      '<ul class="logs">' + d.list.map(function (e) { return logHtml(e, false, v.over); }).join('') + '</ul></div>';
+  }).join(''));
+}
+function moveMonth(n) { pageMonth = shiftMonth(pageMonth, n); pageWho = ''; renderLog(); $('logPage').scrollTop = 0; }
+
+/* ---------------- 월별 내역 ---------------- */
+var monOpen = false;
+function openMonths() { monOpen = true; $('monPage').classList.add('show'); $('monPage').scrollTop = 0; renderMonths(); paged(); }
+function closeMonths() { monOpen = false; $('monPage').classList.remove('show'); paged(); }
+/** 이번 달 + 기록이 있는 달, 최근 달부터 */
+function knownMonths() {
+  var cur = curMonth(), set = {};
+  set[cur] = 1;
+  values(EV).forEach(function (e) { var k = monthKey(e.at); if (k <= cur) set[k] = 1; });
+  return Object.keys(set).sort().reverse();
+}
+function renderMonths() {
+  var now = view(), k = kd(nowMs());
+  $('mhLabel').textContent = myTeam().name + ' · ' + monthLabel(now.month) + ' 총 요금';
+  $('mhTotal').innerHTML = fmtNum(now.total) + '<span>원</span>';
+  $('mhSub').textContent = '팀 ' + now.used + '회 · 내 ' + now.mine.c + '회 ' + won(now.mine.t) + ' · ' + k.mo + '월 ' + new Date(Date.UTC(k.y, k.mo, 0)).getUTCDate() + '일까지';
+  var allC = 0, allT = 0;
+  setHtml('monList', knownMonths().map(function (mk) {
+    var v = view(mk);
+    allC += v.used; allT += v.total;
+    var ppl = byUse(v.people).filter(function (n) { return v.people[n].c; });
+    return '<div class="card mcard" role="button" data-month="' + mk + '">' +
+      '<div class="mc-h"><b>' + monthLabel(mk) + '</b>' + (v.isCur ? '<em class="tag me">진행 중</em>' : '') + '<span class="won num">' + won(v.total) + '</span></div>' +
+      '<div class="mc-s num">팀 ' + v.used + '회 사용' + (v.used ? ' · 1회 평균 ' + won(v.total / v.used) : '') + '</div>' +
+      (ppl.length ? '<div class="mc-p">' + ppl.map(function (n) {
+        return '<div><i class="dot" style="background:' + userColor(n) + '"></i>' + esc(n) + '<small class="num">' + v.people[n].c + '회</small><em class="num">' + won(v.people[n].t) + '</em></div>';
+      }).join('') + '</div>' : '') +
+      '<div class="mc-more">기록 보기 ›</div></div>';
+  }).join(''));
+  $('mAllMeta').textContent = '누적 ' + allC + '회 · ' + won(allT);
+}
+
+/* ---------------- 내보내기 (카톡·메일) ---------------- */
+function exportText() {
+  var v = view(pageMonth);
+  var lines = ['A카페 QR · ' + myTeam().name + ' 사용 기록 — ' + monthLabel(pageMonth), '팀 ' + v.used + '회 · 총 ' + won(v.total) + ' (한 사람당 한 달 ' + PER + '회)', '', '[사람별]'];
+  byUse(v.people).forEach(function (n) { lines.push('· ' + n + ' ' + v.people[n].c + '회 ' + won(v.people[n].t)); });
+  var ms = Object.keys(v.menus).sort(function (a, b) { return v.menus[b].c - v.menus[a].c; });
+  if (ms.length) { lines.push('', '[메뉴별]'); ms.forEach(function (m) { lines.push('· ' + m + ' ' + v.menus[m].c + '잔 ' + won(v.menus[m].t)); }); }
+  lines.push('', '[기록]');
+  v.logs.slice().reverse().forEach(function (e) {
+    if (e.r) { lines.push(fmtShort(e.at) + ' ' + fmtTime(e.at) + '  ' + e.n + '  횟수 초기화 (관리자 ' + (e.rb || '') + ')'); return; }
+    lines.push(fmtShort(e.at) + ' ' + fmtTime(e.at) + '  ' + e.n + (e.m ? '  ' + e.m + '  ' + won(e.p) : '') + (e.x ? '  (취소' + (e.xb ? ' · 관리자 ' + e.xb : '') + ')' : ''));
+  });
+  return lines.join('\n');
+}
+function exportMonths() {
+  var lines = ['A카페 QR · ' + myTeam().name + ' 월별 요금', ''], allC = 0, allT = 0;
+  knownMonths().forEach(function (mk) {
+    var v = view(mk);
+    allC += v.used; allT += v.total;
+    lines.push(monthLabel(mk) + '  ' + v.used + '회  ' + won(v.total));
+    byUse(v.people).forEach(function (n) { if (v.people[n].c) lines.push('   · ' + n + ' ' + v.people[n].c + '회 ' + won(v.people[n].t)); });
+  });
+  lines.push('', '누적 ' + allC + '회 · ' + won(allT));
+  return lines.join('\n');
+}
+function doExport(title, text) {
+  if (window.Native && window.Native.share) { native('share', title, text); return; }
+  if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast('기록을 복사했어요.'); });
+}
+
+/* ---------------- 설정 ---------------- */
+function openSettings() {
+  $('urlIn').value = relayBase();
+  var n = pendingCount();
+  var all = values(EV).length;
+  $('meInfo').innerHTML = [['팀', esc(myTeam().name)], ['이름', esc(ME.name) + (amAdmin() ? ' ' + admTag() : '')], ['한 달 횟수', '한 사람당 ' + PER + '회']]
+    .map(function (s) { return '<div><span>' + s[0] + '</span><b>' + s[1] + '</b></div>'; }).join('');
+  $('btnInvite').hidden = !CFG.webUrl;
+  var stats = [
+    ['연결', { ok: '실시간 공유 중', busy: '연결 중', off: '오프라인', err: '연결 오류' }[syncState] || '-'],
+    ['마지막 동기화', lastSync ? fmtDay(lastSync) + ' ' + fmtTime(lastSync) : '아직 없음'],
+    ['이 폰에 저장된 기록', all + '건'],
+    ['아직 못 보낸 기록', n + '건']
+  ];
+  if (syncErr && syncErr.msg) stats.push(['오류 내용', syncErr.msg]);
+  $('stats').innerHTML = stats.map(function (s) { return '<div><span>' + s[0] + '</span><b>' + esc(s[1]) + '</b></div>'; }).join('');
+  $('aboutInfo').textContent = 'A카페 QR v' + VERSION + ' · 이 폰 ID ' + DEV;
+  openSheet('setSheet');
+}
+
+/* ---------------- 시트·뒤로가기 ---------------- */
+/** keep = 열려 있던 비밀번호·QR 등록 상태를 지우지 않는다 (그 시트를 여는 쪽) */
+function openSheet(id, keep) {
+  if (!keep) { pin = null; }
+  closeSheets(true);
+  $(id).classList.add('show'); $('dim').classList.add('show');
+}
+function closeSheets(keepDim) {
+  [].forEach.call(document.querySelectorAll('.sheet.show'), function (s) { s.classList.remove('show'); });
+  if (!keepDim) $('dim').classList.remove('show');
+}
+function anySheet() { return !!document.querySelector('.sheet.show'); }
+function shown(id) { return $(id).classList.contains('show'); }
+/** 바깥 누름·뒤로가기로 시트 닫기 */
+function dismissSheet() {
+  if (shown('askSheet')) askDismiss();
+  else if (shown('pinSheet')) pinCancel();
+  else { if (shown('qrSheet')) qrPick = null; closeSheets(); }
+}
+
+/** 안드로이드 뒤로가기: 처리했으면 true, 홈이면 false(앱 종료) */
+window.appBack = function () {
+  if (upShown()) { upClose(); return true; }
+  if (popShown()) { popClose(); return true; }
+  if (anySheet()) { dismissSheet(); return true; }
+  if (qrSess) { leaveQr(); return true; }
+  if (gameOpen) { closeGame(); return true; }
+  if (cxOpen) { closeCx(); return true; }
+  if (rsOpen) { closeRs(); return true; }
+  if (adm) { closeAdmin(); return true; }
+  if (pageOpen) { closeLog(); return true; }
+  if (monOpen) { closeMonths(); return true; }
+  if (!ME && setupStep === 'qr') { step('name'); return true; }
+  if (!ME && setupStep === 'name') { step('team'); return true; }
+  return false;
+};
+window.appResume = function () { if (ME) { openLive(); sync(); } };
+window.appPause = function () { closeLive(); };
+
+/* ---------------- 이벤트 ---------------- */
+$('btnUse').onclick = openUseSheet;
+$('btnGame').onclick = openGame;
+$('noQr').onclick = registerMyQr;
+$('btnGo').onclick = startUse;
+$('menuPick').onclick = function (e) {
+  var b = e.target.closest('[data-menu]');
+  if (b) { pick.m = +b.getAttribute('data-menu'); syncPick(); }
+};
+$('dim').onclick = dismissSheet;
+$('askNo').onclick = askDismiss;
+$('askYes').onclick = function () { var cb = askCb; askCb = askNoCb = null; closeSheets(); if (cb) cb(); };
+$('popOk').onclick = popClose;
+$('pop').onclick = function (e) { if (e.target === this) popClose(); };
+$('pinKeys').onclick = function (e) { var b = e.target.closest('[data-k]'); if (b) pinKey(b.getAttribute('data-k')); };
+document.addEventListener('keydown', function (e) {        // PC에서 테스트할 때 키보드 숫자로도 누를 수 있게
+  if (!pin || !shown('pinSheet')) return;
+  if (/^[0-9]$/.test(e.key)) { pinKey(e.key); e.preventDefault(); }
+  else if (e.key === 'Backspace') { pinKey('del'); e.preventDefault(); }
+  else if (e.key === 'Enter') { pinKey('ok'); e.preventDefault(); }
+  else if (e.key === 'Escape') pinCancel();
+});
+$('qrFile').onchange = onQrFile;
+$('qsPick').onclick = function () { if (qrPick) pickQr(qrPick); };
+$('qsSave').onclick = function () { var o = qrPick, t = qsFound; if (!o || !t) return; qrPick = null; closeSheets(); o.onSave(t); };
+$('teamList').onclick = function (e) { var b = e.target.closest('[data-team]'); if (b) chooseTeam(b.getAttribute('data-team')); };
+$('btnAdmSetup').onclick = function () {
+  $('admTeams').innerHTML = TEAMS.map(function (t, i) {
+    return '<button class="team" data-team="' + esc(t.id) + '"><span class="ti" style="background:' + t.color + '">' + (i + 1) + '</span><span><b>' + esc(t.name) + '</b><small>관리자 비밀번호로 들어가요</small></span></button>';
+  }).join('');
+  openSheet('teamSheet');
+};
+$('admTeams').onclick = function (e) { var b = e.target.closest('[data-team]'); if (b) adminEntry(b.getAttribute('data-team')); };
+$('nameIn').oninput = syncName;
+$('nameIn').onkeydown = function (e) { if (e.key === 'Enter' && !e.isComposing) confirmName(); };
+$('memberPick').onclick = function (e) { var b = e.target.closest('[data-name]'); if (b) { namePick = b.getAttribute('data-name'); syncName(); } };
+$('btnOther').onclick = function () { nameOther = !nameOther; syncName(); if (nameOther) $('nameIn').focus(); };
+$('btnName').onclick = confirmName;
+$('btnSq').onclick = setupQrBtn;
+$('btnSqLater').onclick = function () { finishSetup(''); };
+$('btnLog').onclick = function () { openLog(); };
+$('btnMonths').onclick = openMonths;
+$('monList').onclick = function (e) {
+  var c = e.target.closest('[data-month]');
+  if (c) openLog(c.getAttribute('data-month'));
+};
+$('lFilter').onclick = function (e) {
+  var c = e.target.closest('[data-who]');
+  if (c) { pageWho = c.getAttribute('data-who'); renderLog(); }
+};
+$('btnExport').onclick = function () { doExport(monthLabel(pageMonth) + ' 사용 기록', exportText()); };
+$('btnExportM').onclick = function () { doExport('월별 요금', exportMonths()); };
+$('mPrev').onclick = function () { moveMonth(-1); };
+$('mNext').onclick = function () { moveMonth(1); };
+$('upYes').onclick = confirmUse;
+$('upNo').onclick = upClose;
+$('usePop').onclick = function (e) { if (e.target === this) upClose(); };
+$('btnInvite').onclick = function () { closeSheets(); sendInvite(); };
+$('btnInv').onclick = submitInvite;
+$('invIn').onkeydown = function (e) { if (e.key === 'Enter' && !e.isComposing) submitInvite(); };
+$('sync').onclick = function () { if (syncErr && syncState !== 'ok') toast(syncErr.msg); sync(); };
+$('btnSet').onclick = openSettings;
+$('btnAdmin').onclick = function () { closeSheets(); adminEntry(ME.team); };
+$('btnSyncNow').onclick = function () { closeSheets(); sync().then(function () { toast(syncState === 'ok' ? '최신 기록으로 맞췄어요.' : (syncErr && syncErr.msg) || '동기화하지 못했어요.'); }); };
+$('btnSave').onclick = function () {
+  var u = $('urlIn').value.trim().replace(/\/+$/, '');
+  if (u && !/^https:\/\/[^\s/]+/.test(u)) { toast('https:// 로 시작하는 주소를 넣어 주세요.'); return; }
+  lsSet('relayUrl', u && u !== CFG.relay ? u : '');
+  RELAY = {}; mineAt = 0; RCFG = {}; persist();
+  closeLive(); openLive();
+  closeSheets(); sync(); toast('저장했어요.');
+};
+document.addEventListener('click', function (e) {
+  var st = e.target.closest('[data-step]');
+  if (st) { step(st.getAttribute('data-step')); return; }
+  var a = e.target.closest('[data-adm]');
+  if (a && adm) {
+    var k = a.getAttribute('data-adm');
+    if (k === 'q') admChangeQr(); else if (k === 'reset') resetPhone(); else if (k === 'cancel') openCx(); else if (k === 'count') openRs(); else admChangePin(k);
+    return;
+  }
+  var cm = e.target.closest('[data-cxm]');
+  if (cm) { cxMonth = cm.getAttribute('data-cxm'); cxWho = ''; renderCx(); return; }
+  var cw = e.target.closest('[data-cxw]');
+  if (cw) { cxWho = cw.getAttribute('data-cxw'); renderCx(); return; }
+  var rb = e.target.closest('[data-rs]');
+  if (rb) { resetCount(rb.getAttribute('data-rs')); return; }
+  var x = e.target.closest('[data-close]');
+  if (x) { var w = x.getAttribute('data-close'); if (w === 'qr') leaveQr(); else if (w === 'log') closeLog(); else if (w === 'months') closeMonths(); else if (w === 'adm') closeAdmin(); else if (w === 'cx') closeCx(); else if (w === 'rs') closeRs(); else if (w === 'game') closeGame(); return; }
+  var c = e.target.closest('[data-cancel]');
+  if (c) cancelUse(c.getAttribute('data-cancel'));
+});
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) closeLive(); else if (ME) { openLive(); sync(); }
+});
+
+/* ---------------- 시작 ---------------- */
+var started = false;
+function startApp() {
+  $('syncWho').textContent = ' · ' + myTeam().name;
+  setSync('busy');
+  render();
+  openLive();
+  sync();
+  if (started) return;
+  started = true;
+  setInterval(function () { if (ME && !document.hidden) sync(); }, FULL_POLL_MS);                // 5분마다 전체 확인
+  setInterval(function () { if (ME && !document.hidden && !liveOk) sync(); }, 30000);            // 실시간 연결이 끊겼을 때만 30초마다
+  setInterval(function () { if (ME && !document.hidden) render(); }, 30000);                     // 취소 가능 시간·달 바뀜 반영
+}
+if (ME) startApp(); else showSetup();
+if (!window.Native && location.protocol === 'https:' && navigator.serviceWorker) navigator.serviceWorker.register('sw.js').catch(function () {});
+})();
+</script>
+</body>
+</html>
