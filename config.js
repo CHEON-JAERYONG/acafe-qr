@@ -51,5 +51,6 @@ window.CAFE_CONFIG = {
       "name": "복숭아 아이스티",
       "price": 3000
     }
-  ]
+  ],
+  "roster": "A0:E7/q10hkeChCSCxGPcps9CIyW1WGghNIUkqTfJKueKqcmgQ8ShygcTwPocuFSHdbjHkmFK5EaGlpzDOnhopSkNj+BWKtPfb4Q8kgWTf1wOxJ68vOJe16vGXP1nLp5AE2BbwkZkWn+Rg0290ACySw07Vn/3+02IeHK1Lli+tknwPvOvepxC0n4mpYMMioPCUwPoILM0HiEU6R1J/7ek+xQPPxvPGjaiw1oyqV1+9UIJVfvYAiTXnnP0pohAgo+7WDc+PQLplxjQ0aaPfdaZ8s6AnXYWm560P4qroVDYubQIwqfVoz1kEMNCrdH6h+UFP6cJihZA=="
 };

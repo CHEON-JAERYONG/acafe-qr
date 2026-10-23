@@ -310,10 +310,11 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 .sp{margin:0 0 20px;color:var(--ink2);font-size:15px}
 .stop{display:flex;align-items:center;gap:6px;height:56px;margin:6px 0 0 -8px}
 .teams{display:flex;flex-direction:column;gap:12px}
-.team{display:flex;align-items:center;gap:14px;width:100%;padding:18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);text-align:left}
+.team{display:flex;align-items:center;gap:14px;width:100%;min-height:76px;padding:20px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);text-align:left}
+.tbar{width:6px;height:36px;border-radius:9px;flex:none}
 .team:active{transform:scale(.99)}
 .ti{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;color:#fff;font-size:20px;font-weight:800;flex:none}
-.team b{display:block;font-size:19px;font-weight:800}
+.team b{display:block;font-size:20px;font-weight:800;letter-spacing:-.3px}
 .team small{display:block;margin-top:2px;font-size:13px;font-weight:600;color:var(--ink2)}
 .chev{margin-left:auto;color:var(--ink3);flex:none}
 .admlink{display:block;margin:28px auto 0;padding:10px 14px;font-size:14px;font-weight:600;color:var(--ink2)}
@@ -328,7 +329,8 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 
 /* ---------- 커피 게임 ---------- */
 .trow{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}
-.gchip{display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 10px 0 7px;border-radius:99px;background:#241a4a;color:#fff;font-size:12.5px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;flex:none;box-shadow:0 2px 8px rgba(36,26,74,.28)}
+.gchip{position:relative;display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 14px 0 11px;border-radius:99px;background:#241a4a;color:#fff;font-size:14px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;flex:none;box-shadow:0 3px 10px rgba(36,26,74,.3)}
+.gchip::after{content:'';position:absolute;inset:-7px -5px}   /* 손가락이 살짝 빗나가도 눌리게 */
 .gchip:active{transform:scale(.95)}
 .gamev{position:fixed;inset:0;z-index:40;background:#0f1226;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .22s cubic-bezier(.3,.8,.3,1)}
 .gamev.show{transform:none}
@@ -756,7 +758,9 @@ function parseInvite(txt) {
   return { t: m[1], k: unb64url(m[2]) };
 }
 (function () {
-  var inv = parseInvite(decodeURIComponent(location.hash || ''));
+  var inv = parseInvite(decodeURIComponent(location.hash || '')), prev = lsGet('invite', null);
+  // 다른 채널의 초대(예: 테스트 → 실제)로 들어오면, 예전 채널의 팀·이름·기록을 새 채널로 가져가지 않게 비운다
+  if (inv && prev && prev.t !== inv.t) ['me', 'events', 'relay', 'mineAt', 'tcfg', 'lastSync', 'roster'].forEach(function (k) { try { localStorage.removeItem('cafeqr.' + k); } catch (e) {} });
   if (inv) lsSet('invite', inv);   // 주소 뒤의 #join= 은 지우지 않는다 → 아이폰 '홈 화면에 추가'가 이 주소째로 저장해서 홈 화면 앱도 코드를 받는다
   if (!CFG.key || !CFG.topic) { var saved = lsGet('invite', null); if (saved && saved.t && saved.k) { CFG.topic = saved.t; CFG.key = saved.k; } }
 })();
@@ -776,6 +780,17 @@ function applyRoster(team, mb) {
   return true;
 }
 TEAMS.forEach(function (t) { var r = ROSTER[t.id]; if (r) applyRoster(t.id, [r.m, r.a]); });
+/* 아이폰(웹) 버전 config.js 에는 팀원 명단이 암호화돼서 들어 있다(CFG.roster) — 초대 코드의 키가 있어야 풀린다.
+   그래서 안드로이드 폰이 아직 명단을 안 보냈어도 처음부터 이름을 고를 수 있다. */
+function openSealedRoster() {
+  if (!CFG.roster || !CFG.key || !window.crypto || !crypto.subtle) return;
+  unseal(CFG.roster).then(function (r) {
+    if (!r || typeof r !== 'object') return;
+    var ch = false;
+    Object.keys(r).forEach(function (id) { if (r[id] && applyRoster(id, [r[id].m, r[id].a])) ch = true; });
+    if (ch && ME) render();
+  });
+}
 
 var DEV = lsGet('dev', '');
 if (!DEV) { DEV = 'd' + rnd(9); lsSet('dev', DEV); }
@@ -1608,12 +1623,14 @@ function registerMyQr() {
 
 /* ---------------- 처음 설정: 팀 → 비밀번호 → 이름 → 팀 QR ---------------- */
 var join = null;                  // 설정 중인 팀 {team, cfg, rcfg, events, name}
+/** 팀 고르기 카드 — 번호 없이 팀 이름만 */
+function teamCard(t) {
+  return '<button class="team" data-team="' + esc(t.id) + '"><span class="tbar" style="background:' + t.color + '"></span><b>' + esc(t.name) + '</b><svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>';
+}
 var setupStep = '';
 function showSetup() {
   $('teamList').innerHTML = TEAMS.map(function (t, i) {
-    return '<button class="team" data-team="' + esc(t.id) + '"><span class="ti" style="background:' + t.color + '">' + (i + 1) + '</span>' +
-      '<span><b>' + esc(t.name) + '</b><small>' + (t.members.length ? t.members.length + '명 · ' : '') + '팀 비밀번호를 넣고 들어가요</small></span>' +
-      '<svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>';
+    return teamCard(t);
   }).join('');
   $('setup').classList.add('show');
   step(CFG.key && CFG.topic ? 'team' : 'invite');
@@ -1623,6 +1640,7 @@ function submitInvite() {
   if (!inv) { toast('초대 코드가 맞지 않아요. 받은 코드를 그대로 붙여 넣어 주세요.'); return; }
   lsSet('invite', inv);
   CFG.topic = inv.t; CFG.key = inv.k; keyP = null;
+  openSealedRoster();
   $('invIn').blur();
   step('team');
 }
@@ -1823,7 +1841,7 @@ function renderAdmin() {
   if (!adm) return;
   var t = teamOf(adm.team), c = admCfg();
   $('admTi').style.background = t.color;
-  $('admTi').textContent = TEAMS.indexOf(t) + 1;
+  $('admTi').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5z"/></svg>';
   $('admTeam').textContent = t.name;
   $('admP').textContent = changedAt(c.p, '처음 비밀번호 그대로예요');
   $('admA').textContent = changedAt(c.a, '처음 비밀번호 그대로예요');
@@ -2102,7 +2120,7 @@ $('qsSave').onclick = function () { var o = qrPick, t = qsFound; if (!o || !t) r
 $('teamList').onclick = function (e) { var b = e.target.closest('[data-team]'); if (b) chooseTeam(b.getAttribute('data-team')); };
 $('btnAdmSetup').onclick = function () {
   $('admTeams').innerHTML = TEAMS.map(function (t, i) {
-    return '<button class="team" data-team="' + esc(t.id) + '"><span class="ti" style="background:' + t.color + '">' + (i + 1) + '</span><span><b>' + esc(t.name) + '</b><small>관리자 비밀번호로 들어가요</small></span></button>';
+    return teamCard(t);
   }).join('');
   openSheet('teamSheet');
 };
@@ -2184,6 +2202,7 @@ function startApp() {
   setInterval(function () { if (ME && !document.hidden && !liveOk) sync(); }, 30000);            // 실시간 연결이 끊겼을 때만 30초마다
   setInterval(function () { if (ME && !document.hidden) render(); }, 30000);                     // 취소 가능 시간·달 바뀜 반영
 }
+openSealedRoster();
 if (ME) startApp(); else showSetup();
 if (!window.Native && location.protocol === 'https:' && navigator.serviceWorker) navigator.serviceWorker.register('sw.js').catch(function () {});
 })();
