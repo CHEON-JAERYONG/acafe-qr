@@ -229,7 +229,7 @@ body{
      유지한 '틀'을 화면보다 크게 잡아 가운데 두고, 그 안에서 %로 배치한다.
      틀이 화면 밖으로 넘치는 부분은 #splash 의 overflow:hidden 이 잘라낸다. */
 #splash{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#180d05;
-  opacity:1;transition:opacity .55s ease;}
+  opacity:1;transition:opacity .3s ease;}   /* A카페 QR: .55s → .3s (3초 안에 열리게) */
 #splash.gone{opacity:0;pointer-events:none;}
 .sp-frame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:max(100vw, 100vh * 941 / 1672);
@@ -274,7 +274,7 @@ body{
   background:linear-gradient(90deg,#ffd76f,#ff9a8b,#ff758c,#ffd76f);
   background-size:220% 100%;animation:spFlow 1.3s linear infinite;
   box-shadow:0 0 14px rgba(255,168,120,.8);
-  transition:width .09s linear;}      /* 한 칸(1%)씩 딱딱 끊기지 않게 살짝만 흘린다 */
+  transition:width .05s linear;}      /* 한 칸(1%)씩 딱딱 끊기지 않게 살짝만 흘린다 */
 @keyframes spFlow{to{background-position:220% 0;}}
 .sp-glint{position:absolute;right:0;top:0;bottom:0;width:22px;
   background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.9));filter:blur(1.5px);}
@@ -287,9 +287,9 @@ body{
 <body>
 <div id="splash">
   <div class="sp-frame">
-    <img class="sp-bg" src="splash.png" alt="">
-    <div class="sp-soft"><img src="splash.png" alt=""></div>
-    <img class="sp-logo" src="logo.png" alt="커피내기 게임">
+    <img class="sp-bg" src="splash.webp" alt="">
+    <div class="sp-soft"><img src="splash.webp" alt=""></div>
+    <img class="sp-logo" src="logo.webp" alt="커피내기 게임">
   </div>
   <div class="sp-load">
     <div class="sp-bar"><div class="sp-fill" id="spFill"><div class="sp-glint"></div></div></div>
@@ -3281,23 +3281,25 @@ loadPlayers();renderHome();
       setTimeout(()=>sp.remove(),650);
     };
     /* 등속이면 기계적이라, 사람이 아는 그 리듬으로 — 처음엔 뜸 들이고 중반엔
-       쭉쭉, 90% 넘어가면 다시 느려지고, 중간중간 살짝 걸린다. 총 3.7초쯤. */
+       쭉쭉, 90% 넘어가면 다시 느려지고, 중간중간 살짝 걸린다.
+       ★ A카페 QR 안에서는 3초 안에 열려야 해서 같은 리듬을 약 1/3로 줄였다 (원래 총 3.7초 → 1.2초쯤). */
     const delayFor=p=>{
-      let d = p<8 ? 52 : p<70 ? 22 : p<90 ? 36 : 52;
-      if(p===37||p===63||p===88) d+=240;
+      let d = p<8 ? 16 : p<70 ? 7 : p<90 ? 12 : 16;
+      if(p===37||p===63||p===88) d+=70;
       return d;
     };
     const step=()=>{
       pct++; paint();
-      if(pct>=100){ setTimeout(hide,520); return; }   // 100% 를 잠깐 보여주고 넘어간다
+      if(pct>=100){ setTimeout(hide,180); return; }   // 100% 를 잠깐 보여주고 넘어간다
       setTimeout(step, delayFor(pct));
     };
     /* onload 와 타임아웃 폴백이 둘 다 터질 수 있다 — 한 번만 시작하게 잠근다.
        (두 번 돌면 setTimeout 체인이 2개가 되어 숫자가 2씩 뛴다) */
     let started=false;
-    const start=()=>{ if(started)return; started=true; paint(); setTimeout(step,260); };
+    const start=()=>{ if(started)return; started=true; paint(); setTimeout(step,60); };
     const bg=sp.querySelector(".sp-bg");
-    if(bg&&!bg.complete){bg.onload=start;bg.onerror=start;setTimeout(start,2500);}
+    /* A카페 QR: 그림이 늦게 와도 0.5초 넘게는 안 기다린다 (그림은 받아지는 대로 뒤에서 나타난다) */
+    if(bg&&!bg.complete){bg.onload=start;bg.onerror=start;setTimeout(start,500);}
     else start();
     /* 터치는 화면을 닫지 않는다. 다만 이 제스처로 오디오 잠금만 풀어 둔다. */
     sp.addEventListener("pointerdown",()=>{try{ac();}catch(e){}},{passive:true});
