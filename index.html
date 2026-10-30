@@ -7,10 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="A카페 QR">
+<meta name="apple-mobile-web-app-title" content="A카페">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>A카페 QR</title>
+<title>A카페</title>
 <style>
 :root{
   --bg:#F6F1EA; --card:#FFFFFF; --ink:#2A1E16; --ink2:#6F6055; --ink3:#A39586; --line:#ECE2D7;
@@ -130,6 +130,9 @@ input{font:inherit;color:inherit;user-select:text;-webkit-user-select:text}
 .stats div:first-child{border-top:0}
 .stats span{color:var(--ink2)}
 .stats b{text-align:right}
+.stats b.ok{color:var(--ok)}
+.stats b.new{color:var(--brand)}
+.stats b.bad{color:var(--bad)}
 .mini{flex:none;font-size:12.5px;font-weight:700;color:var(--bad);border:1px solid #EBC3BE;border-radius:9px;padding:5px 9px}
 .foot{margin:18px 4px 0;text-align:center;font-size:13px;color:var(--ink2)}
 
@@ -155,6 +158,7 @@ input{font:inherit;color:inherit;user-select:text;-webkit-user-select:text}
 .btn.danger{background:var(--bad)}
 .row2{display:flex;gap:10px}
 .row2 .btn{flex:1}
+.row2.sm .btn{font-size:15px;letter-spacing:-.4px;white-space:nowrap;padding:0 6px}   /* 좁은 폰에서 두 버튼 글씨가 넘치지 않게 */
 label.lb{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin:16px 0 6px}
 .lb.first{margin-top:4px}
 
@@ -175,6 +179,9 @@ label.lb{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin:1
 .menub.on{background:var(--brandSoft);border-color:var(--brand)}
 .menub.on .mp{color:var(--brand)}
 .hint{font-size:12.5px;color:var(--ink2);margin-top:6px;line-height:1.5;word-break:break-all}
+.updbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:2px 0 8px}
+.updbar i{display:block;height:100%;width:0;background:var(--brand);transition:width .3s}
+#updSt{white-space:pre-line;word-break:keep-all;margin:0 0 4px}
 
 /* 비밀번호 키패드 */
 .dots{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;min-height:24px;margin:20px 0 8px}
@@ -182,6 +189,8 @@ label.lb{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin:1
 .dots.many{gap:8px}
 .dots.many i{width:13px;height:13px}
 .dots .ph{font-size:14px;font-weight:600;color:var(--ink3)}
+.dots .pv{font-size:30px;font-weight:800;letter-spacing:5px;line-height:1;font-variant-numeric:tabular-nums;word-break:break-all;text-align:center}   /* 새 비밀번호는 숫자를 그대로 보여 준다 */
+.dots.many .pv{font-size:24px;letter-spacing:3px}
 .pinlen{margin:-2px 0 4px;text-align:center;font-size:13px;font-weight:700;color:var(--ink3)}
 .pinlen.ok{color:var(--ok)}
 .dots.bad{animation:shake .35s}
@@ -297,6 +306,17 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 .mc-p small{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ink3)}
 .mc-p em{min-width:66px;text-align:right;font-style:normal;font-weight:800}
 .mc-more{margin-top:10px;text-align:right;font-size:13px;font-weight:700;color:var(--brand)}
+.mc-h .tdot{width:10px;height:10px;border-radius:50%;flex:none}
+.tbar2{margin-top:10px;height:8px;border-radius:99px;background:#F3ECE5;overflow:hidden}
+.tbar2 i{display:block;height:100%;border-radius:99px}
+/* 총관리자: 홈의 전체 팀 현황 카드 */
+.allc{margin-top:14px;display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:16px 18px}
+.allc .ai{width:42px;height:42px;border-radius:13px;background:#FFF3D6;color:#9A6A00;display:grid;place-items:center;flex:none}
+.allc .ai .crown{width:22px;height:22px}
+.allc .at{flex:1;min-width:0}
+.allc .at b{display:block;font-size:16px;font-weight:800}
+.allc .at small{display:block;margin-top:2px;font-size:13px;font-weight:600;color:var(--ink2)}
+.allc .go{flex:none;font-weight:800;color:var(--brand)}
 
 /* ---------- 처음 설정 (팀 → 비밀번호 → 이름 → 팀 QR) ---------- */
 .setup{position:fixed;inset:0;z-index:14;background:var(--bg);overflow:auto;display:none}
@@ -382,7 +402,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
   <header class="top">
     <div class="brand">
       <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5v2M12 2.5v2"/></svg></span>
-      <span class="bt"><span class="trow"><span class="tt">A카페 QR</span><button class="gchip" id="btnGame" aria-label="커피 내기 게임">🎲 커피게임</button></span>
+      <span class="bt"><span class="trow"><span class="tt">A카페</span><button class="gchip" id="btnGame" aria-label="커피 내기 게임">🎲 커피게임</button></span>
         <button class="sync" id="sync" data-s="busy"><i></i><span id="syncText">연결 중…</span><span id="syncWho"></span></button></span>
     </div>
     <div class="top-r">
@@ -398,16 +418,16 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
         <circle class="fg" id="ringFg" cx="100" cy="100" r="86" fill="none" stroke-width="16" stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="0"/></svg>
       <div class="mid">
         <div class="val num"><b id="remain">10</b><span id="maxv">/10</span></div>
-        <div class="cap">이번 달 남은 횟수</div>
+        <div class="cap">이번 달 팀 남은 횟수</div>
       </div>
     </div>
-    <div class="hsum num"><span><b id="hUsed">0</b>회 사용</span><i></i><span class="tot">내 요금 <b id="hTotal">0원</b></span></div>
+    <div class="hsum num"><span>내 사용 <b id="hUsed">0</b>회</span><i></i><span class="tot">내 요금 <b id="hTotal">0원</b></span></div>
     <button class="use" id="btnUse">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-1"/></svg>
       QR 사용하기
     </button>
     <div class="soldout" id="soldout" hidden>
-      이번 달 <span id="soldMax">10</span>회를 모두 사용했어요.
+      우리 팀 이번 달 <span id="soldMax">10</span>회를 모두 사용했어요.
       <b>이번달은 더이상 이용하실 수 없습니다.</b>
       <small id="soldNext"></small>
     </div>
@@ -415,6 +435,11 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
       <span><b>팀 QR이 아직 없어요</b>결제 QR 이미지를 한 번 등록하면 팀원 모두 쓸 수 있어요.</span><span class="go">등록 ›</span>
     </button>
   </section>
+
+  <button class="card allc" id="btnAll" hidden>
+    <span class="ai"><svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5z"/></svg></span>
+    <span class="at"><b>전체 팀 사용 현황</b><small id="allSum"></small></span><span class="go">보기 ›</span>
+  </button>
 
   <section class="card sec">
     <div class="sec-h"><h2>이번 달 우리 팀</h2><span class="meta num" id="usedMeta"></span></div>
@@ -486,7 +511,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
     </div>
     <section class="card sum3 num">
       <div><small>팀 사용</small><b id="sUsed">0<span>회</span></b></div>
-      <div><small id="sRemainCap">내 남은 횟수</small><b id="sRemain">10<span>/10</span></b></div>
+      <div><small id="sRemainCap">팀 남은 횟수</small><b id="sRemain">10<span>/10</span></b></div>
       <div class="tot"><small>팀 총 요금</small><b id="sTotal">0<span>원</span></b></div>
     </section>
     <section class="card sec">
@@ -524,6 +549,29 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
   </div>
 </div>
 
+<!-- 총관리자: 전체 팀 현황 -->
+<div class="page" id="allPage">
+  <div class="wrap">
+    <header class="top">
+      <button class="icon-btn" data-close="all" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <b class="ttl" id="aTitle">전체 팀 현황</b>
+      <button class="icon-btn" id="btnExportA" aria-label="전체 팀 현황 내보내기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>
+    </header>
+    <div class="mnav">
+      <button id="aPrev" aria-label="이전 달">‹</button>
+      <b id="aLabel"></b>
+      <button id="aNext" aria-label="다음 달">›</button>
+    </div>
+    <section class="card sum3 num">
+      <div><small id="aUsedCap">전체 사용</small><b id="aUsed">0<span>회</span></b></div>
+      <div><small id="aRemainCap">전체 남은 횟수</small><b id="aRemain">0</b></div>
+      <div class="tot"><small id="aTotalCap">전체 요금</small><b id="aTotal">0<span>원</span></b></div>
+    </section>
+    <div id="aBody"></div>
+    <p class="foot" id="aFoot"></p>
+  </div>
+</div>
+
 <!-- 관리자 메뉴 (팀장) -->
 <div class="page" id="admPage">
   <div class="wrap">
@@ -545,7 +593,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
       <button class="arow" data-adm="cancel"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span>
         <span class="at"><b>QR 코드 사용취소</b><small>팀원들의 사용 기록을 보고 취소해요</small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
       <button class="arow" data-adm="count"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></span>
-        <span class="at"><b>초기화</b><small>팀원의 이번 달 횟수를 언제든 다시 채워요</small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <span class="at"><b>팀 횟수 초기화</b><small>이번 달 팀 남은 횟수를 언제든 다시 채워요</small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
     </section>
     <section class="card sec alist" id="admMine">
       <button class="arow danger" data-adm="reset"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></span>
@@ -564,7 +612,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
       <span style="width:40px"></span>
     </header>
     <section class="card ahead"><b>취소할 기록을 선택해 주세요</b>
-      <p>취소하면 그 사람의 횟수가 1회 돌아오고, 기록 옆에 "관리자 ○○○ 취소"가 남습니다. 취소는 관리자만 할 수 있어요.</p></section>
+      <p>취소하면 팀 횟수가 1회 돌아오고, 기록 옆에 "관리자 ○○○ 취소"가 남습니다. 취소는 관리자만 할 수 있어요.</p></section>
     <div class="seg" id="cxSeg"></div>
     <div class="fchips" id="cxWho"></div>
     <div id="cxList"></div>
@@ -576,10 +624,10 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
   <div class="wrap">
     <header class="top">
       <button class="icon-btn" data-close="rs" aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <b class="ttl">초기화</b>
+      <b class="ttl">팀 횟수 초기화</b>
       <span style="width:40px"></span>
     </header>
-    <section class="card ahead"><b>사용자 누구를 초기화하시겠습니까?</b>
+    <section class="card ahead"><b>팀 횟수를 다시 채울까요?</b>
       <p id="rsDesc"></p></section>
     <section class="card sec" style="padding:4px 16px"><div id="rsList"></div></section>
     <p class="foot">매월 1일 0시 자동 초기화는 그대로 진행돼요.</p>
@@ -588,7 +636,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 
 <!-- 커피 내기 게임 -->
 <div class="gamev" id="gamev">
-  <div class="gbar"><button data-close="game"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>A카페 QR로 돌아가기</button></div>
+  <div class="gbar"><button data-close="game"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>A카페로 돌아가기</button></div>
   <iframe id="gameFrame" title="커피 내기 게임" allow="autoplay"></iframe>
 </div>
 
@@ -652,15 +700,37 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
   <div class="grab"></div>
   <h3>설정</h3>
   <div class="stats" id="meInfo"></div>
-  <div class="row2"><button class="btn ghost" id="btnAdmin" style="margin-top:10px">팀장 관리자 메뉴</button><button class="btn ghost" id="btnInvite" style="margin-top:10px">아이폰 팀원 초대</button></div>
+  <div class="row2 sm"><button class="btn ghost" id="btnAdmin" style="margin-top:10px">팀장 관리자 메뉴</button><button class="btn ghost" id="btnInvite" style="margin-top:10px">아이폰 팀원 초대</button></div>
   <label class="lb">공유 상태</label>
   <div class="stats" id="stats"></div>
   <p class="hint">기록은 팀원 폰에 각각 저장되고, 무료 공개 중계 서버(가입·비용 없음)를 거쳐 서로 주고받아요.
     중계 서버에는 암호화된 내용만 올라가서 이름과 시간은 우리 앱만 읽을 수 있어요.</p>
   <label class="lb" for="urlIn">중계 서버 주소 (보통은 바꿀 필요 없어요)</label>
   <input class="field sm" id="urlIn" placeholder="https://ntfy.sh" autocomplete="off" spellcheck="false">
-  <div class="row2"><button class="btn ghost" id="btnSave">주소 저장</button><button class="btn" id="btnSyncNow">지금 동기화</button></div>
+  <div class="row2 sm"><button class="btn ghost" id="btnSave">주소 저장</button><button class="btn" id="btnSyncNow">지금 동기화</button></div>
+  <label class="lb">앱 버전</label>
+  <div class="stats" id="verInfo"></div>
+  <button class="btn ghost" id="btnVer" style="margin-top:8px">최신 버전인지 확인</button>
+  <button class="btn ghost" id="btnLogout" style="margin-top:10px">로그아웃 · 다른 이름으로 접속</button>
   <div class="hint" style="margin-top:14px" id="aboutInfo"></div>
+</div>
+
+<!-- 홈에서 뒤로가기 (안드로이드) -->
+<div class="sheet" id="exitSheet">
+  <div class="grab"></div>
+  <h3>앱을 종료할까요?</h3>
+  <p class="desc" id="exitDesc"></p>
+  <div class="row2"><button class="btn ghost" id="btnLogout2">로그아웃</button><button class="btn" id="btnExit">앱 종료</button></div>
+</div>
+
+<!-- 새 버전 (안드로이드 원격 업데이트) -->
+<div class="sheet" id="updSheet">
+  <div class="grab"></div>
+  <h3 id="updTitle">새 버전이 나왔어요</h3>
+  <p class="desc" id="updDesc"></p>
+  <div class="updbar" id="updBar" hidden><i id="updFill"></i></div>
+  <p class="hint" id="updSt"></p>
+  <div class="row2"><button class="btn ghost" id="btnUpdLater">나중에</button><button class="btn" id="btnUpd">업데이트</button></div>
 </div>
 
 <!-- QR -->
@@ -676,7 +746,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
     <div class="qfull" id="qrFull" hidden>
       <div class="em">☕</div>
       <h4>이번달은 더이상 이용하실 수 없습니다.</h4>
-      <p>다른 폰에서 이번 달 마지막 횟수를 먼저 사용했어요.<br>방금 누른 기록은 자동으로 취소했어요.</p>
+      <p>다른 팀원이 이번 달 팀 마지막 횟수를 먼저 사용했어요.<br>방금 누른 기록은 자동으로 취소했어요.</p>
     </div>
     <div class="who" id="qrWho"></div>
     <div class="qst" id="qrSt"></div>
@@ -715,14 +785,14 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 (function () {
 'use strict';
 
-var VERSION = '1.2.0';
+var VERSION = '1.3.0';
 var CFG = window.CAFE_CONFIG || {};
-var PER = CFG.perPerson || 10;                        // 한 사람이 한 달에 쓸 수 있는 횟수
-var TEAM_PIN = String(CFG.teamPin || '1441');         // 팀 비밀번호 처음 값
-var ADMIN_PIN = String(CFG.adminPin || '9999');       // 팀장 관리자 비밀번호 처음 값
-var TEAM_COLORS = ['#B4572A', '#2F7D6D', '#4F63B8', '#8E5BA8'];
+var PER = CFG.perPerson || 10;                        // 한 사람 몫 — 팀 한 달 총 횟수 = 팀원 수 × PER
+var TEAM_PIN = String(CFG.teamPin || '0000');         // 팀 비밀번호 처음 값
+var ADMIN_PIN = String(CFG.adminPin || '0000');       // 팀장 관리자 비밀번호 처음 값
+var TEAM_COLORS = ['#B4572A', '#2F7D6D', '#4F63B8', '#8E5BA8', '#B37A22', '#3D7FA3'];
 var TEAMS = (CFG.teams || []).map(function (t, i) {
-  return { id: String(t.id), name: String(t.name), color: TEAM_COLORS[i % TEAM_COLORS.length],
+  return { id: String(t.id), name: String(t.name), color: TEAM_COLORS[i % TEAM_COLORS.length], chief: !!t.chief,
     members: (t.members || []).map(function (n) { return String(n).replace(/\s+/g, ' ').trim().slice(0, 20); }).filter(Boolean),
     admins: (t.admins || []).map(function (n) { return String(n).trim(); }) };
 });
@@ -760,7 +830,7 @@ function parseInvite(txt) {
 (function () {
   var inv = parseInvite(decodeURIComponent(location.hash || '')), prev = lsGet('invite', null);
   // 다른 채널의 초대(예: 테스트 → 실제)로 들어오면, 예전 채널의 팀·이름·기록을 새 채널로 가져가지 않게 비운다
-  if (inv && prev && prev.t !== inv.t) ['me', 'events', 'relay', 'mineAt', 'tcfg', 'lastSync', 'roster'].forEach(function (k) { try { localStorage.removeItem('cafeqr.' + k); } catch (e) {} });
+  if (inv && prev && prev.t !== inv.t) ['me', 'events', 'relay', 'mineAt', 'tcfg', 'lastSync', 'roster', 'allEv', 'allAt', 'allOut'].forEach(function (k) { try { localStorage.removeItem('cafeqr.' + k); } catch (e) {} });
   if (inv) lsSet('invite', inv);   // 주소 뒤의 #join= 은 지우지 않는다 → 아이폰 '홈 화면에 추가'가 이 주소째로 저장해서 홈 화면 앱도 코드를 받는다
   if (!CFG.key || !CFG.topic) { var saved = lsGet('invite', null); if (saved && saved.t && saved.k) { CFG.topic = saved.t; CFG.key = saved.k; } }
 })();
@@ -820,9 +890,12 @@ function fmtNum(v) { return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!
 function won(v) { return fmtNum(v) + '원'; }
 /** 우리 팀 명단 (처음 설정 중이면 고른 팀) */
 function members() { var t = ME ? teamOf(ME.team) : join ? teamOf(join.team) : null; return t ? t.members : []; }
-/** 팀 명단 순서대로 색을 정한다 (명단에 없는 이름은 이름으로 정한 색) */
-function userColor(n) {
-  var i = members().indexOf(n);
+/** 팀 한 달 총 횟수 = 팀원 수 × 한 사람 몫 — 누가 쓰든 팀 전체에서 차감 */
+function teamCap(t) { return Math.max(1, t.members.length) * PER; }
+function capNote(t) { return t.members.length + '명 × ' + PER + '회'; }
+/** 팀 명단 순서대로 색을 정한다 (명단에 없는 이름은 이름으로 정한 색) — t 를 안 주면 우리 팀 */
+function userColor(n, t) {
+  var i = (t ? t.members : members()).indexOf(n);
   if (i >= 0) return COLORS[i % COLORS.length];
   n = String(n || ''); var h = 0; for (var k = 0; k < n.length; k++) h = (h * 31 + n.charCodeAt(k)) >>> 0; return COLORS[h % COLORS.length];
 }
@@ -830,8 +903,13 @@ function initials(n) { n = String(n || ''); return n.length > 2 ? n.slice(-2) : 
 /** 관리자(👑): 사용 기록을 취소할 수 있는 사람 */
 function isAdminName(n, team) { var t = teamOf(team || (ME ? ME.team : join ? join.team : '')); return !!t && t.admins.indexOf(n) >= 0; }
 function amAdmin() { return !!ME && isAdminName(ME.name); }
+/** 총관리자(👑): chief 팀(기술지원그룹)의 관리자 — 모든 팀 사용 기록을 볼 수 있다 */
+function isChiefName(n, team) { var t = teamOf(team || (ME ? ME.team : join ? join.team : '')); return !!t && t.chief && t.admins.indexOf(n) >= 0; }
+function amChief() { return !!ME && isChiefName(ME.name); }
 var CROWN = '<svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5z"/></svg>';
-function admTag() { return '<em class="tag adm">' + CROWN + '관리자</em>'; }
+function admTag(chief) { return '<em class="tag adm">' + CROWN + (chief ? '총관리자' : '관리자') + '</em>'; }
+/** 이름 옆 표시: 총관리자 · 관리자 · 없음 */
+function roleTag(n, team) { return isChiefName(n, team) ? admTag(true) : isAdminName(n, team) ? admTag() : ''; }
 function qrText() { return (TCFG.q && TCFG.q.c) || ''; }
 function shortQr(s) { s = String(s || ''); return s.length > 44 ? s.slice(0, 42) + '…' : s; }
 
@@ -947,7 +1025,7 @@ async function unseal(msg) {
 
 /* ---------------- 팀 설정 (비밀번호 · QR) ----------------
    비밀번호는 그대로 올리지 않고 팀·종류를 섞은 SHA-256 값만 올린다.
-   한 번도 안 바꾼 비밀번호는 처음 값(1441). */
+   한 번도 안 바꾼 비밀번호는 처음 값(0000). */
 async function pinHash(team, kind, pin) {
   var b = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('cafeqr|' + team + '|' + kind + '|' + pin)));
   return b64e(b.subarray(0, 16)).replace(/=+$/, '');
@@ -995,7 +1073,7 @@ function copyCfg(c) { var o = {}; CFG_KEYS.forEach(function (k) { if (c[k]) o[k]
 /* ---------------- 스냅숏: 이번 달 + 지난달 기록 + 팀 설정 ---------------- */
 function snapEvents() { return values(EV).filter(inWindow); }
 /** 기록 하나 = [id, 이름 번호, 시각(36진수 초), 폰 번호, 취소, 메뉴 번호, 가격, 취소한 관리자 이름 번호, 취소 시각]
-    관리자 '초기화' = [id, 이름 번호, 시각, 폰 번호, 0, -2, 0, 초기화한 관리자 이름 번호] — 그 뒤부터 다시 10회 */
+    관리자 '초기화' = [id, 이름 번호, 시각, 폰 번호, 0, -2, 0, 초기화한 관리자 이름 번호] — 그 뒤부터 팀 횟수를 다시 센다 */
 function pack(list, team, cfg) {
   var names = [], devs = [], menus = [];
   function idx(arr, v) { var i = arr.indexOf(v); if (i < 0) { arr.push(v); i = arr.length - 1; } return i; }
@@ -1196,12 +1274,17 @@ function saveNativeSnap() {
 
 /* 실시간: 다른 폰이 올리는 순간 바로 받는다 (SSE) */
 var es = null, liveOk = false, lastLiveSync = 0;
+/** 실시간 연결이 거절되면(중계 서버 요청 제한 등) 30초 → 1분 → 2분 … 최대 5분 간격으로만 다시 연결한다.
+    같은 와이파이의 폰들은 인터넷 주소 하나를 같이 쓰므로, 끊길 때마다 바로바로 요청하면 모두가 막힌다. */
+var liveR = { at: 0, fail: 0 }, allR = { at: 0, fail: 0 };
+function retryDue(r) { return Date.now() - r.at >= Math.min(300e3, 30e3 * Math.pow(2, r.fail)); }
 function openLive() {
   if (es || !ME || !window.EventSource) return;
   var team = ME.team;
+  liveR.at = Date.now();
   try { es = new EventSource(topicUrl() + '/sse'); } catch (e) { es = null; return; }
   es.addEventListener('open', function (ev) {
-    liveOk = true;
+    liveOk = true; liveR.fail = 0;
     if (ev && ev.data) { try { var j = JSON.parse(ev.data); if (j.time) setSkew(j.time * 1000); } catch (e) {} }
     if (Date.now() - lastLiveSync > 10000) { lastLiveSync = Date.now(); sync(); } // 끊긴 사이 놓친 것 채우기
   });
@@ -1224,51 +1307,55 @@ function openLive() {
       render();
     });
   };
-  es.onerror = function () { liveOk = false; if (es && es.readyState === 2) es = null; };
+  es.onerror = function () { liveOk = false; if (es && es.readyState === 2) { es = null; liveR.fail++; } };
 }
 function closeLive() { if (es) { es.close(); es = null; } liveOk = false; }
 
-/* ---------------- 이번 달 현황 계산 ---------------- */
-function monthEvents(month) {
-  return values(EV).filter(function (e) { return monthKey(e.at) === month; })
+/* ---------------- 이번 달 현황 계산 ----------------
+   한 사람 몫(10회)을 따로 세지 않고, 팀 총 횟수(팀원 수 × 10)를 팀원 누구나 나눠 쓴다. */
+function monthEvents(month, evs) {
+  return values(evs || EV).filter(function (e) { return monthKey(e.at) === month; })
     .sort(function (a, b) { return b.at - a.at || (a.id < b.id ? 1 : -1); });
 }
-/** 한 사람이 한 달에 먼저 쓴 순서대로 10번째까지만 정상, 그 뒤(두 폰에서 동시에 눌렀거나 오프라인 기록)는 '초과'.
+/** 팀이 한 달에 먼저 쓴 순서대로 팀 총 횟수까지만 정상, 그 뒤(두 폰에서 동시에 눌렀거나 오프라인 기록)는 '초과'.
     관리자가 '초기화'하면 그 뒤부터 다시 센다. */
-function overSet(month) {
-  var act = monthEvents(month).filter(function (e) { return !e.x; }).reverse(), cnt = {}, s = {};
+function overSet(month, evs, t) {
+  var cap = teamCap(t || myTeam()), act = monthEvents(month, evs).filter(function (e) { return !e.x; }).reverse(), cnt = 0, s = {};
   act.forEach(function (e) {
-    if (e.r) { cnt[e.n] = 0; return; }
-    cnt[e.n] = (cnt[e.n] || 0) + 1;
-    if (cnt[e.n] > PER) s[e.id] = 1;
+    if (e.r) { cnt = 0; return; }
+    if (++cnt > cap) s[e.id] = 1;
   });
   return s;
 }
-function view(month) {
-  month = month || curMonth();
-  var logs = monthEvents(month), people = {}, menus = {}, used = 0, total = 0;
-  // c: 이 달에 쓴 횟수(금액 계산용) · lim: 마지막 '초기화' 뒤에 쓴 횟수(남은 횟수 계산용) · rs: 초기화한 시각
-  members().concat(ME.name).forEach(function (n) { people[n] = { c: 0, t: 0, lim: 0, rs: 0 }; });   // 팀원 모두 0회부터
-  function who(n) { return people[n] || (people[n] = { c: 0, t: 0, lim: 0, rs: 0 }); }
-  logs.forEach(function (e) { if (e.r && e.at > who(e.n).rs) who(e.n).rs = e.at; });
+/** 한 팀의 한 달 현황 (evs: 그 팀 기록 id → 기록) */
+function calc(month, evs, t) {
+  var logs = monthEvents(month, evs), people = {}, menus = {}, used = 0, total = 0, lim = 0, rs = 0, cap = teamCap(t);
+  // c·t: 사람마다 이 달에 쓴 횟수·금액 · lim: 마지막 '초기화' 뒤에 팀이 쓴 횟수(남은 횟수 계산용) · rs: 초기화한 시각
+  t.members.forEach(function (n) { people[n] = { c: 0, t: 0 }; });   // 팀원 모두 0회부터
+  function who(n) { return people[n] || (people[n] = { c: 0, t: 0 }); }
+  logs.forEach(function (e) { if (e.r && e.at > rs) rs = e.at; });
   logs.forEach(function (e) {
     if (e.x || e.r) return;
     var p = e.p || 0, w = who(e.n);
     used++; total += p;
     w.c++; w.t += p;
-    if (e.at > w.rs) w.lim++;
+    if (e.at > rs) lim++;
     if (e.m) { var mm = menus[e.m] || (menus[e.m] = { c: 0, t: 0 }); mm.c++; mm.t += p; }
   });
-  var mine = people[ME.name];
-  return { month: month, isCur: month === curMonth(), used: used, total: total, mine: mine, remaining: Math.max(0, PER - mine.lim),
-    people: people, menus: menus, logs: logs, over: overSet(month) };
+  return { month: month, isCur: month === curMonth(), team: t, cap: cap, used: used, total: total, lim: lim, rs: rs,
+    remaining: Math.max(0, cap - lim), people: people, menus: menus, logs: logs, over: overSet(month, evs, t) };
+}
+function view(month) {
+  var v = calc(month || curMonth(), EV, myTeam());
+  v.mine = v.people[ME.name] || (v.people[ME.name] = { c: 0, t: 0 });
+  return v;
 }
 /** 취소는 관리자 메뉴의 [QR 코드 사용취소]에서만 — 이번 달·지난달 기록 (그보다 오래된 건 팀에 공유되지 않는다) */
 function canCancel(e) { return !e.x && !e.r && inWindow(e); }
 /** 관리자 메뉴로 한 일에 남길 이름: 이 폰 주인이 관리자면 그 이름, 아니면(팀장님이 남의 폰에서 비밀번호로 연 경우) 팀 관리자 이름 */
 function adminName() { var t = myTeam(); return amAdmin() ? ME.name : (t.admins[0] || '팀장'); }
 
-/** 다른 폰 기록을 받은 뒤: 방금 [사용]한 기록이 11번째가 됐으면(내 다른 폰에서 동시에 누름) 자동으로 취소하고 안내 */
+/** 다른 폰 기록을 받은 뒤: 방금 [사용]한 기록이 팀 총 횟수를 넘었으면(다른 팀원이 동시에 누름) 자동으로 취소하고 안내 */
 function afterMerge() {
   var rec = qrSess && qrSess.rec;
   if (!rec || rec.x || qrFull) return;
@@ -1282,27 +1369,29 @@ function afterMerge() {
 }
 
 /* ---------------- 그리기 ---------------- */
-function avHtml(n, sm) { return '<span class="av' + (sm ? ' sm' : '') + '" style="background:' + userColor(n) + '">' + esc(initials(n)) + '</span>'; }
+function avHtml(n, sm, t) { return '<span class="av' + (sm ? ' sm' : '') + '" style="background:' + userColor(n, t) + '">' + esc(initials(n)) + '</span>'; }
 /** '아메리카노 ICE' → 아메리카노 + 파란 ICE 표시 */
 function menuHtml(label) {
   var m = /^(.*) (HOT|ICE)$/.exec(label || '');
   return m ? esc(m[1]) + ' <em class="temp ' + m[2].toLowerCase() + '">' + m[2] + '</em>' : esc(label || '');
 }
-/** 사람 순서: 팀 명단 순서대로, 명단에 없는 이름은 뒤에 */
-function byUse(map) {
-  var mem = members();
+/** 사람 순서: 팀 명단 순서대로, 명단에 없는 이름은 뒤에 — t 를 안 주면 우리 팀 */
+function byUse(map, t) {
+  var mem = t ? t.members : members();
   function ord(n) { var i = mem.indexOf(n); return i < 0 ? 999 : i; }
   return Object.keys(map).sort(function (a, b) { return ord(a) - ord(b) || a.localeCompare(b); });
 }
-function peopleHtml(people) {
-  var names = byUse(people);
+/** 사람별 사용 — 한 사람 한도는 없고, 막대는 팀에서 가장 많이 쓴 사람 기준 */
+function peopleHtml(people, t) {
+  var names = byUse(people, t), mine = !t || (ME && t.id === ME.team);
   if (!names.length) return '<div class="none">아직 사용 기록이 없어요</div>';
+  var top = Math.max(1, Math.max.apply(null, names.map(function (n) { return people[n].c; })));
   return names.map(function (n) {
     var p = people[n];
-    return '<div class="person' + (p.c ? '' : ' zero') + (p.lim >= PER ? ' full' : '') + '">' + avHtml(n, true) +
-      '<span class="nm"><span>' + esc(n) + '</span>' + (isAdminName(n) ? admTag() : '') + (p.rs ? '<em class="tag rs">초기화</em>' : '') + (ME && n === ME.name ? '<em class="tag me">나</em>' : '') + '</span>' +
-      '<span class="bar"><i style="width:' + Math.min(100, Math.round(p.lim / PER * 100)) + '%;background:' + userColor(n) + '"></i></span>' +
-      '<span class="ct num"><b>' + p.lim + '<span>/' + PER + '회</span></b><small>' + won(p.t) + '</small></span></div>';
+    return '<div class="person' + (p.c ? '' : ' zero') + '">' + avHtml(n, true, t) +
+      '<span class="nm"><span>' + esc(n) + '</span>' + roleTag(n, t && t.id) + (mine && ME && n === ME.name ? '<em class="tag me">나</em>' : '') + '</span>' +
+      '<span class="bar"><i style="width:' + Math.round(p.c / top * 100) + '%;background:' + userColor(n, t) + '"></i></span>' +
+      '<span class="ct num"><b>' + p.c + '<span>회</span></b><small>' + won(p.t) + '</small></span></div>';
   }).join('');
 }
 function menuStatsHtml(menus) {
@@ -1315,47 +1404,58 @@ function menuStatsHtml(menus) {
       '<span class="mc num">' + m.c + '잔</span><span class="mt num">' + won(m.t) + '</span></div>';
   }).join('');
 }
-function logHtml(e, withDay, over, withCancel) {
-  var when = (withDay ? fmtShort(e.at) + ' ' : '') + fmtTime(e.at);
+/** 취소·초기화한 사람 표시: 총관리자면 '총관리자 ○○○', 아니면 '관리자 ○○○' */
+function byLabel(n) { return (TEAMS.some(function (t) { return t.chief && t.admins.indexOf(n) >= 0; }) ? '총관리자 ' : '관리자 ') + n; }
+/** 기록 한 줄 — t 를 주면 그 팀 기록 (총관리자의 전체 팀 보기 — [취소]도 총관리자용) */
+function logHtml(e, withDay, over, withCancel, t) {
+  var when = (withDay ? fmtShort(e.at) + ' ' : '') + fmtTime(e.at), mine = !t || t.id === ME.team;
+  var out = !mine && OUT[t.id] && OUT[t.id][e.id];       // 총관리자가 다른 팀에 보낸 취소·초기화
+  var sent = out ? '<em class="tag wait">' + (out.s ? '팀에 전달 중' : '전송 대기') + '</em>' : '';
   if (e.r) {
     return '<li class="log rsl">' + '<span class="av sm">↺</span>' +
-      '<div class="lm"><div class="l1"><span class="mt">횟수 초기화 · ' + PER + '회로</span><em class="tag rs">초기화</em></div>' +
-      '<div class="l2 num">' + esc(e.n) + ' · ' + when + '</div>' +
-      '<div class="l3 num" style="color:#2F6DB5">' + CROWN + '관리자 ' + esc(e.rb || '') + '</div></div><div class="lr"></div></li>';
+      '<div class="lm"><div class="l1"><span class="mt">팀 횟수 초기화 · ' + teamCap(t || myTeam()) + '회로</span><em class="tag rs">초기화</em>' + sent + '</div>' +
+      '<div class="l2 num">' + when + '</div>' +
+      '<div class="l3 num" style="color:#2F6DB5">' + CROWN + esc(byLabel(e.rb || e.n)) + '</div></div><div class="lr"></div></li>';
   }
   var tags = '';
-  if (e.x) tags += '<em class="tag cx">취소됨</em>';
+  if (e.x) tags += '<em class="tag cx">취소됨</em>' + sent;
   else {
     if (over[e.id]) tags += '<em class="tag over">한도 초과</em>';
-    if (e.d === DEV && isPending(e)) tags += '<em class="tag wait">전송 대기</em>';
-    else if (e.n === ME.name) tags += '<em class="tag me">나</em>';
+    if (mine && e.d === DEV && isPending(e)) tags += '<em class="tag wait">전송 대기</em>';
+    else if (mine && e.n === ME.name) tags += '<em class="tag me">나</em>';
   }
-  var btn = withCancel && canCancel(e) ? '<button class="mini" data-cancel="' + esc(e.id) + '">취소</button>' : '';
-  var who = esc(e.n) + (isAdminName(e.n) ? ' ' + CROWN : '');
-  var l3 = e.x && e.xb ? '<div class="l3 num">' + CROWN + '관리자 ' + esc(e.xb) + ' 취소' + (e.xt ? ' · ' + fmtShort(e.xt) + ' ' + fmtTime(e.xt) : '') + '</div>' : '';
-  return '<li class="log' + (e.x ? ' cx' : '') + '">' + avHtml(e.n, true) +
+  var btn = withCancel && canCancel(e) ? '<button class="mini" ' + (t ? 'data-acancel' : 'data-cancel') + '="' + esc(e.id) + '">취소</button>' : '';
+  var who = esc(e.n) + (isAdminName(e.n, t && t.id) ? ' ' + CROWN : '');
+  var l3 = e.x && e.xb ? '<div class="l3 num">' + CROWN + esc(byLabel(e.xb)) + ' 취소' + (e.xt ? ' · ' + fmtShort(e.xt) + ' ' + fmtTime(e.xt) : '') + '</div>' : '';
+  return '<li class="log' + (e.x ? ' cx' : '') + '">' + avHtml(e.n, true, t) +
     '<div class="lm"><div class="l1"><span class="mt">' + (e.m ? menuHtml(e.m) : who) + '</span>' + tags + '</div>' +
     '<div class="l2 num">' + (e.m ? who + ' · ' : '') + when + '</div>' + l3 + '</div>' +
     '<div class="lr"><span class="lp num">' + (e.m ? won(e.p) : '') + '</span>' + btn + '</div></li>';
 }
 
+var lastCur = '';
 function render() {
   if (!ME) return;
   var v = view(), nx = nextMonthNo();
+  if (lastCur && lastCur !== v.month) {          // 매월 1일 0시: '이번 달'을 보고 있던 기록·전체 팀 화면도 새 달로 넘긴다
+    if (pageMonth === lastCur) pageMonth = v.month;
+    if (allMonth === lastCur) allMonth = v.month;
+  }
+  lastCur = v.month;
   $('monthLabel').textContent = monthLabel(v.month) + ' · ' + ME.name + ' 님';
   $('remain').textContent = v.remaining;
-  $('maxv').textContent = '/' + PER;
-  $('ring').setAttribute('data-lv', v.remaining <= 0 ? 'zero' : v.remaining <= 3 ? 'low' : 'ok');
+  $('maxv').textContent = '/' + v.cap;
+  $('ring').setAttribute('data-lv', v.remaining <= 0 ? 'zero' : v.remaining <= Math.max(3, Math.round(v.cap / 10)) ? 'low' : 'ok');
   var fg = $('ringFg');
   fg.setAttribute('stroke-dasharray', RING_C.toFixed(2));
-  fg.setAttribute('stroke-dashoffset', (RING_C * (1 - v.remaining / PER)).toFixed(2));
+  fg.setAttribute('stroke-dashoffset', (RING_C * (1 - v.remaining / v.cap)).toFixed(2));
 
   var empty = v.remaining <= 0;
   $('btnUse').classList.toggle('off', empty);
   $('soldout').hidden = !empty;
   $('noQr').hidden = empty || !!qrText();
-  $('soldMax').textContent = PER;
-  $('soldNext').textContent = nx + '월 1일 0시에 다시 ' + PER + '회로 채워져요.';
+  $('soldMax').textContent = v.cap;
+  $('soldNext').textContent = nx + '월 1일 0시에 다시 ' + v.cap + '회로 채워져요.';
 
   $('hUsed').textContent = v.mine.c;
   $('hTotal').textContent = won(v.mine.t);
@@ -1366,9 +1466,16 @@ function render() {
 
   var k = kd(nowMs());
   var left = new Date(Date.UTC(k.y, k.mo, 0)).getUTCDate() - k.d + 1;
-  $('resetInfo').textContent = '매월 1일 0시에 한 사람당 ' + PER + '회로 초기화돼요 · ' + nx + '월 1일까지 ' + left + '일';
+  $('resetInfo').textContent = '팀원 누구나 팀 횟수를 나눠 써요 (' + capNote(myTeam()) + ') · 매월 1일 0시에 ' + v.cap + '회로 다시 채워져요 · ' + nx + '월 1일까지 ' + left + '일';
+
+  $('btnAll').hidden = !amChief();
+  if (amChief()) {
+    var a = allView(v.month);
+    $('allSum').textContent = TEAMS.length + '개 팀 · 이번 달 ' + a.used + '회 · ' + won(a.total) + (allAt ? '' : ' · 불러오는 중…');
+  }
 
   if (syncState === 'off') setSync('off', syncErr);
+  if (allOpen) renderAll();
   if (monOpen) renderMonths();
   if (cxOpen) renderCx();
   if (rsOpen) renderRs();
@@ -1380,15 +1487,15 @@ function render() {
 /* ---------------- 메뉴 고르기 → QR ---------------- */
 var pick = { m: -1 };
 function showLimit() {
-  var nx = nextMonthNo();
-  popup('☕', '이번달은 더이상\n이용하실 수 없습니다.', '이번 달 ' + PER + '회를 모두 사용했어요.\n' + nx + '월 1일 0시에 다시 ' + PER + '회로 채워져요.');
+  var nx = nextMonthNo(), cap = teamCap(myTeam());
+  popup('☕', '이번달은 더이상\n이용하실 수 없습니다.', '우리 팀 이번 달 ' + cap + '회를 모두 사용했어요.\n' + nx + '월 1일 0시에 다시 ' + cap + '회로 채워져요.');
 }
 function openUseSheet() {
   var v = view();
   if (v.remaining <= 0) { showLimit(); return; }
   if (!qrText()) { askRegisterQr(); return; }
   pick.m = -1;                                  // 메뉴는 매번 고른다
-  $('useDesc').textContent = ME.name + ' 님 · 이번 달 ' + v.remaining + '회 남았어요. 메뉴를 고르고 [선택 완료]를 눌러 주세요.';
+  $('useDesc').textContent = ME.name + ' 님 · 이번 달 팀 남은 횟수 ' + v.remaining + '회예요. 메뉴를 고르고 [선택 완료]를 눌러 주세요.';
   $('menuPick').innerHTML = MENU.map(function (m, i) {
     return '<button class="menub" data-menu="' + i + '"><span class="mn">' + menuHtml(m.label) + '</span><span class="mp num">' + won(m.price) + '</span></button>';
   }).join('');
@@ -1418,7 +1525,7 @@ function startUse() {
   upMu = mu;
   $('upMenu').innerHTML = menuHtml(mu.label);
   $('upPrice').textContent = won(mu.price);
-  $('upDesc').textContent = '[사용]을 누르시면 이번 달 횟수가 1회 차감되고 결제 QR이 열립니다.\n남은 횟수 ' + v.remaining + '회 → ' + (v.remaining - 1) + '회';
+  $('upDesc').textContent = '[사용]을 누르시면 팀 횟수가 1회 차감되고 결제 QR이 열립니다.\n팀 남은 횟수 ' + v.remaining + '회 → ' + (v.remaining - 1) + '회';
   $('usePop').classList.add('show');
   sync();                         // 다른 폰에서 쓴 횟수를 미리 받아 둔다
 }
@@ -1469,7 +1576,7 @@ function renderQrStatus() {
   if (qrFull) { el.innerHTML = ''; return; }
   if (!isPending(e)) {
     el.className = 'qst ok';
-    el.innerHTML = '<span>✓ 사용 기록이 팀에 공유됐어요 · 이번 달 남은 횟수 <b class="num">' + v.remaining + '/' + PER + '</b></span>';
+    el.innerHTML = '<span>✓ 사용 기록이 팀에 공유됐어요 · 이번 달 팀 남은 횟수 <b class="num">' + v.remaining + '/' + v.cap + '</b></span>';
   } else if (syncState === 'off' || syncState === 'err') {
     el.className = 'qst warn';
     el.innerHTML = '<span>인터넷 연결이 없어 이 폰에 먼저 저장했어요.<br>연결되면 자동으로 공유돼요.</span>';
@@ -1512,19 +1619,19 @@ function cancelUse(id) {
   if (!cxOpen || !e || !canCancel(e)) return;
   var by = adminName();
   ask({ title: '이 사용 기록을 취소할까요?', desc: e.n + ' 님 · ' + (e.m ? e.m + ' · ' : '') + fmtDay(e.at) + ' ' + fmtTime(e.at) +
-      '\n취소하면 ' + e.n + ' 님 횟수를 1회 돌려놓고, 기록 옆에 "관리자 ' + by + ' 취소"가 남아요.',
+      '\n취소하면 팀 횟수를 1회 돌려놓고, 기록 옆에 "' + byLabel(by) + ' 취소"가 남아요.',
     yes: '네, 취소할게요', danger: true,
     onYes: function () {
       e.x = 1; e.xb = by; e.xt = secNow();
       persist();
       render();
-      toast(e.n + ' 님 기록을 취소했어요. 횟수를 1회 돌려놓았어요.');
+      toast(e.n + ' 님 기록을 취소했어요. 팀 횟수를 1회 돌려놓았어요.');
       sync();
     } });
 }
 
 /* ---------------- 비밀번호 키패드 ----------------
-   o = {title, desc, len: 새 비밀번호면 true(4~16자리), verify(pin) → true | 안내 문구 | false, onOk(pin), onCancel}
+   o = {title, desc, len: 새 비밀번호면 true(4~16자리), show: 동그라미 대신 숫자를 보여 줄지(새 비밀번호), verify(pin) → true | 안내 문구 | false, onOk(pin), onCancel}
    넣은 만큼만 동그라미가 늘어난다 (자리 수가 정해져 있지 않다) */
 var pin = null;
 function askPin(o) {
@@ -1537,7 +1644,7 @@ function askPin(o) {
 function drawPin() {
   var n = pin.v.length, h = '';
   for (var i = 0; i < n; i++) h += '<i class="on"></i>';
-  $('pinDots').innerHTML = n ? h : '<span class="ph">숫자를 눌러 주세요</span>';
+  $('pinDots').innerHTML = !n ? '<span class="ph">숫자를 눌러 주세요</span>' : pin.o.show ? '<b class="pv">' + pin.v + '</b>' : h;
   $('pinDots').classList.toggle('many', n > 8);
   $('pinLen').hidden = !pin.o.len;
   $('pinLen').textContent = n + '자리 · ' + PIN_MIN + '~' + PIN_MAX + '자리까지 돼요';
@@ -1647,13 +1754,13 @@ function submitInvite() {
 /** 설정 → 아이폰 팀원 초대: 웹 버전 주소 + 초대 코드를 카톡 등으로 보낸다 */
 function sendInvite() {
   var code = inviteCode(), url = String(CFG.webUrl || '').replace(/#.*$/, '');
-  doExport('A카페 QR 아이폰 초대', [
-    '☕ A카페 QR — 아이폰용 초대',
+  doExport('A카페 아이폰 초대', [
+    '☕ A카페 — 아이폰용 초대',
     '',
     '1) 아래 주소를 아이폰 Safari(사파리)로 열어 주세요.',
     url + '#join=' + code,
     '2) 아래 공유 버튼(□↑) → [홈 화면에 추가]',
-    '3) 홈 화면에 생긴 "A카페 QR"을 열고, 초대 코드를 물어보면 이 코드를 붙여 넣어 주세요.',
+    '3) 홈 화면에 생긴 "A카페"를 열고, 초대 코드를 물어보면 이 코드를 붙여 넣어 주세요.',
     code,
     '',
     '그다음 팀 선택 → 팀 비밀번호 → 내 이름 순서로 들어가면 돼요.'
@@ -1689,7 +1796,7 @@ var namePick = '', nameOther = false;
 function gotoName() {
   var mem = teamOf(join.team).members;
   $('memberPick').innerHTML = mem.map(function (n) {
-    return '<button class="whob" data-name="' + esc(n) + '" style="--c:' + userColor(n) + '">' + avHtml(n) + '<b>' + esc(n) + '</b>' + (isAdminName(n, join.team) ? admTag() : '') + '</button>';
+    return '<button class="whob" data-name="' + esc(n) + '" style="--c:' + userColor(n) + '">' + avHtml(n) + '<b>' + esc(n) + '</b>' + roleTag(n, join.team) + '</button>';
   }).join('');
   // 다시 들어왔거나, 예전(1.1) 버전에서 이 폰으로 마지막에 쓴 이름이 명단에 있으면 미리 골라 둔다
   var last = join.name || cleanName(lsGet('name', ''));
@@ -1718,7 +1825,7 @@ function confirmName() {
     yes: '네, 맞습니다', no: '다시 선택', onYes: function () {
       if (!isAdminName(n, join.team)) { join.name = n; gotoQr(); return; }
       // 관리자는 기록을 취소할 수 있으니, 관리자 이름으로 들어갈 때는 관리자 비밀번호를 한 번 더 확인한다
-      askPin({ title: '관리자 확인', desc: n + ' 님은 ' + t.name + ' 관리자예요. 관리자 비밀번호를 넣어 주세요.',
+      askPin({ title: '관리자 확인', desc: n + ' 님은 ' + t.name + (isChiefName(n, join.team) ? ' 총관리자' : ' 관리자') + '예요. 관리자 비밀번호를 넣어 주세요.',
         verify: function (p) { return checkPin(join.team, join.cfg, 'a', p); },
         onOk: function () { join.name = n; gotoQr(); } });
     } });
@@ -1806,32 +1913,29 @@ function renderCx() {
   }).join(''));
 }
 
-/* [초기화] — 매월 1일을 기다리지 않고 그 사람의 이번 달 횟수를 다시 10회로. 그 사람 폰에도 바로 반영된다 */
+/* [팀 횟수 초기화] — 매월 1일을 기다리지 않고 팀의 이번 달 남은 횟수를 다시 팀 총 횟수로. 팀원 폰에도 바로 반영된다 */
 var rsOpen = false;
 function openRs() { rsOpen = true; $('rsPage').classList.add('show'); $('rsPage').scrollTop = 0; renderRs(); paged(); }
 function closeRs() { rsOpen = false; $('rsPage').classList.remove('show'); paged(); }
 function renderRs() {
-  var v = view();
-  $('rsDesc').textContent = '초기화하면 그 사람의 이번 달 남은 횟수가 바로 ' + PER + '회로 다시 채워지고, 그 사람 휴대폰에도 바로 반영돼요. 지금까지 쓴 기록과 금액은 그대로 남아요.';
-  setHtml('rsList', byUse(v.people).map(function (n) {
-    var p = v.people[n], left = Math.max(0, PER - p.lim);
-    return '<div class="rrow">' + avHtml(n, true) + '<div class="rm"><b>' + esc(n) + (isAdminName(n) ? admTag() : '') + '</b>' +
-      '<small class="num">남은 횟수 ' + left + '/' + PER + ' · 이번 달 ' + p.c + '회 사용' + (p.rs ? ' · ' + fmtShort(p.rs) + ' 초기화함' : '') + '</small></div>' +
-      '<button class="rbtn" data-rs="' + esc(n) + '"' + (p.lim ? '' : ' disabled') + '>' + (p.lim ? '초기화' : PER + '회 그대로') + '</button></div>';
-  }).join(''));
+  var v = view(), t = myTeam();
+  $('rsDesc').textContent = '초기화하면 이번 달 팀 남은 횟수가 바로 ' + v.cap + '회(' + capNote(t) + ')로 다시 채워지고, 팀원 모두의 휴대폰에 바로 반영돼요. 지금까지 쓴 기록과 금액은 그대로 남아요.';
+  setHtml('rsList', '<div class="rrow"><span class="av sm" style="background:' + t.color + '">↺</span><div class="rm"><b>' + esc(t.name) + '</b>' +
+    '<small class="num">팀 남은 횟수 ' + v.remaining + '/' + v.cap + ' · 이번 달 ' + v.used + '회 사용' + (v.rs ? ' · ' + fmtShort(v.rs) + ' 초기화함' : '') + '</small></div>' +
+    '<button class="rbtn" data-rs="team"' + (v.lim ? '' : ' disabled') + '>' + (v.lim ? '초기화' : v.cap + '회 그대로') + '</button></div>');
 }
-function resetCount(n) {
-  var p = view().people[n];
-  if (!rsOpen || !p || !p.lim) return;
+function resetCount() {
+  var v = view(), t = myTeam();
+  if (!rsOpen || !v.lim) return;
   var by = adminName();
-  ask({ title: n + ' 님을 초기화하시겠습니까?', desc: '이번 달 ' + p.lim + '회 사용한 상태에서 남은 횟수를 ' + PER + '회로 다시 채웁니다.\n쓴 기록과 금액은 그대로 남고, 기록에 "관리자 ' + by + ' 초기화"가 표시돼요.',
+  ask({ title: t.name + ' 횟수를 초기화하시겠습니까?', desc: '이번 달 팀에서 ' + v.lim + '회 사용한 상태에서 남은 횟수를 ' + v.cap + '회로 다시 채웁니다.\n쓴 기록과 금액은 그대로 남고, 기록에 "' + byLabel(by) + '"가 표시돼요.',
     yes: '네, 초기화합니다', no: '아니요',
     onYes: function () {
-      var e = { id: rnd(10), n: n, at: secNow(), d: DEV, x: 0, r: 1, rb: by };
+      var e = { id: rnd(10), n: by, at: secNow(), d: DEV, x: 0, r: 1, rb: by };
       EV[e.id] = e;
       persist();
       render();
-      toast(n + ' 님의 이번 달 횟수를 ' + PER + '회로 초기화했어요.');
+      toast(t.name + ' 이번 달 횟수를 ' + v.cap + '회로 초기화했어요.');
       sync();
     } });
 }
@@ -1873,13 +1977,13 @@ function admDone(p, okMsg) {
 }
 function admChangePin(k) {
   var label = k === 'p' ? '팀 비밀번호' : '관리자 비밀번호', team = adm.team;
-  askPin({ title: '새 ' + label, desc: '숫자 ' + PIN_MIN + '~' + PIN_MAX + '자리로 정해 주세요. 다 넣었으면 [확인]을 눌러요.', len: true,
+  askPin({ title: '새 ' + label, desc: '숫자 ' + PIN_MIN + '~' + PIN_MAX + '자리로 정해 주세요. 누른 숫자가 그대로 보여요 — 맞게 넣었는지 보고 [확인]을 눌러요.', len: true, show: true,
     onOk: function (p1) {
-      askPin({ title: '한 번 더 눌러 주세요', desc: '방금 넣은 새 ' + label + '(' + p1.length + '자리)를 한 번 더 눌러 주세요.', len: true,
+      askPin({ title: '한 번 더 눌러 주세요', desc: '새 ' + label + ': ' + p1 + '\n똑같이 한 번 더 눌러 주세요.', len: true, show: true,
         verify: function (p2) { return Promise.resolve(p2 === p1 || '처음 넣은 것과 달라요. 다시 눌러 주세요.'); },
         onOk: function () {
           admDone(pinHash(team, k, p1).then(function (h) { return admSave(k, { h: h, at: secNow() }); }),
-            k === 'p' ? '팀 비밀번호를 바꿨어요. 새로 들어오는 팀원부터 새 비밀번호를 써요.' : '관리자 비밀번호를 바꿨어요.');
+            k === 'p' ? '팀 비밀번호를 ' + p1 + ' 로 바꿨어요. 새로 들어오는 팀원부터 써요.' : '관리자 비밀번호를 ' + p1 + ' 로 바꿨어요.');
         } });
     } });
 }
@@ -1892,13 +1996,31 @@ function resetPhone() {
   var n = pendingCount();
   ask({ title: '이 폰을 초기화할까요?', danger: true, yes: '초기화',
     desc: '이 폰의 팀·이름 설정과 저장된 기록을 지우고 처음 화면으로 돌아가요.\n팀 기록은 다른 팀원 폰과 중계 서버에 그대로 남아 있어요.' + (n ? '\n아직 못 보낸 기록 ' + n + '건은 사라져요.' : ''),
-    onYes: function () {
-      closeLive();
-      wiping = true;
-      ['me', 'events', 'relay', 'mineAt', 'tcfg', 'lastSync', 'name'].forEach(function (k) { try { localStorage.removeItem('cafeqr.' + k); } catch (e) {} });
-      native('saveSnap', '', '', DEV);
-      location.reload();
-    } });
+    onYes: wipePhone });
+}
+/** 로그아웃: 처음 화면(팀 고르기)으로 돌아가 다른 이름·다른 팀으로 다시 들어온다. 못 보낸 기록이 있으면 먼저 보내 본다 */
+function logout() {
+  closeSheets();
+  function go() {
+    var n = pendingCount();
+    ask({ title: '로그아웃할까요?', danger: n > 0, yes: '로그아웃',
+      desc: '처음 화면으로 돌아가 팀과 이름을 다시 고를 수 있어요.\n지금까지 쓴 기록은 팀원 폰과 중계 서버에 그대로 남아 있어요.' + (n ? '\n아직 못 보낸 기록 ' + n + '건은 사라져요.' : ''),
+      onYes: wipePhone });
+  }
+  if (pendingCount()) sync().then(go, go); else go();
+}
+/** 이 폰의 팀·이름 설정과 팀 기록을 지우고 처음 화면으로 (팀이 바뀌면 다른 팀 기록이 섞이지 않게 기록도 같이 지운다) */
+function wipePhone() {
+  closeLive(); closeLiveAll();
+  wiping = true;
+  ['me', 'events', 'relay', 'mineAt', 'tcfg', 'lastSync', 'name', 'allEv', 'allAt', 'allOut'].forEach(function (k) { try { localStorage.removeItem('cafeqr.' + k); } catch (e) {} });
+  native('saveSnap', '', '', DEV);
+  location.reload();
+}
+/** 안드로이드 홈에서 뒤로가기: 앱 종료 · 로그아웃 고르기 (뒤로가기를 한 번 더 누르면 종료) */
+function openExit() {
+  $('exitDesc').textContent = myTeam().name + ' · ' + ME.name + ' 님으로 접속 중이에요.\n다른 이름으로 접속하려면 [로그아웃]을 눌러 주세요.\n뒤로가기를 한 번 더 누르면 앱이 종료돼요.';
+  openSheet('exitSheet');
 }
 
 /* ---------------- 커피 내기 게임 ----------------
@@ -1920,7 +2042,7 @@ function closeGame() {
 
 /* ---------------- 전체 기록 ---------------- */
 var pageOpen = false, pageMonth = '', pageWho = '';
-function paged() { document.body.classList.toggle('paged', pageOpen || monOpen || !!adm || gameOpen); }
+function paged() { document.body.classList.toggle('paged', pageOpen || monOpen || allOpen || !!adm || gameOpen); }
 function openLog(month) {
   pageOpen = true; pageMonth = month || curMonth(); pageWho = '';
   $('logPage').classList.add('show'); $('logPage').scrollTop = 0; renderLog(); paged();
@@ -1937,11 +2059,11 @@ function renderLog() {
   $('mNext').disabled = pageMonth >= curMonth();
   $('mPrev').disabled = pageMonth <= oldestMonth();
   $('sUsed').innerHTML = v.used + '<span>회</span>';
-  if (v.isCur) { $('sRemainCap').textContent = '내 남은 횟수'; $('sRemain').innerHTML = v.remaining + '<span>/' + PER + '</span>'; }
-  else { $('sRemainCap').textContent = '내 사용'; $('sRemain').innerHTML = v.mine.c + '<span>/' + PER + '</span>'; }
+  if (v.isCur) { $('sRemainCap').textContent = '팀 남은 횟수'; $('sRemain').innerHTML = v.remaining + '<span>/' + v.cap + '</span>'; }
+  else { $('sRemainCap').textContent = '내 사용'; $('sRemain').innerHTML = v.mine.c + '<span>회</span>'; }
   $('sTotal').innerHTML = fmtNum(v.total) + '<span>원</span>';
   setHtml('lPeople', peopleHtml(v.people));
-  $('lPeopleMeta').textContent = '한 사람당 한 달 ' + PER + '회';
+  $('lPeopleMeta').textContent = '팀 한 달 ' + v.cap + '회 (' + capNote(myTeam()) + ')';
   setHtml('lMenu', menuStatsHtml(v.menus));
   $('lMenuMeta').textContent = v.used ? '총 ' + v.used + '잔' : '';
 
@@ -1954,8 +2076,11 @@ function renderLog() {
 
   var logs = v.logs.filter(function (e) { return !pageWho || e.n === pageWho; });
   $('lMeta').textContent = logs.length ? logs.length + '건' : '';
-  if (!logs.length) { setHtml('lList', '<div class="card dcard"><div class="none" style="padding:18px 0">이 달에는 사용 기록이 없어요</div></div>'); return; }
-  // 날짜마다 카드 하나, 머리에 그날 합계
+  setHtml('lList', dayCards(logs, v.over));
+}
+/** 날짜마다 카드 하나, 머리에 그날 합계 — t 를 주면 그 팀 기록, withCancel 이면 [취소] 버튼(총관리자) */
+function dayCards(logs, over, t, withCancel) {
+  if (!logs.length) return '<div class="card dcard"><div class="none" style="padding:18px 0">이 달에는 사용 기록이 없어요</div></div>';
   var days = [], cur = null;
   logs.forEach(function (e) {
     var dk = dayKey(e.at);
@@ -1963,10 +2088,10 @@ function renderLog() {
     cur.list.push(e);
     if (!e.x && !e.r) { cur.c++; cur.t += e.p || 0; }
   });
-  setHtml('lList', days.map(function (d) {
+  return days.map(function (d) {
     return '<div class="card dcard"><div class="dh"><b>' + fmtDay(d.at) + '</b><span class="num">' + d.c + '회 · ' + won(d.t) + '</span></div>' +
-      '<ul class="logs">' + d.list.map(function (e) { return logHtml(e, false, v.over); }).join('') + '</ul></div>';
-  }).join(''));
+      '<ul class="logs">' + d.list.map(function (e) { return logHtml(e, false, over, withCancel, t); }).join('') + '</ul></div>';
+  }).join('');
 }
 function moveMonth(n) { pageMonth = shiftMonth(pageMonth, n); pageWho = ''; renderLog(); $('logPage').scrollTop = 0; }
 
@@ -2002,22 +2127,212 @@ function renderMonths() {
   $('mAllMeta').textContent = '누적 ' + allC + '회 · ' + won(allT);
 }
 
+/* ---------------- 총관리자: 전체 팀 현황 ----------------
+   총관리자(기술지원그룹 관리자) 폰은 다른 팀 채널도 받아서 모든 팀 기록을 보고, 어느 팀이든 사용 취소·팀 횟수 초기화를 할 수 있다.
+   중계 서버에는 팀원 폰이 올려 둔 이번 달·지난달 기록이 있고, 받은 기록은 이 폰에 계속 쌓아 둔다(더 오래된 달도 볼 수 있게).
+   다른 팀에 한 취소·초기화는 그 팀 채널에 올리고, 그 팀 폰이 받아서 자기 기록으로 다시 올릴 때까지 들고 있다(보낼 것함). */
+var ALL = lsGet('allEv', {});         // 다른 팀 기록  팀 id → { id → 기록 }
+var OUT = lsGet('allOut', {});        // 다른 팀에 보낼 것  팀 id → { id → {e: 기록, s: 중계 서버에 올렸나} }
+var allAt = lsGet('allAt', 0);        // 마지막으로 다른 팀 기록을 받은 시각
+var allErr = {}, allBusy = null;
+function evsOf(id) { return ME && id === ME.team ? EV : (ALL[id] || (ALL[id] = {})); }
+function saveAll() { lsSet('allEv', ALL); lsSet('allOut', OUT); }
+/** 다른 팀 채널에서 받은 묶음 하나를 합친다 → 바뀐 게 있으면 true */
+function absorbTeam(id, u) {
+  var box = evsOf(id), out = OUT[id] || {}, ch = false;
+  if (u.mb && applyRoster(id, u.mb)) ch = true;
+  u.events.forEach(function (e) {
+    var c = box[e.id];
+    if (!c) { box[e.id] = e; ch = true; } else if (absorb(c, e)) ch = true;
+    if (u.d !== DEV && out[e.id] && (!out[e.id].e.x || e.x)) { delete out[e.id]; ch = true; }   // 그 팀 폰이 받아서 다시 올렸다 → 전달 끝
+  });
+  return ch;
+}
+function syncAll() {
+  if (!amChief()) return Promise.resolve();
+  if (allBusy) return allBusy;
+  var ids = TEAMS.filter(function (t) { return t.id !== ME.team; }).map(function (t) { return t.id; });
+  allBusy = (async function () {
+    // 다른 팀 채널 전부를 요청 한 번으로 받는다 (중계 서버는 같은 인터넷 주소의 요청 수를 제한한다)
+    var msgs = await pollAll(relayBase() + '/' + ids.map(function (id) { return CFG.topic + '-' + id; }).join(',')), mineOn = {};
+    for (var j = 0; j < msgs.length; j++) {
+      var id = String(msgs[j].topic || '').slice(CFG.topic.length + 1);
+      if (ids.indexOf(id) < 0) continue;
+      var u = unpack(await unseal(msgs[j].message), id);
+      if (!u) continue;
+      if (u.d === DEV) mineOn[id] = true;          // 내가 보낸 취소·초기화가 아직 중계 서버에 있다
+      absorbTeam(id, u);
+    }
+    allErr = {};
+    allAt = Date.now();
+    for (var i = 0; i < ids.length; i++) {
+      var out = OUT[ids[i]] || {};
+      Object.keys(out).forEach(function (k) { if (!inWindow(out[k].e)) delete out[k]; });   // 지난달보다 오래된 건 팀에 공유되지 않는다
+      if (Object.keys(out).length && !mineOn[ids[i]]) { try { await postOut(ids[i]); } catch (e) {} }   // 12시간이 지나 서버에서 사라졌는데 팀 폰이 아직 못 받았다 → 다시 올린다
+    }
+    saveAll(); lsSet('allAt', allAt);
+  })().then(null, function (e) {
+    ids.forEach(function (id) { allErr[id] = (e && e.msg) || '받지 못했어요'; });
+  }).then(function () { allBusy = null; if (ME) render(); });
+  if (allOpen) renderAll();
+  return allBusy;
+}
+/* 실시간: 다른 팀 폰이 올리는 순간 바로 받는다 — 중계 서버는 채널 여러 개를 연결 하나로 받을 수 있다 (채널1,채널2/sse) */
+var esAll = null, allLiveOk = false;
+function openLiveAll() {
+  if (esAll || !amChief() || !window.EventSource) return;
+  var ids = TEAMS.filter(function (t) { return t.id !== ME.team; }).map(function (t) { return t.id; });
+  if (!ids.length) return;
+  allR.at = Date.now();
+  try { esAll = new EventSource(relayBase() + '/' + ids.map(function (id) { return CFG.topic + '-' + id; }).join(',') + '/sse'); } catch (e) { esAll = null; return; }
+  esAll.addEventListener('open', function () {
+    allLiveOk = true; allR.fail = 0;
+    if (allOpen) renderAll();
+    if (Date.now() - allAt > 10000) syncAll();     // 끊긴 사이 놓친 것 채우기
+  });
+  esAll.onmessage = function (ev) {
+    var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (!m || m.event !== 'message') return;
+    allLiveOk = true;
+    var id = String(m.topic || '').slice(CFG.topic.length + 1);     // '채널-팀id' → 팀 id
+    if (!teamOf(id) || !ME || id === ME.team) return;
+    unseal(m.message).then(function (s) {
+      var u = unpack(s, id);
+      if (!u || !amChief()) return;
+      var hadErr = !!allErr[id];
+      delete allErr[id];                             // 실시간으로 받고 있으니 '못 받음' 표시는 지운다
+      if (absorbTeam(id, u) || hadErr) { saveAll(); render(); }
+    });
+  };
+  esAll.onerror = function () { allLiveOk = false; if (esAll && esAll.readyState === 2) { esAll = null; allR.fail++; } if (allOpen) renderAll(); };
+}
+function closeLiveAll() { if (esAll) { esAll.close(); esAll = null; } allLiveOk = false; }
+/** 보낼 것함을 그 팀 채널에 올린다 (기록만 — 팀 설정은 건드리지 않는다) */
+async function postOut(team) {
+  var out = OUT[team] || {}, ids = Object.keys(out);
+  if (!ids.length) return;
+  var chunks = await sealChunks(ids.map(function (k) { return out[k].e; }), team, {});
+  for (var i = 0; i < chunks.length; i++) await req('POST', topicOf(team) + '?tags=' + DEV, chunks[i].msg);
+  ids.forEach(function (k) { if (out[k]) out[k].s = 1; });
+  saveAll();
+}
+/** 총관리자가 바꾼 기록 보내기 — 우리 팀이면 평소대로, 다른 팀이면 그 팀 채널로 */
+function chiefSend(team, e, msg) {
+  if (team === ME.team) { EV[e.id] = e; persist(); render(); toast(msg); sync(); return; }
+  evsOf(team)[e.id] = e;
+  (OUT[team] || (OUT[team] = {}))[e.id] = { e: e, s: 0 };
+  saveAll(); render();
+  postOut(team).then(function () { render(); toast(msg + ' 팀원 폰에도 반영돼요.'); },
+    function () { toast(msg + ' 인터넷이 연결되면 그 팀에 보내요.'); });
+}
+/** 다른 팀 기록 [취소] */
+function chiefCancel(id) {
+  var t = teamOf(allTeam), e = t && evsOf(t.id)[id];
+  if (!allOpen || !amChief() || !e || !canCancel(e)) return;
+  ask({ title: '이 사용 기록을 취소할까요?', desc: t.name + ' ' + e.n + ' 님 · ' + (e.m ? e.m + ' · ' : '') + fmtDay(e.at) + ' ' + fmtTime(e.at) +
+      '\n취소하면 ' + t.name + ' 횟수를 1회 돌려놓고, 기록 옆에 "총관리자 ' + ME.name + ' 취소"가 남아요.',
+    yes: '네, 취소할게요', danger: true,
+    onYes: function () {
+      e.x = 1; e.xb = ME.name; e.xt = secNow();
+      chiefSend(t.id, e, t.name + ' ' + e.n + ' 님 기록을 취소했어요.');
+    } });
+}
+/** 다른 팀 [팀 횟수 초기화] */
+function chiefReset() {
+  var t = teamOf(allTeam);
+  if (!allOpen || !amChief() || !t) return;
+  var v = calc(curMonth(), evsOf(t.id), t);
+  if (!v.lim) return;
+  ask({ title: t.name + ' 횟수를 초기화하시겠습니까?', desc: '이번 달 ' + t.name + '에서 ' + v.lim + '회 사용한 상태에서 남은 횟수를 ' + v.cap + '회로 다시 채웁니다.\n쓴 기록과 금액은 그대로 남고, 기록에 "총관리자 ' + ME.name + '"가 표시돼요.',
+    yes: '네, 초기화합니다', no: '아니요',
+    onYes: function () {
+      chiefSend(t.id, { id: rnd(10), n: ME.name, at: secNow(), d: DEV, x: 0, r: 1, rb: ME.name }, t.name + ' 이번 달 횟수를 ' + v.cap + '회로 초기화했어요.');
+    } });
+}
+/** 모든 팀의 한 달 현황과 합계 */
+function allView(month) {
+  var o = { teams: TEAMS.map(function (t) { return calc(month, evsOf(t.id), t); }), used: 0, total: 0, cap: 0, lim: 0, remaining: 0 };
+  o.teams.forEach(function (v) { o.used += v.used; o.total += v.total; o.cap += v.cap; o.lim += v.lim; o.remaining += v.remaining; });
+  return o;
+}
+var allOpen = false, allMonth = '', allTeam = '';     // allTeam: 기록을 보고 있는 팀 ('' = 전체 팀)
+function openAll() {
+  allOpen = true; allMonth = curMonth(); allTeam = ''; $('allPage').classList.add('show'); $('allPage').scrollTop = 0; renderAll(); paged();
+  if (!allLiveOk || Date.now() - allAt > 60000) syncAll();     // 실시간으로 받고 있으면 전체를 다시 받지 않는다 (중계 서버 요청 줄이기)
+}
+function closeAll() { allOpen = false; allTeam = ''; $('allPage').classList.remove('show'); paged(); }
+/** 뒤로: 한 팀 기록을 보고 있으면 전체 팀으로, 아니면 닫기 */
+function backAll() { if (allTeam) { allTeam = ''; renderAll(); $('allPage').scrollTop = 0; } else closeAll(); }
+function allOldest() {
+  var m = curMonth();
+  TEAMS.forEach(function (t) { values(evsOf(t.id)).forEach(function (e) { var k = monthKey(e.at); if (k < m) m = k; }); });
+  return m;
+}
+function renderAll() {
+  if (!amChief()) { closeAll(); return; }
+  var a = allView(allMonth), cur = allMonth === curMonth(), t = teamOf(allTeam);
+  var v = t ? a.teams[TEAMS.indexOf(t)] : a;
+  $('aTitle').textContent = t ? t.name : '전체 팀 현황';
+  $('aLabel').textContent = monthLabel(allMonth);
+  $('aNext').disabled = allMonth >= curMonth();
+  $('aPrev').disabled = allMonth <= allOldest();
+  $('aUsedCap').textContent = t ? '팀 사용' : '전체 사용';
+  $('aUsed').innerHTML = v.used + '<span>회</span>';
+  $('aRemainCap').textContent = cur ? (t ? '팀 남은 횟수' : '전체 남은 횟수') : '한 달 횟수';
+  $('aRemain').innerHTML = cur ? v.remaining + '<span>/' + v.cap + '</span>' : v.cap + '<span>회</span>';
+  $('aTotalCap').textContent = t ? '팀 총 요금' : '전체 요금';
+  $('aTotal').innerHTML = fmtNum(v.total) + '<span>원</span>';
+  if (t) {
+    var rsRow = !cur ? '' : '<section class="card sec" style="padding:4px 16px"><div class="rrow"><span class="av sm" style="background:' + t.color + '">↺</span>' +
+      '<div class="rm"><b>팀 횟수 초기화</b><small class="num">팀 남은 횟수 ' + v.remaining + '/' + v.cap + (v.rs ? ' · ' + fmtShort(v.rs) + ' 초기화함' : '') + '</small></div>' +
+      '<button class="rbtn" data-areset="1"' + (v.lim ? '' : ' disabled') + '>' + (v.lim ? '초기화' : v.cap + '회 그대로') + '</button></div></section>';
+    setHtml('aBody', rsRow +
+      '<section class="card sec"><div class="sec-h"><h2>사람별</h2><span class="meta">팀 한 달 ' + v.cap + '회 (' + capNote(t) + ')</span></div><div class="people">' + peopleHtml(v.people, t) + '</div></section>' +
+      '<section class="card sec"><div class="sec-h"><h2>메뉴별</h2><span class="meta">' + (v.used ? '총 ' + v.used + '잔' : '') + '</span></div>' + menuStatsHtml(v.menus) + '</section>' +
+      '<section class="sec"><div class="sec-h" style="padding:0 2px"><h2>날짜별 기록</h2><span class="meta">' + (v.logs.length ? v.logs.length + '건' : '') + '</span></div>' + dayCards(v.logs, v.over, t, true) + '</section>');
+  } else {
+    setHtml('aBody', a.teams.map(function (tv) {
+      var tt = tv.team, ppl = byUse(tv.people, tt).filter(function (n) { return tv.people[n].c; });
+      return '<div class="card mcard" role="button" data-ateam="' + esc(tt.id) + '">' +
+        '<div class="mc-h"><i class="tdot" style="background:' + tt.color + '"></i><b>' + esc(tt.name) + '</b>' +
+        (tt.id === ME.team ? '<em class="tag me">우리 팀</em>' : '') + (allErr[tt.id] && !allLiveOk ? '<em class="tag over">못 받음</em>' : '') +
+        '<span class="won num">' + won(tv.total) + '</span></div>' +
+        (cur ? '<div class="tbar2"><i style="width:' + Math.min(100, Math.round(tv.lim / tv.cap * 100)) + '%;background:' + tt.color + '"></i></div>' : '') +
+        '<div class="mc-s num">' + tv.used + '회 사용 · ' + (cur ? '남은 ' + tv.remaining + '/' + tv.cap + '회' : '한 달 ' + tv.cap + '회') + ' · ' + capNote(tt) + '</div>' +
+        (ppl.length ? '<div class="mc-p">' + ppl.map(function (n) {
+          return '<div><i class="dot" style="background:' + userColor(n, tt) + '"></i>' + esc(n) + '<small class="num">' + tv.people[n].c + '회</small><em class="num">' + won(tv.people[n].t) + '</em></div>';
+        }).join('') + '</div>' : '') +
+        '<div class="mc-more">기록 보기 ›</div></div>';
+    }).join(''));
+  }
+  $('aFoot').innerHTML = esc((allLiveOk ? '● 모든 팀 실시간 연결됨 · ' : allBusy ? '다른 팀 기록을 받는 중… · ' : '실시간 연결이 끊겨 다시 연결하는 중 · ') + (allAt ? '전체 확인 ' + fmtShort(allAt) + ' ' + fmtTime(allAt) : '아직 다른 팀 기록을 받지 못했어요')) +
+    '<br>다른 팀이 QR을 쓰면 바로 여기 숫자가 줄어요. 팀원 폰이 중계 서버에 올려 둔 이번 달·지난달 기록을 받아 와요.<br>받은 기록은 이 폰에 쌓여서 더 오래된 달도 볼 수 있어요.<br>팀을 누르면 그 팀 사용 취소·팀 횟수 초기화를 할 수 있어요 (이번 달·지난달).';
+}
+function exportAll() {
+  var a = allView(allMonth), lines = ['A카페 · 전체 팀 사용 현황 — ' + monthLabel(allMonth), '전체 ' + a.used + '회 · ' + won(a.total), ''];
+  a.teams.forEach(function (v) {
+    lines.push('[' + v.team.name + '] ' + v.used + '회 · ' + won(v.total) + ' (한 달 ' + v.cap + '회 · ' + capNote(v.team) + ')');
+    byUse(v.people, v.team).forEach(function (n) { if (v.people[n].c) lines.push('   · ' + n + ' ' + v.people[n].c + '회 ' + won(v.people[n].t)); });
+  });
+  return lines.join('\n');
+}
+
 /* ---------------- 내보내기 (카톡·메일) ---------------- */
 function exportText() {
   var v = view(pageMonth);
-  var lines = ['A카페 QR · ' + myTeam().name + ' 사용 기록 — ' + monthLabel(pageMonth), '팀 ' + v.used + '회 · 총 ' + won(v.total) + ' (한 사람당 한 달 ' + PER + '회)', '', '[사람별]'];
+  var lines = ['A카페 · ' + myTeam().name + ' 사용 기록 — ' + monthLabel(pageMonth), '팀 ' + v.used + '회 · 총 ' + won(v.total) + ' (팀 한 달 ' + v.cap + '회 · ' + capNote(myTeam()) + ')', '', '[사람별]'];
   byUse(v.people).forEach(function (n) { lines.push('· ' + n + ' ' + v.people[n].c + '회 ' + won(v.people[n].t)); });
   var ms = Object.keys(v.menus).sort(function (a, b) { return v.menus[b].c - v.menus[a].c; });
   if (ms.length) { lines.push('', '[메뉴별]'); ms.forEach(function (m) { lines.push('· ' + m + ' ' + v.menus[m].c + '잔 ' + won(v.menus[m].t)); }); }
   lines.push('', '[기록]');
   v.logs.slice().reverse().forEach(function (e) {
-    if (e.r) { lines.push(fmtShort(e.at) + ' ' + fmtTime(e.at) + '  ' + e.n + '  횟수 초기화 (관리자 ' + (e.rb || '') + ')'); return; }
-    lines.push(fmtShort(e.at) + ' ' + fmtTime(e.at) + '  ' + e.n + (e.m ? '  ' + e.m + '  ' + won(e.p) : '') + (e.x ? '  (취소' + (e.xb ? ' · 관리자 ' + e.xb : '') + ')' : ''));
+    if (e.r) { lines.push(fmtShort(e.at) + ' ' + fmtTime(e.at) + '  팀 횟수 초기화 (' + byLabel(e.rb || e.n) + ')'); return; }
+    lines.push(fmtShort(e.at) + ' ' + fmtTime(e.at) + '  ' + e.n + (e.m ? '  ' + e.m + '  ' + won(e.p) : '') + (e.x ? '  (취소' + (e.xb ? ' · ' + byLabel(e.xb) : '') + ')' : ''));
   });
   return lines.join('\n');
 }
 function exportMonths() {
-  var lines = ['A카페 QR · ' + myTeam().name + ' 월별 요금', ''], allC = 0, allT = 0;
+  var lines = ['A카페 · ' + myTeam().name + ' 월별 요금', ''], allC = 0, allT = 0;
   knownMonths().forEach(function (mk) {
     var v = view(mk);
     allC += v.used; allT += v.total;
@@ -2038,8 +2353,10 @@ function openSettings() {
   $('urlIn').value = relayBase();
   var n = pendingCount();
   var all = values(EV).length;
-  $('meInfo').innerHTML = [['팀', esc(myTeam().name)], ['이름', esc(ME.name) + (amAdmin() ? ' ' + admTag() : '')], ['한 달 횟수', '한 사람당 ' + PER + '회']]
+  $('meInfo').innerHTML = [['팀', esc(myTeam().name)], ['이름', esc(ME.name) + ' ' + roleTag(ME.name)], ['한 달 횟수', '팀 ' + teamCap(myTeam()) + '회 (' + capNote(myTeam()) + ')']]
     .map(function (s) { return '<div><span>' + s[0] + '</span><b>' + s[1] + '</b></div>'; }).join('');
+  $('btnAdmin').hidden = !amAdmin();              // 팀장(관리자)에게만 — 일반 팀원은 쓸 수 없는 메뉴라 숨긴다
+  drawVer(); checkUpdate(true);                  // 설정을 열면 최신 버전인지 바로 확인 (창은 안 띄운다)
   $('btnInvite').hidden = !CFG.webUrl;
   var stats = [
     ['연결', { ok: '실시간 공유 중', busy: '연결 중', off: '오프라인', err: '연결 오류' }[syncState] || '-'],
@@ -2049,9 +2366,92 @@ function openSettings() {
   ];
   if (syncErr && syncErr.msg) stats.push(['오류 내용', syncErr.msg]);
   $('stats').innerHTML = stats.map(function (s) { return '<div><span>' + s[0] + '</span><b>' + esc(s[1]) + '</b></div>'; }).join('');
-  $('aboutInfo').textContent = 'A카페 QR v' + VERSION + ' · 이 폰 ID ' + DEV;
+  $('aboutInfo').textContent = 'A카페 v' + VERSION + ' · 이 폰 ID ' + DEV;
   openSheet('setSheet');
 }
+
+/* ---------------- 원격 업데이트 (안드로이드 앱) ----------------
+   새 APK 를 앱 키로 암호화해 웹 버전 주소의 android/ 에 올려 두면(앱 소스\publish-update.js — 공개 저장소라 그대로 올리면 키·명단이 샌다),
+   앱을 열 때 android/version.json 을 보고 새 버전이면 "업데이트를 해 주세요" 창을 띄운다.
+   [업데이트] → 폰이 받아서 풀고 안드로이드 설치 화면을 연다. version.json 의 min 보다 낮은 버전은 [나중에] 없이 막는다.
+   아이폰(웹)은 이 창 없이, 올린 뒤 앱을 다시 열면 저절로 새 화면이 된다(sw.js). */
+var updInfo = null, updAt = 0, updBusy = false, verChk = '';   // verChk: '' 확인 전 · busy · ok(최신) · new · fail
+/** 안드로이드 앱이면 새 APK 를 받아 설치, 아이폰(웹)이면 새 화면 파일로 다시 연다 */
+function isApp() { return !!(window.Native && window.Native.update); }
+/** 최신 버전을 알려 주는 곳 — 앱: android/version.json · 웹: 올라가 있는 index.html 의 VERSION */
+function updUrl() {
+  if (isApp()) return CFG.webUrl ? String(CFG.webUrl).replace(/\/*$/, '/') + 'android/version.json' : '';
+  return /^https?:$/.test(location.protocol) ? new URL('index.html', location.href).href : '';
+}
+/** '1.3.10' → 비교용 숫자 */
+function verNum(v) { return String(v || '0').split('.').slice(0, 3).reduce(function (a, n) { return a * 1000 + (parseInt(n, 10) || 0); }, 0); }
+/** 설치된 앱 버전 (안드로이드가 알려 준다) */
+function appVer() { return native('appVersion') || VERSION; }
+function updMust() { return !!updInfo && verNum(appVer()) < verNum(updInfo.min); }
+/** 새 버전이 있는지 확인 → 확인했으면 true. now 가 아니면 10분에 한 번만 (앱을 열 때·돌아왔을 때) */
+function checkUpdate(now) {
+  var u = updUrl();
+  if (!u || updBusy || (!now && Date.now() - updAt < 600e3)) return Promise.resolve(false);
+  updAt = Date.now(); verChk = 'busy'; drawVer();
+  return fetch(u + '?vcheck=' + updAt, { cache: 'no-store' }).then(function (r) {   // vcheck: 아이폰 sw.js 가 저장본 대신 새로 받게
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return isApp() ? r.json() : r.text().then(function (h) { var m = /var VERSION = '([^']+)'/.exec(h); return { version: m ? m[1] : '' }; });
+  }).then(function (j) {
+    if (!j || !j.version) throw new Error('no version');
+    updInfo = (j.file || !isApp()) && verNum(j.version) > verNum(appVer()) ? j : null;
+    verChk = updInfo ? 'new' : 'ok';
+  }).catch(function () { verChk = 'fail'; }).then(function () { drawVer(); return true; });
+}
+/** 앱을 열 때·돌아왔을 때: 새 버전이면 "업데이트를 해 주세요" */
+function autoUpdate() { checkUpdate().then(function (did) { if (did && updInfo) showUpdate(); }); }
+/** 설정의 '앱 버전' 칸 + [최신 버전인지 확인] 버튼 */
+function drawVer() {
+  var nw = verChk === 'new' && !!updInfo,
+    st = verChk === 'busy' ? ['확인 중…', ''] : verChk === 'ok' ? ['최신 버전이에요 ✓', 'ok']
+      : nw ? ['새 버전 v' + updInfo.version + ' — 업데이트해 주세요', 'new'] : verChk === 'fail' ? ['확인하지 못했어요 (인터넷 연결 확인)', 'bad'] : ['확인 전', ''];
+  $('verInfo').innerHTML = '<div><span>지금 쓰는 버전</span><b>v' + esc(appVer()) + '</b></div><div><span>최신 버전</span><b class="' + st[1] + '">' + esc(st[0]) + '</b></div>';
+  $('btnVer').textContent = nw ? '새 버전으로 업데이트' : verChk === 'busy' ? '확인 중…' : '최신 버전인지 확인';
+  $('btnVer').className = nw ? 'btn' : 'btn ghost';
+  $('btnVer').disabled = verChk === 'busy';
+}
+function showUpdate() {
+  if (!updInfo || !ME || qrSess || upShown() || popShown() || (anySheet() && !shown('updSheet'))) return;   // QR·다른 창을 쓰는 중이면 다음에 열 때
+  var must = updMust();
+  $('updTitle').textContent = '업데이트를 해 주세요';
+  $('updDesc').textContent = '새 버전(v' + updInfo.version + ')이 나왔어요. (지금 v' + appVer() + ')' + (updInfo.notes ? '\n· ' + updInfo.notes : '') +
+    '\n' + (must ? '이번 업데이트를 해야 계속 쓸 수 있어요.' : '쓰던 기록과 설정은 그대로 남아요.');
+  $('btnUpdLater').hidden = must;
+  setUpd('', 0);
+  openSheet('updSheet');
+}
+/** 진행 표시 — st: '' | down(받는 중, v=%) | install(설치 화면 열림) | fail */
+function setUpd(st, v) {
+  updBusy = st === 'down';
+  $('updBar').hidden = st !== 'down';
+  $('updFill').style.width = (v > 0 ? v : 3) + '%';
+  $('updSt').textContent = st === 'down' ? '새 버전을 받는 중…' + (v >= 0 ? ' ' + v + '%' : '')
+    : st === 'install' ? '설치 화면에서 [업데이트]를 눌러 주세요.\n처음 한 번은 "이 출처 허용"을 물어보면 A카페를 허용해 주세요.'
+    : st === 'fail' ? '새 버전을 받지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.' : '';
+  $('btnUpd').disabled = updBusy;
+  $('btnUpd').textContent = st === 'install' || st === 'fail' ? '다시 시도' : '업데이트';
+}
+function startUpdate() {
+  if (!updInfo || updBusy) return;
+  if (!isApp()) { setUpd('down', -1); webUpdate(); return; }
+  setUpd('down', 0);
+  native('update', new URL(updInfo.file, updUrl()).href, CFG.key);
+}
+/** 아이폰(웹): 저장해 둔 옛 화면 파일을 지우고 새로 받아 다시 연다 (기록은 그대로) */
+function webUpdate() {
+  var again = function () { location.reload(); };
+  var clear = window.caches ? caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf('acafe-qr-') === 0; }).map(function (k) { return caches.delete(k); })); }) : Promise.resolve();
+  if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function (g) { if (g) g.update(); }).catch(function () {});
+  clear.then(function () {
+    return Promise.all(['./', 'index.html', 'config.js', 'qrcode.js', 'jsqr.js', 'game.html'].map(function (f) { return fetch(f, { cache: 'reload' }).catch(function () {}); }));
+  }).then(again, again);
+}
+/** 안드로이드가 알려 주는 진행 상황 */
+window.appUpdate = function (st, v) { setUpd(String(st), Number(v)); };
 
 /* ---------------- 시트·뒤로가기 ---------------- */
 /** keep = 열려 있던 비밀번호·QR 등록 상태를 지우지 않는다 (그 시트를 여는 쪽) */
@@ -2068,6 +2468,7 @@ function anySheet() { return !!document.querySelector('.sheet.show'); }
 function shown(id) { return $(id).classList.contains('show'); }
 /** 바깥 누름·뒤로가기로 시트 닫기 */
 function dismissSheet() {
+  if (shown('updSheet') && updMust()) return;                    // 꼭 해야 하는 업데이트는 바깥을 눌러도 안 닫힌다
   if (shown('askSheet')) askDismiss();
   else if (shown('pinSheet')) pinCancel();
   else { if (shown('qrSheet')) qrPick = null; closeSheets(); }
@@ -2075,6 +2476,8 @@ function dismissSheet() {
 
 /** 안드로이드 뒤로가기: 처리했으면 true, 홈이면 false(앱 종료) */
 window.appBack = function () {
+  if (shown('updSheet') && updMust()) return false;             // 꼭 해야 하는 업데이트 창: 닫지 않고 앱 종료
+  if (shown('exitSheet')) { closeSheets(); return false; }
   if (upShown()) { upClose(); return true; }
   if (popShown()) { popClose(); return true; }
   if (anySheet()) { dismissSheet(); return true; }
@@ -2083,14 +2486,16 @@ window.appBack = function () {
   if (cxOpen) { closeCx(); return true; }
   if (rsOpen) { closeRs(); return true; }
   if (adm) { closeAdmin(); return true; }
+  if (allOpen) { backAll(); return true; }
   if (pageOpen) { closeLog(); return true; }
   if (monOpen) { closeMonths(); return true; }
   if (!ME && setupStep === 'qr') { step('name'); return true; }
   if (!ME && setupStep === 'name') { step('team'); return true; }
+  if (ME) { openExit(); return true; }
   return false;
 };
-window.appResume = function () { if (ME) { openLive(); sync(); } };
-window.appPause = function () { closeLive(); };
+window.appResume = function () { if (ME) { openLive(); openLiveAll(); sync(); syncAll(); autoUpdate(); } };
+window.appPause = function () { closeLive(); closeLiveAll(); };
 
 /* ---------------- 이벤트 ---------------- */
 $('btnUse').onclick = openUseSheet;
@@ -2134,6 +2539,10 @@ $('btnSq').onclick = setupQrBtn;
 $('btnSqLater').onclick = function () { finishSetup(''); };
 $('btnLog').onclick = function () { openLog(); };
 $('btnMonths').onclick = openMonths;
+$('btnAll').onclick = openAll;
+$('aPrev').onclick = function () { allMonth = shiftMonth(allMonth, -1); renderAll(); };
+$('aNext').onclick = function () { allMonth = shiftMonth(allMonth, 1); renderAll(); };
+$('btnExportA').onclick = function () { doExport('전체 팀 사용 현황', exportAll()); };
 $('monList').onclick = function (e) {
   var c = e.target.closest('[data-month]');
   if (c) openLog(c.getAttribute('data-month'));
@@ -2155,14 +2564,23 @@ $('invIn').onkeydown = function (e) { if (e.key === 'Enter' && !e.isComposing) s
 $('sync').onclick = function () { if (syncErr && syncState !== 'ok') toast(syncErr.msg); sync(); };
 $('btnSet').onclick = openSettings;
 $('btnAdmin').onclick = function () { closeSheets(); adminEntry(ME.team); };
+$('btnLogout').onclick = logout;
+$('btnLogout2').onclick = logout;
+$('btnExit').onclick = function () { closeSheets(); native('exit'); };
+$('btnUpd').onclick = startUpdate;
+$('btnUpdLater').onclick = function () { closeSheets(); };
+$('btnVer').onclick = function () {
+  if (verChk === 'new' && updInfo) { closeSheets(); showUpdate(); return; }
+  checkUpdate(true).then(function () { if (updInfo && shown('setSheet')) { closeSheets(); showUpdate(); } });
+};
 $('btnSyncNow').onclick = function () { closeSheets(); sync().then(function () { toast(syncState === 'ok' ? '최신 기록으로 맞췄어요.' : (syncErr && syncErr.msg) || '동기화하지 못했어요.'); }); };
 $('btnSave').onclick = function () {
   var u = $('urlIn').value.trim().replace(/\/+$/, '');
   if (u && !/^https:\/\/[^\s/]+/.test(u)) { toast('https:// 로 시작하는 주소를 넣어 주세요.'); return; }
   lsSet('relayUrl', u && u !== CFG.relay ? u : '');
   RELAY = {}; mineAt = 0; RCFG = {}; persist();
-  closeLive(); openLive();
-  closeSheets(); sync(); toast('저장했어요.');
+  closeLive(); openLive(); closeLiveAll(); openLiveAll();
+  closeSheets(); sync(); syncAll(); toast('저장했어요.');
 };
 document.addEventListener('click', function (e) {
   var st = e.target.closest('[data-step]');
@@ -2178,14 +2596,19 @@ document.addEventListener('click', function (e) {
   var cw = e.target.closest('[data-cxw]');
   if (cw) { cxWho = cw.getAttribute('data-cxw'); renderCx(); return; }
   var rb = e.target.closest('[data-rs]');
-  if (rb) { resetCount(rb.getAttribute('data-rs')); return; }
+  if (rb) { resetCount(); return; }
   var x = e.target.closest('[data-close]');
-  if (x) { var w = x.getAttribute('data-close'); if (w === 'qr') leaveQr(); else if (w === 'log') closeLog(); else if (w === 'months') closeMonths(); else if (w === 'adm') closeAdmin(); else if (w === 'cx') closeCx(); else if (w === 'rs') closeRs(); else if (w === 'game') closeGame(); return; }
+  if (x) { var w = x.getAttribute('data-close'); if (w === 'qr') leaveQr(); else if (w === 'log') closeLog(); else if (w === 'months') closeMonths(); else if (w === 'adm') closeAdmin(); else if (w === 'cx') closeCx(); else if (w === 'rs') closeRs(); else if (w === 'game') closeGame(); else if (w === 'all') backAll(); return; }
+  var at = e.target.closest('[data-ateam]');
+  if (at) { allTeam = at.getAttribute('data-ateam'); renderAll(); $('allPage').scrollTop = 0; return; }
+  var ac = e.target.closest('[data-acancel]');
+  if (ac) { chiefCancel(ac.getAttribute('data-acancel')); return; }
+  if (e.target.closest('[data-areset]')) { chiefReset(); return; }
   var c = e.target.closest('[data-cancel]');
   if (c) cancelUse(c.getAttribute('data-cancel'));
 });
 document.addEventListener('visibilitychange', function () {
-  if (document.hidden) closeLive(); else if (ME) { openLive(); sync(); }
+  if (document.hidden) { closeLive(); closeLiveAll(); } else if (ME) { openLive(); openLiveAll(); sync(); syncAll(); autoUpdate(); }
 });
 
 /* ---------------- 시작 ---------------- */
@@ -2195,11 +2618,18 @@ function startApp() {
   setSync('busy');
   render();
   openLive();
+  openLiveAll();                                                                                 // 총관리자 폰만: 다른 팀 기록도 실시간으로 받는다
   sync();
+  syncAll();
+  autoUpdate();                                                                                  // 새 버전이면 "업데이트를 해 주세요" (안드로이드 APK · 아이폰 웹)
   if (started) return;
   started = true;
-  setInterval(function () { if (ME && !document.hidden) sync(); }, FULL_POLL_MS);                // 5분마다 전체 확인
-  setInterval(function () { if (ME && !document.hidden && !liveOk) sync(); }, 30000);            // 실시간 연결이 끊겼을 때만 30초마다
+  setInterval(function () { if (ME && !document.hidden) { sync(); syncAll(); } }, FULL_POLL_MS); // 5분마다 전체 확인
+  setInterval(function () {                                                                      // 실시간 연결이 끊겼으면 다시 연결만 (붙으면 그때 한 번 전체 확인) — 간격은 retryDue
+    if (!ME || document.hidden) return;
+    if (!liveOk && !es && retryDue(liveR)) openLive();
+    if (amChief() && !allLiveOk && !esAll && retryDue(allR)) openLiveAll();
+  }, 15000);
   setInterval(function () { if (ME && !document.hidden) render(); }, 30000);                     // 취소 가능 시간·달 바뀜 반영
 }
 openSealedRoster();
