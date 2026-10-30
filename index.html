@@ -352,6 +352,12 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 .gchip{position:relative;display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 14px 0 11px;border-radius:99px;background:#241a4a;color:#fff;font-size:14px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;flex:none;box-shadow:0 3px 10px rgba(36,26,74,.3)}
 .gchip::after{content:'';position:absolute;inset:-7px -5px}   /* 손가락이 살짝 빗나가도 눌리게 */
 .gchip:active{transform:scale(.95)}
+@media (max-width:359px){   /* 좁은 폰: 'A카페' 제목이 [커피 내기게임] 버튼에 밀려 잘리지 않게 */
+  .brand{gap:7px;font-size:17px}
+  .trow{gap:5px}
+  .gchip{font-size:12.5px;height:31px;padding:0 9px 0 7px;gap:3px}
+  .top-r .icon-btn{width:34px}
+}
 .gamev{position:fixed;inset:0;z-index:40;background:#0f1226;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .22s cubic-bezier(.3,.8,.3,1)}
 .gamev.show{transform:none}
 .gbar{flex:none;display:flex;align-items:center;height:calc(env(safe-area-inset-top) + 46px);padding:env(safe-area-inset-top) 8px 0}
@@ -402,7 +408,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
   <header class="top">
     <div class="brand">
       <span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5v2M12 2.5v2"/></svg></span>
-      <span class="bt"><span class="trow"><span class="tt">A카페</span><button class="gchip" id="btnGame" aria-label="커피 내기 게임">🎲 커피게임</button></span>
+      <span class="bt"><span class="trow"><span class="tt">A카페</span><button class="gchip" id="btnGame" aria-label="커피 내기 게임">🎲 커피 내기게임</button></span>
         <button class="sync" id="sync" data-s="busy"><i></i><span id="syncText">연결 중…</span><span id="syncWho"></span></button></span>
     </div>
     <div class="top-r">
@@ -785,7 +791,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 (function () {
 'use strict';
 
-var VERSION = '1.3.0';
+var VERSION = '1.3.1';
 var CFG = window.CAFE_CONFIG || {};
 var PER = CFG.perPerson || 10;                        // 한 사람 몫 — 팀 한 달 총 횟수 = 팀원 수 × PER
 var TEAM_PIN = String(CFG.teamPin || '0000');         // 팀 비밀번호 처음 값
