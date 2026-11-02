@@ -2,7 +2,7 @@
  * 저장해 둔 파일로 바로 열고(커피 게임 그림도 매번 다시 받지 않는다), 뒤에서 새 파일을 받아 다음에 열 때 쓴다.
  * 인터넷이 안 되면 저장해 둔 파일로 연다 → 카페에서 신호가 약해도 QR은 열린다.
  * 중계 서버(ntfy.sh) 요청은 건드리지 않는다. */
-var CACHE = 'acafe-qr-3';
+var CACHE = 'acafe-qr-4';
 var FILES = ['./', 'index.html', 'config.js', 'qrcode.js', 'jsqr.js', 'game.html', 'logo.webp', 'splash.webp', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', function (e) {   // cache: 'reload' — 브라우저에 남은 옛 파일 말고 새로 받아 저장

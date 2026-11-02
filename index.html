@@ -594,6 +594,8 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
         <span class="at"><b>관리자 비밀번호 바꾸기</b><small id="admA"></small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
       <button class="arow" data-adm="q"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-1"/></svg></span>
         <span class="at"><b>팀 QR 코드 바꾸기</b><small id="admQ"></small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="arow danger" data-adm="qdel" id="admQx" hidden><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></span>
+        <span class="at"><b>팀 QR 코드 삭제하기</b><small>잘못 등록한 QR을 팀원 모두의 앱에서 지워요</small></span><svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
     </section>
     <section class="card sec alist" id="admOps">
       <button class="arow" data-adm="cancel"><span class="ai"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span>
@@ -791,7 +793,7 @@ body.paged #home,body.paged #setup{pointer-events:none}   /* 화면이 밀려 �
 (function () {
 'use strict';
 
-var VERSION = '1.3.1';
+var VERSION = '1.3.2';
 var CFG = window.CAFE_CONFIG || {};
 var PER = CFG.perPerson || 10;                        // 한 사람 몫 — 팀 한 달 총 횟수 = 팀원 수 × PER
 var TEAM_PIN = String(CFG.teamPin || '0000');         // 팀 비밀번호 처음 값
@@ -811,6 +813,7 @@ var SNAP_LIMIT = 3900;                // ntfy 메시지 한도 4096바이트 —
 var MAX_CHUNKS = 6;
 var PIN_MIN = 4, PIN_MAX = 16;        // 팀장님이 새로 정하는 비밀번호 자리 수
 var QR_MAX = 600;                     // 팀 QR 내용 최대 길이
+var QR_NONE = '-';                    // 팀 QR 삭제 표시 — 빈 값은 옛 버전(~1.3.1)이 받지 않고 버려서, 삭제가 팀원 폰에 안 퍼진다
 var KST = 9 * 3600e3;
 var DOW = '일월화수목금토';
 var RING_C = 2 * Math.PI * 86;
@@ -916,7 +919,9 @@ var CROWN = '<svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path fil
 function admTag(chief) { return '<em class="tag adm">' + CROWN + (chief ? '총관리자' : '관리자') + '</em>'; }
 /** 이름 옆 표시: 총관리자 · 관리자 · 없음 */
 function roleTag(n, team) { return isChiefName(n, team) ? admTag(true) : isAdminName(n, team) ? admTag() : ''; }
-function qrText() { return (TCFG.q && TCFG.q.c) || ''; }
+/** 팀 설정의 QR 항목 → QR 내용 (없거나 관리자가 삭제했으면 '') */
+function qrOf(f) { return f && f.c && f.c !== QR_NONE ? f.c : ''; }
+function qrText() { return qrOf(TCFG.q); }
 function shortQr(s) { s = String(s || ''); return s.length > 44 ? s.slice(0, 42) + '…' : s; }
 
 /* ---------------- 시간 (한국 시간 기준) ---------------- */
@@ -1837,11 +1842,11 @@ function confirmName() {
     } });
 }
 function gotoQr() {
-  var q = join.cfg.q, t = teamOf(join.team);
+  var q = qrOf(join.cfg.q), t = teamOf(join.team);
   if (q) {
     $('sqTitle').textContent = '팀 QR이 준비돼 있어요';
     $('sqDesc').textContent = '팀에서 등록해 둔 결제 QR이에요. 바로 쓸 수 있어요.';
-    $('sqBox').innerHTML = '<div class="qrmini">' + qrSvg(q.c) + '</div><div class="code">' + esc(shortQr(q.c)) + '</div>';
+    $('sqBox').innerHTML = '<div class="qrmini">' + qrSvg(q) + '</div><div class="code">' + esc(shortQr(q)) + '</div>';
     $('btnSq').textContent = '시작하기';
     $('btnSqLater').hidden = true;
   } else {
@@ -1855,7 +1860,7 @@ function gotoQr() {
 }
 function setupQrBtn() {
   if (!join) return;
-  if (join.cfg.q) { finishSetup(''); return; }
+  if (qrOf(join.cfg.q)) { finishSetup(''); return; }
   pickQr({ title: teamOf(join.team).name + ' QR 코드', desc: '이 QR이 맞는지 확인해 주세요. 저장하면 팀원 모두의 앱에 같이 저장돼요.',
     onSave: function (txt) { finishSetup(txt); } });
 }
@@ -1955,7 +1960,9 @@ function renderAdmin() {
   $('admTeam').textContent = t.name;
   $('admP').textContent = changedAt(c.p, '처음 비밀번호 그대로예요');
   $('admA').textContent = changedAt(c.a, '처음 비밀번호 그대로예요');
-  $('admQ').textContent = c.q ? '등록됨 · ' + shortQr(c.q.c) : '아직 등록 안 됐어요';
+  var q = qrOf(c.q);
+  $('admQ').textContent = q ? '등록됨 · ' + shortQr(q) : c.q ? '삭제됨 · 다음에 쓰는 팀원이 새로 등록해요' : '아직 등록 안 됐어요';
+  $('admQx').hidden = !q;
   $('admMine').hidden = !adm.mine;
   $('admOps').hidden = !adm.mine;          // 사용취소·초기화는 그 팀 폰에서 (팀 기록을 갖고 있어야 한다)
   if (adm.mine) $('admMe').textContent = ME.name + ' 님 폰 · 팀·이름을 다시 정해요';
@@ -1997,6 +2004,14 @@ function admChangeQr() {
   var t = teamOf(adm.team);
   pickQr({ title: t.name + ' QR 코드', desc: '이 QR로 바꾸면 팀원 모두의 앱에서 QR이 바뀌어요.',
     onSave: function (txt) { admDone(admSave('q', { c: txt, at: secNow() }), '팀 QR을 바꿨어요. 팀원들에게도 공유돼요.'); } });
+}
+/** 팀 QR 삭제 — 잘못 등록한 QR(예: 테스트하며 넣은 다른 사람 QR)을 팀원 모두의 앱에서 지운다.
+    다음에 [QR 사용하기]를 누르는 팀원이 "팀 QR이 아직 없어요" → 새로 등록한다 */
+function admDeleteQr() {
+  var t = teamOf(adm.team);
+  ask({ title: t.name + ' QR을 삭제할까요?', danger: true, yes: '삭제',
+    desc: '팀원 모두의 앱에서 지금 QR이 지워져요.\n다음에 [QR 사용하기]를 누르는 팀원이 카페 결제 QR을 새로 등록해요.\n사용 기록과 남은 횟수는 그대로예요.',
+    onYes: function () { admDone(admSave('q', { c: QR_NONE, at: secNow() }), '팀 QR을 삭제했어요. 팀원들에게도 공유돼요.'); } });
 }
 function resetPhone() {
   var n = pendingCount();
@@ -2372,39 +2387,44 @@ function openSettings() {
   ];
   if (syncErr && syncErr.msg) stats.push(['오류 내용', syncErr.msg]);
   $('stats').innerHTML = stats.map(function (s) { return '<div><span>' + s[0] + '</span><b>' + esc(s[1]) + '</b></div>'; }).join('');
-  $('aboutInfo').textContent = 'A카페 v' + VERSION + ' · 이 폰 ID ' + DEV;
+  var apkV = native('appVersion');               // 원격 업데이트로 화면만 바뀌면 설치된 APK 버전과 다를 수 있다
+  $('aboutInfo').textContent = 'A카페 v' + VERSION + (apkV && apkV !== VERSION ? ' (설치 v' + apkV + ')' : '') + ' · 이 폰 ID ' + DEV;
   openSheet('setSheet');
 }
 
-/* ---------------- 원격 업데이트 (안드로이드 앱) ----------------
-   새 APK 를 앱 키로 암호화해 웹 버전 주소의 android/ 에 올려 두면(앱 소스\publish-update.js — 공개 저장소라 그대로 올리면 키·명단이 샌다),
-   앱을 열 때 android/version.json 을 보고 새 버전이면 "업데이트를 해 주세요" 창을 띄운다.
-   [업데이트] → 폰이 받아서 풀고 안드로이드 설치 화면을 연다. version.json 의 min 보다 낮은 버전은 [나중에] 없이 막는다.
-   아이폰(웹)은 이 창 없이, 올린 뒤 앱을 다시 열면 저절로 새 화면이 된다(sw.js). */
+/* ---------------- 원격 업데이트 ----------------
+   안드로이드 앱과 아이폰(웹) 모두 웹 버전 주소(GitHub Pages)에 올라가 있는 index.html 의 VERSION 을 보고,
+   지금 화면보다 새것이면 "업데이트를 해 주세요" 창을 띄운다.
+   · 안드로이드(1.3.2~): [업데이트] → 새 화면 파일만 받아 앱 안에서 바꿔 끼우고 다시 연다(Native.webUpdate). APK 설치 화면 없음.
+     설정(config.js)은 웹 버전 것(명단 암호화)을 받아 이 앱의 채널·키로 명단을 풀어 넣은 것을 쓴다 → 팀·명단·메뉴를 고쳐도 웹에 올리면 된다.
+     (1.3.1 까지는 암호화한 APK 를 받아 설치했는데, Play 프로텍트가 그 모양을 '유해한 앱'으로 막아서 바꿨다.
+      1.3.1 이하 폰은 앱 소스\publish-update.js 로 올린 android/version.json 을 보고 1.3.2 APK 로 한 번 올라온다.)
+   · 아이폰(웹): 저장해 둔 옛 화면 파일을 지우고 새로 받아 다시 연다(webUpdate). */
 var updInfo = null, updAt = 0, updBusy = false, verChk = '';   // verChk: '' 확인 전 · busy · ok(최신) · new · fail
-/** 안드로이드 앱이면 새 APK 를 받아 설치, 아이폰(웹)이면 새 화면 파일로 다시 연다 */
-function isApp() { return !!(window.Native && window.Native.update); }
-/** 최신 버전을 알려 주는 곳 — 앱: android/version.json · 웹: 올라가 있는 index.html 의 VERSION */
+/** 화면 파일을 받아 바꿔 끼울 수 있는 안드로이드 앱(1.3.2~) */
+function isShell() { return !!(window.Native && window.Native.webUpdate); }
+function webBase() { return CFG.webUrl ? String(CFG.webUrl).replace(/#.*$/, '').replace(/\/*$/, '/') : ''; }
+/** 최신 버전을 알려 주는 곳 — 올라가 있는 index.html 의 VERSION (앱은 웹 버전 주소, 웹은 지금 주소) */
 function updUrl() {
-  if (isApp()) return CFG.webUrl ? String(CFG.webUrl).replace(/\/*$/, '/') + 'android/version.json' : '';
+  if (isShell()) return webBase() ? webBase() + 'index.html' : '';
   return /^https?:$/.test(location.protocol) ? new URL('index.html', location.href).href : '';
 }
 /** '1.3.10' → 비교용 숫자 */
 function verNum(v) { return String(v || '0').split('.').slice(0, 3).reduce(function (a, n) { return a * 1000 + (parseInt(n, 10) || 0); }, 0); }
-/** 설치된 앱 버전 (안드로이드가 알려 준다) */
-function appVer() { return native('appVersion') || VERSION; }
+/** 지금 쓰는 화면 버전 (안드로이드는 원격 업데이트로 APK 버전보다 새것일 수 있다) */
+function appVer() { return VERSION; }
 function updMust() { return !!updInfo && verNum(appVer()) < verNum(updInfo.min); }
 /** 새 버전이 있는지 확인 → 확인했으면 true. now 가 아니면 10분에 한 번만 (앱을 열 때·돌아왔을 때) */
 function checkUpdate(now) {
   var u = updUrl();
   if (!u || updBusy || (!now && Date.now() - updAt < 600e3)) return Promise.resolve(false);
   updAt = Date.now(); verChk = 'busy'; drawVer();
-  return fetch(u + '?vcheck=' + updAt, { cache: 'no-store' }).then(function (r) {   // vcheck: 아이폰 sw.js 가 저장본 대신 새로 받게
+  return fetch(u + '?vcheck=' + updAt, { cache: 'no-store' }).then(function (r) {   // vcheck: 아이폰 sw.js · GitHub Pages 가 저장본 대신 새로 주게
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    return isApp() ? r.json() : r.text().then(function (h) { var m = /var VERSION = '([^']+)'/.exec(h); return { version: m ? m[1] : '' }; });
+    return r.text().then(function (h) { var m = /var VERSION = '([^']+)'/.exec(h); return { version: m ? m[1] : '' }; });
   }).then(function (j) {
     if (!j || !j.version) throw new Error('no version');
-    updInfo = (j.file || !isApp()) && verNum(j.version) > verNum(appVer()) ? j : null;
+    updInfo = verNum(j.version) > verNum(appVer()) ? j : null;
     verChk = updInfo ? 'new' : 'ok';
   }).catch(function () { verChk = 'fail'; }).then(function () { drawVer(); return true; });
 }
@@ -2430,22 +2450,53 @@ function showUpdate() {
   setUpd('', 0);
   openSheet('updSheet');
 }
-/** 진행 표시 — st: '' | down(받는 중, v=%) | install(설치 화면 열림) | fail */
+/** 진행 표시 — st: '' | down(받는 중, v=%) | ready(다 받음 → 다시 열기) | fail */
 function setUpd(st, v) {
-  updBusy = st === 'down';
-  $('updBar').hidden = st !== 'down';
+  updBusy = st === 'down' || st === 'ready';
+  $('updBar').hidden = !updBusy;
   $('updFill').style.width = (v > 0 ? v : 3) + '%';
   $('updSt').textContent = st === 'down' ? '새 버전을 받는 중…' + (v >= 0 ? ' ' + v + '%' : '')
-    : st === 'install' ? '설치 화면에서 [업데이트]를 눌러 주세요.\n처음 한 번은 "이 출처 허용"을 물어보면 A카페를 허용해 주세요.'
+    : st === 'ready' ? '새 버전으로 다시 여는 중…'
     : st === 'fail' ? '새 버전을 받지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.' : '';
   $('btnUpd').disabled = updBusy;
-  $('btnUpd').textContent = st === 'install' || st === 'fail' ? '다시 시도' : '업데이트';
+  $('btnUpd').textContent = st === 'fail' ? '다시 시도' : '업데이트';
 }
+/** 웹 버전 android/web.json 이 없을 때 받을 화면 파일 (build-web.js 가 web.json 에 목록을 적는다) */
+var SHELL_FILES = ['index.html', 'game.html', 'qrcode.js', 'jsqr.js', 'logo.webp', 'splash.webp'];
 function startUpdate() {
   if (!updInfo || updBusy) return;
-  if (!isApp()) { setUpd('down', -1); webUpdate(); return; }
+  if (!isShell()) { setUpd('down', -1); webUpdate(); return; }
+  var base = webBase(), ver = updInfo.version;
   setUpd('down', 0);
-  native('update', new URL(updInfo.file, updUrl()).href, CFG.key);
+  fetch(base + 'android/web.json?v=' + ver, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
+    .then(function (w) {
+      var files = Array.isArray(w.files) && w.files.length ? w.files : SHELL_FILES;
+      return shellConfig(base, ver).then(function (cfg) { native('webUpdate', base, files.join(','), cfg, ver); });
+    }).catch(function () { setUpd('fail', 0); });
+}
+/** 안드로이드 앱이 새 화면과 함께 쓸 config.js — 웹 버전 설정(채널·키 없음, 명단 암호화)에
+    이 앱의 채널·키를 넣고 명단을 풀어 채운다. 명단이 하나라도 안 풀리면 업데이트하지 않는다(팀 횟수 = 인원 × 10 이라서). */
+function shellConfig(base, ver) {
+  return fetch(base + 'config.js?v=' + ver, { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.text();
+  }).then(function (txt) {
+    var box = {};
+    new Function('window', txt)(box);
+    var c = box.CAFE_CONFIG;
+    if (!c || !c.roster || !Array.isArray(c.teams) || !c.teams.length) throw new Error('bad config');
+    return unseal(c.roster).then(function (r) {
+      if (!r) throw new Error('roster');
+      c.teams.forEach(function (t) {
+        var x = r[t.id];
+        if (!x || !Array.isArray(x.m) || !x.m.length) throw new Error('roster ' + t.id);
+        t.members = x.m; t.admins = Array.isArray(x.a) ? x.a : [];
+      });
+      c.topic = CFG.topic; c.key = CFG.key;
+      delete c.roster;
+      return '/* A카페 — 원격 업데이트로 받은 설정 (웹 버전 config.js + 이 앱의 채널·키·명단) */\nwindow.CAFE_CONFIG = ' + JSON.stringify(c, null, 2) + ';\n';
+    });
+  });
 }
 /** 아이폰(웹): 저장해 둔 옛 화면 파일을 지우고 새로 받아 다시 연다 (기록은 그대로) */
 function webUpdate() {
@@ -2456,8 +2507,11 @@ function webUpdate() {
     return Promise.all(['./', 'index.html', 'config.js', 'qrcode.js', 'jsqr.js', 'game.html'].map(function (f) { return fetch(f, { cache: 'reload' }).catch(function () {}); }));
   }).then(again, again);
 }
-/** 안드로이드가 알려 주는 진행 상황 */
-window.appUpdate = function (st, v) { setUpd(String(st), Number(v)); };
+/** 안드로이드가 알려 주는 진행 상황 — ready 면 새 화면으로 다시 연다 (기록은 그대로) */
+window.appUpdate = function (st, v) {
+  setUpd(String(st), Number(v));
+  if (st === 'ready') setTimeout(function () { location.reload(); }, 300);
+};
 
 /* ---------------- 시트·뒤로가기 ---------------- */
 /** keep = 열려 있던 비밀번호·QR 등록 상태를 지우지 않는다 (그 시트를 여는 쪽) */
@@ -2594,7 +2648,7 @@ document.addEventListener('click', function (e) {
   var a = e.target.closest('[data-adm]');
   if (a && adm) {
     var k = a.getAttribute('data-adm');
-    if (k === 'q') admChangeQr(); else if (k === 'reset') resetPhone(); else if (k === 'cancel') openCx(); else if (k === 'count') openRs(); else admChangePin(k);
+    if (k === 'q') admChangeQr(); else if (k === 'qdel') admDeleteQr(); else if (k === 'reset') resetPhone(); else if (k === 'cancel') openCx(); else if (k === 'count') openRs(); else admChangePin(k);
     return;
   }
   var cm = e.target.closest('[data-cxm]');
@@ -2640,6 +2694,7 @@ function startApp() {
 }
 openSealedRoster();
 if (ME) startApp(); else showSetup();
+native('webOk');                 // 안드로이드: 이 화면이 끝까지 잘 시작했다 (원격 업데이트로 받은 화면이 고장이면 이게 안 가서 APK 화면으로 되돌아간다)
 if (!window.Native && location.protocol === 'https:' && navigator.serviceWorker) navigator.serviceWorker.register('sw.js').catch(function () {});
 })();
 </script>
